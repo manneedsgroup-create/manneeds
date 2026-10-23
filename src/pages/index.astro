@@ -170,7 +170,7 @@ const bestsellers = await getProducts();
         </a>
       </div>
 
-      <div class="products-grid">
+      <div class="products-grid" id="products-grid">
         {bestsellers.map((item) => (
           <div class="mn-card product-card">
             <!-- Product Visual Banner -->
@@ -1094,7 +1094,77 @@ const bestsellers = await getProducts();
 </style>
 
 <script>
-  import { saveQuizLead } from '../lib/db';
+  import { getProducts, saveQuizLead } from '../lib/db';
+  import { supabase, isSupabaseConfigured } from '../lib/supabase';
+
+  const productsGrid = document.getElementById('products-grid');
+
+  function renderProducts(items: any[]) {
+    if (!productsGrid || !items || items.length === 0) return;
+    productsGrid.innerHTML = items.map((item) => `
+      <div class="mn-card product-card">
+        <div class="product-visual">
+          <span class="discount-badge">${item.discount || '20% OFF'}</span>
+          <span class="badge-corner">${item.badge || 'Plant Active'}</span>
+          <div class="product-illustration">
+            <div class="bottle-mockup">
+              <span class="mockup-leaf">🌿</span>
+              <div class="mockup-bubble b1"></div>
+              <div class="mockup-bubble b2"></div>
+            </div>
+          </div>
+          <div class="flavour-tag">
+            <span>Flavour: <strong>${item.flavour || 'Natural'}</strong></span>
+          </div>
+        </div>
+        <div class="product-content">
+          <div class="product-header-meta">
+            <span class="product-cat-name">${item.category}</span>
+            <span class="stock-indicator ${(item.stockQuantity ?? 0) <= 10 ? 'low-stock' : ''}">
+              ${(item.stockQuantity ?? 0) <= 10 ? `🔥 Only ${item.stockQuantity ?? 0} Left` : `✓ Stock: ${item.stockQuantity ?? 0}`}
+            </span>
+          </div>
+          <h3 class="product-name">${item.name}</h3>
+          <p class="product-desc">${item.desc || ''}</p>
+          <div class="product-price-row">
+            <div class="price-wrap">
+              <span class="current-price">${item.price}</span>
+              ${item.originalPrice ? `<span class="original-price">${item.originalPrice}</span>` : ''}
+            </div>
+            <span class="save-tag">SAVE ${item.discount || '20%'}</span>
+          </div>
+          <button 
+            class="btn btn-primary add-to-cart-btn"
+            onclick="alert('Added ${item.name.replace(/'/g, "\\'")} to your ManNeeds cart! Use code MANNEEDS15 for 15% off.');"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
+            <span>Add To Cart</span>
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Live Auto-Sync with Supabase
+  if (isSupabaseConfigured) {
+    // Fetch live products on page load
+    getProducts().then((latest) => {
+      if (latest && latest.length > 0) renderProducts(latest);
+    });
+
+    // Realtime subscription: updates DOM automatically when any row in Supabase changes
+    supabase
+      .channel('realtime:products')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => {
+        const refreshed = await getProducts();
+        renderProducts(refreshed);
+      })
+      .subscribe();
+  }
 
   const intro = document.getElementById('quiz-intro');
   const openBtn = document.getElementById('open-quiz-btn');
