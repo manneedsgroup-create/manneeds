@@ -1,16 +1,961 @@
 ---
+import MainLayout from '../layouts/MainLayout.astro';
+
+const categories = [
+  {
+    title: 'Drop & Fizz',
+    subtitle: 'Effervescent tablets that turn ordinary water into delicious wellness',
+    tag: 'Flagship',
+    icon: '🥤',
+    color: '#FF6838',
+    bg: '#FFF7ED',
+    itemsCount: '16 Blends'
+  },
+  {
+    title: 'Rosemary Hair Care',
+    subtitle: 'Clinically backed 3% Redensyl & rosemary extracts to halt hair fall',
+    tag: 'Bestseller',
+    icon: '🌿',
+    color: '#059669',
+    bg: '#ECFDF5',
+    itemsCount: '8 Products'
+  },
+  {
+    title: 'Skin Glow & Actives',
+    subtitle: 'Glutathione fizz, Jamun acne washes & fruit antioxidant serums',
+    tag: 'Trending',
+    icon: '✨',
+    color: '#D946EF',
+    bg: '#FDF2F8',
+    itemsCount: '14 Products'
+  },
+  {
+    title: 'Clean Plant Protein',
+    subtitle: '25g Pea & Brown Rice protein with enzymes for zero bloating',
+    tag: 'Clean Vegan',
+    icon: '💪',
+    color: '#0284C7',
+    bg: '#F0F9FF',
+    itemsCount: '6 Flavours'
+  }
+];
+
+const bestsellers = [
+  {
+    id: 1,
+    name: 'ManNeeds Apple Cider Vinegar Effervescent Fizz',
+    category: 'Drop & Fizz',
+    flavour: 'Pomegranate Burst',
+    price: '₹699',
+    originalPrice: '₹999',
+    discount: '30% OFF',
+    rating: 4.9,
+    reviews: '8,420',
+    badge: 'India’s #1 ACV Fizz',
+    desc: 'Pure Himalayan ACV with "The Mother", Vitamin B6 & B12 for gut detox and healthy weight management without the pungent taste.'
+  },
+  {
+    id: 2,
+    name: 'ManNeeds Rosemary Advanced Hair Growth Serum',
+    category: 'Hair Care',
+    flavour: 'Scalp Actives',
+    price: '₹849',
+    originalPrice: '₹1,199',
+    discount: '29% OFF',
+    rating: 4.8,
+    reviews: '5,910',
+    badge: 'Clinical Favorite',
+    desc: 'Targeted scalp concentrate powered by 3% Redensyl, 4% Baicapil, and pure Rosemary extract to stimulate dormant follicles.'
+  },
+  {
+    id: 3,
+    name: 'ManNeeds Glutathione Skin Glow Effervescent Drink',
+    category: 'Skin Glow',
+    flavour: 'Fruity Strawberry',
+    price: '₹999',
+    originalPrice: '₹1,400',
+    discount: '28% OFF',
+    rating: 4.9,
+    reviews: '12,300',
+    badge: 'Mega Bestseller',
+    desc: '500mg L-Glutathione, Hyaluronic Acid & Berry Extracts for radiant skin luminosity and reduced dark spots from within.'
+  },
+  {
+    id: 4,
+    name: 'ManNeeds Super Greens & Debloat Effervescent',
+    category: 'Daily Wellness',
+    flavour: 'Zesty Green Citrus',
+    price: '₹649',
+    originalPrice: '₹899',
+    discount: '27% OFF',
+    rating: 4.7,
+    reviews: '4,150',
+    badge: 'Instant Debloat',
+    desc: '35+ alkalising superfoods, spirulina, wheatgrass & digestive enzymes that ease acidity and bloating in minutes.'
+  }
+];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<MainLayout title="ManNeeds — Clean Plant Nutrition, Grooming & Daily Essentials">
+  <!-- Hero Section -->
+  <section class="hero-section" id="hero">
+    <div class="container hero-container">
+      <div class="hero-content">
+        <!-- Floating Pill Badge -->
+        <div class="badge badge-orange hero-badge">
+          <span class="badge-dot"></span>
+          2M+ Sips Enjoyed Nationwide • 100% Clean Vegan
+        </div>
+        
+        <h1 class="hero-title">
+          TAKE CARE, <br />
+          <span class="text-gradient-orange">HAVE FUN!</span>
+        </h1>
+        
+        <p class="hero-tagline-sub">
+          POP. DROP. <span class="text-gradient-green">FIZZ.</span> SCORE.
+        </p>
+
+        <p class="hero-description">
+          Say goodbye to bitter pills and boring diet powders! Discover clinically proven plant nutrition, hair science, and glowing skincare that tastes wildly delicious.
+        </p>
+
+        <!-- CTA Action Buttons -->
+        <div class="hero-actions">
+          <a href="#bestsellers" class="btn btn-primary hero-btn-main">
+            <span>Shop Bestsellers (Flat 15% Off)</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+          <a href="#quiz" class="btn btn-secondary hero-btn-quiz">
+            <span>🌿 Take Free 60s Routine Quiz</span>
+          </a>
+        </div>
+
+        <!-- 3-Step Pop Drop Fizz Interactive Bar -->
+        <div class="fizz-steps-card">
+          <div class="fizz-step-header">
+            <span class="badge badge-green">The ManNeeds Ritual</span>
+            <span class="fizz-step-title">How Drop & Fizz Magic Works in 30 Seconds:</span>
+          </div>
+
+          <div class="fizz-steps-grid">
+            <div class="fizz-step-item">
+              <div class="step-circle bg-orange">1</div>
+              <div>
+                <strong>DROP</strong>
+                <span>1 effervescent tablet in 200ml cold water</span>
+              </div>
+            </div>
+            <div class="step-arrow">→</div>
+            <div class="fizz-step-item">
+              <div class="step-circle bg-green">2</div>
+              <div>
+                <strong>FIZZ</strong>
+                <span>Watch the bubbly fruit essence dissolve</span>
+              </div>
+            </div>
+            <div class="step-arrow">→</div>
+            <div class="fizz-step-item">
+              <div class="step-circle bg-berry">3</div>
+              <div>
+                <strong>SIP & THRIVE</strong>
+                <span>Drink your way to glowing health!</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories Section -->
+  <section class="section" id="categories">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge badge-orange">The Daily Fix Formats</span>
+        <h2 class="section-title">Clean Plant Solutions Tailored For You</h2>
+        <p class="section-subtitle">
+          Whether you want rapid hair growth, radiant skin, or guilt-free gut detox, find your perfect plant match.
+        </p>
+      </div>
+
+      <div class="categories-grid">
+        {categories.map((cat) => (
+          <div class="mn-card category-card" style={`background-color: ${cat.bg}; border-color: ${cat.color}25;`}>
+            <div class="cat-top">
+              <span class="cat-icon-symbol">{cat.icon}</span>
+              <span class="cat-tag-badge" style={`color: ${cat.color}; background: #FFFFFF;`}>{cat.tag}</span>
+            </div>
+            <div class="cat-body">
+              <h3 class="cat-title" style={`color: #111827;`}>{cat.title}</h3>
+              <p class="cat-desc">{cat.subtitle}</p>
+            </div>
+            <div class="cat-footer">
+              <span class="cat-count">{cat.itemsCount}</span>
+              <span class="cat-cta-link" style={`color: ${cat.color};`}>
+                Shop Now →
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Flagship Bestsellers Section -->
+  <section class="section bestsellers-section" id="bestsellers">
+    <div class="container">
+      <div class="section-header-flex">
+        <div>
+          <span class="badge badge-green">India's Most Loved</span>
+          <h2 class="section-title">Flagship ManNeeds Bestsellers</h2>
+          <p class="section-subtitle">Over 100,000+ five-star reviews from verified community members.</p>
+        </div>
+        <a href="#all" class="btn btn-secondary view-all-btn">
+          View All Formats →
+        </a>
+      </div>
+
+      <div class="products-grid">
+        {bestsellers.map((item) => (
+          <div class="mn-card product-card">
+            <!-- Product Visual Banner -->
+            <div class="product-visual">
+              <span class="discount-badge">{item.discount}</span>
+              <span class="badge-corner">{item.badge}</span>
+              
+              <div class="product-illustration">
+                <div class="bottle-mockup">
+                  <span class="mockup-leaf">🌿</span>
+                  <div class="mockup-bubble b1"></div>
+                  <div class="mockup-bubble b2"></div>
+                </div>
+              </div>
+
+              <div class="flavour-tag">
+                <span>Flavour: <strong>{item.flavour}</strong></span>
+              </div>
+            </div>
+
+            <!-- Product Details -->
+            <div class="product-content">
+              <div class="product-header-meta">
+                <span class="product-cat-name">{item.category}</span>
+                <div class="product-rating">
+                  <span class="stars">★</span>
+                  <strong>{item.rating}</strong>
+                  <span class="reviews-count">({item.reviews})</span>
+                </div>
+              </div>
+
+              <h3 class="product-name">{item.name}</h3>
+              <p class="product-desc">{item.desc}</p>
+
+              <!-- Price Box -->
+              <div class="product-price-row">
+                <div class="price-wrap">
+                  <span class="current-price">{item.price}</span>
+                  <span class="original-price">{item.originalPrice}</span>
+                </div>
+                <span class="save-tag">SAVE {item.discount}</span>
+              </div>
+
+              <!-- Add to Cart CTA -->
+              <button 
+                class="btn btn-primary add-to-cart-btn" 
+                onclick={`alert('Added ${item.name} to your ManNeeds cart! Use code MANNEEDS15 for 15% off.');`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+                <span>Add To Cart</span>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Why The Daily Fix Works -->
+  <section class="section promise-section">
+    <div class="container">
+      <div class="promise-card">
+        <div class="promise-header">
+          <span class="badge badge-orange">The ManNeeds Promise</span>
+          <h2 class="section-title">Why 2 Million+ People Switched to ManNeeds</h2>
+          <p class="section-subtitle">
+            We stripped away the harsh chemicals, the pills, and the boring diet culture.
+          </p>
+        </div>
+
+        <div class="promise-grid">
+          <div class="promise-item">
+            <div class="promise-icon-wrap bg-green">🌱</div>
+            <h4>100% Plant Sourced</h4>
+            <p>Every active is extracted from nature — pea protein, apple cider, rosemary, and berries. Zero animal derivatives.</p>
+          </div>
+
+          <div class="promise-item">
+            <div class="promise-icon-wrap bg-orange">🔬</div>
+            <h4>Clinically Validated Actives</h4>
+            <p>No guesswork. Formulas are tested in certified labs to ensure high bioavailability and visible results in 60-90 days.</p>
+          </div>
+
+          <div class="promise-item">
+            <div class="promise-icon-wrap bg-berry">😋</div>
+            <h4>Wildly Delicious Taste</h4>
+            <p>Made with real fruit aromas and zero added sugar. Nutrition that feels like a treat you crave every single morning.</p>
+          </div>
+
+          <div class="promise-item">
+            <div class="promise-icon-wrap bg-yellow">🛡️</div>
+            <h4>Gentle on Your Gut</h4>
+            <p>Lactose-free, non-GMO, and enriched with digestive enzymes so you never face bloating or stomach discomfort.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Quiz Callout -->
+  <section class="section quiz-section" id="quiz">
+    <div class="container">
+      <div class="quiz-box">
+        <div class="quiz-content">
+          <span class="badge badge-green">Personalized Routine</span>
+          <h2 class="quiz-title">Find Your Exact Routine in 60 Seconds</h2>
+          <p class="quiz-desc">
+            Take our doctor-crafted lifestyle questionnaire. Tell us your hair, skin, or wellness goals and get an instant custom recommendation + extra 10% coupon!
+          </p>
+          <div class="quiz-actions">
+            <button class="btn btn-green" onclick="alert('Starting your 60-second ManNeeds Routine Quiz!');">
+              Start The Free Quiz →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIP Promo CTA -->
+  <section class="section promo-cta-section">
+    <div class="container">
+      <div class="promo-box">
+        <span class="badge badge-orange">Exclusive Welcome Offer</span>
+        <h2 class="promo-title">Ready to Take Care & Have Fun?</h2>
+        <p class="promo-desc">
+          Join over 2,000,000 community members embracing delicious plant wellness. Use code <strong class="promo-code">MANNEEDS15</strong> at checkout for 15% instant savings.
+        </p>
+        <div class="promo-btn-wrap">
+          <a href="#bestsellers" class="btn btn-primary">Start Your Routine Now</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</MainLayout>
+
+<style>
+  /* Hero */
+  .hero-section {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+    background: radial-gradient(circle at 50% 10%, rgba(255, 104, 56, 0.08) 0%, transparent 60%),
+                radial-gradient(circle at 80% 40%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+                var(--bg-base);
+  }
+
+  .hero-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .hero-content {
+    max-width: 900px;
+  }
+
+  .hero-badge {
+    margin-bottom: 1.5rem;
+  }
+
+  .badge-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--mn-orange);
+    display: inline-block;
+  }
+
+  .hero-title {
+    font-size: clamp(2.8rem, 6.5vw, 4.8rem);
+    font-weight: 900;
+    line-height: 1.05;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.035em;
+  }
+
+  .hero-tagline-sub {
+    font-family: var(--font-heading);
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    font-weight: 800;
+    color: var(--text-secondary);
+    letter-spacing: 0.12em;
+    margin-bottom: 1.25rem;
+  }
+
+  .hero-description {
+    font-size: clamp(1.05rem, 2vw, 1.2rem);
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 2.25rem;
+    max-width: 680px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 3.5rem;
+  }
+
+  .hero-btn-main {
+    padding: 0.95rem 1.85rem;
+    font-size: 1.05rem;
+  }
+
+  .hero-btn-quiz {
+    padding: 0.95rem 1.65rem;
+    font-size: 1.05rem;
+  }
+
+  /* Pop Drop Fizz 3 Step Box */
+  .fizz-steps-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 2rem 2.5rem;
+    box-shadow: var(--shadow-md);
+  }
+
+  .fizz-step-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .fizz-step-title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+  }
+
+  .fizz-steps-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .fizz-steps-grid {
+      flex-direction: row;
+      gap: 1rem;
+    }
+  }
+
+  .fizz-step-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-align: left;
+    max-width: 260px;
+  }
+
+  .step-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+  }
+
+  .bg-orange { background: #FFEDD5; color: #EA580C; }
+  .bg-green { background: #D1FAE5; color: #059669; }
+  .bg-berry { background: #FCE7F3; color: #DB2777; }
+  .bg-yellow { background: #FEF3C7; color: #D97706; }
+
+  .fizz-step-item strong {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    letter-spacing: 0.03em;
+  }
+
+  .fizz-step-item span {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .step-arrow {
+    display: none;
+    font-size: 1.5rem;
+    color: #CBD5E1;
+  }
+
+  @media (min-width: 768px) {
+    .step-arrow {
+      display: block;
+    }
+  }
+
+  /* Section Styles */
+  .section {
+    padding-top: 4.5rem;
+    padding-bottom: 4.5rem;
+  }
+
+  .section-header {
+    text-align: center;
+    max-width: 650px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 3.5rem;
+  }
+
+  .section-header-flex {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2.75rem;
+  }
+
+  @media (min-width: 768px) {
+    .section-header-flex {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+  }
+
+  .section-title {
+    font-size: clamp(1.85rem, 4vw, 2.75rem);
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.03em;
+  }
+
+  .section-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.02rem;
+    line-height: 1.6;
+  }
+
+  /* Categories Grid */
+  .categories-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .categories-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .categories-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .category-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 240px;
+    border-radius: var(--radius-lg);
+  }
+
+  .cat-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .cat-icon-symbol {
+    font-size: 2.2rem;
+  }
+
+  .cat-tag-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-full);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+
+  .cat-body {
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .cat-title {
+    font-size: 1.3rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .cat-desc {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .cat-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    padding-top: 1rem;
+  }
+
+  .cat-count {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .cat-cta-link {
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-family: var(--font-heading);
+  }
+
+  /* Products Grid */
+  .products-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
+
+  @media (min-width: 640px) {
+    .products-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .products-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .product-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem;
+  }
+
+  .product-visual {
+    position: relative;
+    height: 190px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(180deg, #FFF7ED 0%, #FEE2E2 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+  }
+
+  .discount-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--mn-orange);
+    color: #FFFFFF;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .badge-corner {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #FFFFFF;
+    color: var(--text-primary);
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-full);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .bottle-mockup {
+    width: 64px;
+    height: 90px;
+    background: linear-gradient(135deg, #FF6838 0%, #F59E0B 100%);
+    border-radius: 14px 14px 20px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 20px rgba(255, 104, 56, 0.25);
+    position: relative;
+    transition: transform var(--transition-bounce);
+  }
+
+  .product-card:hover .bottle-mockup {
+    transform: translateY(-4px) scale(1.06);
+  }
+
+  .mockup-leaf {
+    font-size: 1.6rem;
+  }
+
+  .flavour-tag {
+    position: absolute;
+    bottom: 8px;
+    font-size: 0.72rem;
+    color: #78350F;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 0.15rem 0.6rem;
+    border-radius: var(--radius-full);
+  }
+
+  .product-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .product-header-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+  }
+
+  .product-cat-name {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--mn-green-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .product-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 0.82rem;
+  }
+
+  .stars {
+    color: #F59E0B;
+  }
+
+  .reviews-count {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
+
+  .product-name {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.35;
+  }
+
+  .product-desc {
+    font-size: 0.86rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+    flex: 1;
+  }
+
+  .product-price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .price-wrap {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .current-price {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .original-price {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-decoration: line-through;
+  }
+
+  .save-tag {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #DC2626;
+    background: #FEE2E2;
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+  }
+
+  .add-to-cart-btn {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
+
+  /* Promise Section */
+  .promise-card {
+    background: #FFFFFF;
+    border-radius: var(--radius-xl);
+    padding: 4rem 2.5rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .promise-header {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 3rem auto;
+  }
+
+  .promise-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .promise-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .promise-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .promise-item {
+    text-align: center;
+  }
+
+  .promise-icon-wrap {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin: 0 auto 1.25rem auto;
+  }
+
+  .promise-item h4 {
+    font-size: 1.15rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .promise-item p {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Quiz Box */
+  .quiz-box {
+    background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+    border: 2px dashed #059669;
+    border-radius: var(--radius-xl);
+    padding: 3.5rem 2rem;
+    text-align: center;
+  }
+
+  .quiz-content {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .quiz-title {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    margin-top: 0.75rem;
+    margin-bottom: 1rem;
+    color: #064E3B;
+  }
+
+  .quiz-desc {
+    color: #047857;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+
+  /* Promo Box */
+  .promo-box {
+    background: linear-gradient(135deg, #FFF7ED 0%, #FED7AA 100%);
+    border: 1px solid #FDBA74;
+    border-radius: var(--radius-xl);
+    padding: 4rem 2rem;
+    text-align: center;
+  }
+
+  .promo-title {
+    font-size: clamp(1.8rem, 4.5vw, 2.8rem);
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    color: #7C2D12;
+  }
+
+  .promo-desc {
+    color: #9A3412;
+    font-size: 1.05rem;
+    max-width: 620px;
+    margin: 0 auto 2.25rem auto;
+    line-height: 1.6;
+  }
+
+  .promo-code {
+    background: #FFFFFF;
+    color: var(--mn-orange);
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    border: 1px dashed var(--mn-orange);
+  }
+</style>

@@ -1,0 +1,447 @@
+---
+interface Props {
+  cartCount?: number;
+}
+
+const { cartCount = 3 } = Astro.props;
+
+const navLinks = [
+  { label: 'Fizz (Effervescent)', href: '#fizz', badge: 'Popular' },
+  { label: 'Hair Care', href: '#haircare', badge: 'Rosemary' },
+  { label: 'Skin Glow', href: '#skincare' },
+  { label: 'Plant Protein', href: '#protein' },
+  { label: 'Tasty Gummies', href: '#gummies' },
+  { label: 'Routine Quiz', href: '#quiz', highlight: true }
+];
+---
+
+<!-- Top Announcement Ticker -->
+<div class="announcement-bar" id="announcement">
+  <div class="container announcement-content">
+    <div class="announcement-item">
+      <span class="ticker-highlight">⚡ FLASH SALE:</span>
+      <span>Use code <strong class="coupon-code">MANNEEDS15</strong> for 15% OFF your box</span>
+    </div>
+    <div class="announcement-divider">|</div>
+    <div class="announcement-item hide-on-mobile">
+      <span>🌿 100% Clean Plant-Based & Vegan Certified</span>
+    </div>
+    <div class="announcement-divider hide-on-mobile">|</div>
+    <div class="announcement-item hide-on-mobile">
+      <span>🚚 Free Express Shipping on ₹499+</span>
+    </div>
+  </div>
+</div>
+
+<header class="navbar-wrapper" id="main-header">
+  <div class="container navbar-container">
+    <!-- ManNeeds Brand Logo -->
+    <a href="/" class="brand-logo" aria-label="ManNeeds - The Daily Fix">
+      <div class="brand-logo-wrap">
+        <span class="brand-name">MAN<span class="brand-highlight">NEEDS</span></span>
+        <span class="brand-subtext">THE DAILY FIX</span>
+      </div>
+      <div class="brand-leaf-icon" title="100% Clean & Certified">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+        </svg>
+      </div>
+    </a>
+
+    <!-- Desktop Navigation Links -->
+    <nav class="nav-menu" aria-label="ManNeeds Main Navigation">
+      <ul class="nav-list">
+        {navLinks.map((link) => (
+          <li class="nav-item">
+            <a href={link.href} class={`nav-link ${link.highlight ? 'nav-link-quiz' : ''}`}>
+              <span>{link.label}</span>
+              {link.badge && <span class="nav-badge">{link.badge}</span>}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <!-- Header Actions -->
+    <div class="nav-actions">
+      <!-- Search Button -->
+      <button class="action-icon-btn" aria-label="Search ManNeeds Products" id="search-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </button>
+
+      <!-- Cart Button -->
+      <button class="action-icon-btn cart-btn" aria-label="View ManNeeds Cart" id="cart-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <path d="M16 10a4 4 0 0 1-8 0"></path>
+        </svg>
+        {cartCount > 0 && <span class="cart-badge">{cartCount}</span>}
+      </button>
+
+      <!-- Shop Now Primary Button -->
+      <a href="#bestsellers" class="btn btn-primary nav-cta">
+        <span>Shop Bestsellers</span>
+      </a>
+
+      <!-- Mobile Hamburger Toggle -->
+      <button class="mobile-toggle" id="mobile-toggle-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+        <span class="bar bar-top"></span>
+        <span class="bar bar-mid"></span>
+        <span class="bar bar-bot"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Dropdown Menu -->
+  <div class="mobile-menu" id="mobile-nav-menu">
+    <div class="container mobile-menu-inner">
+      <ul class="mobile-nav-list">
+        {navLinks.map((link) => (
+          <li class="mobile-nav-item">
+            <a href={link.href} class="mobile-nav-link">
+              <span>{link.label}</span>
+              {link.badge && <span class="nav-badge">{link.badge}</span>}
+            </a>
+          </li>
+        ))}
+      </ul>
+      <div class="mobile-cta-wrap">
+        <a href="#bestsellers" class="btn btn-primary" style="width: 100%;">
+          Explore All Essentials
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<style>
+  /* Ticker */
+  .announcement-bar {
+    background: #0E9F6E;
+    color: #FFFFFF;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.45rem 0;
+    letter-spacing: 0.02em;
+  }
+
+  .announcement-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    text-align: center;
+  }
+
+  .ticker-highlight {
+    color: #FDE047;
+    margin-right: 0.35rem;
+  }
+
+  .coupon-code {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  .announcement-divider {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .hide-on-mobile {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .hide-on-mobile {
+      display: inline-flex;
+    }
+  }
+
+  /* Main Navbar */
+  .navbar-wrapper {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-subtle);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    transition: all var(--transition-smooth);
+  }
+
+  .navbar-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+  }
+
+  /* Brand Logo */
+  .brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .brand-logo-wrap {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+
+  .brand-name {
+    font-family: var(--font-heading);
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    letter-spacing: -0.03em;
+  }
+
+  .brand-highlight {
+    color: var(--mn-orange);
+  }
+
+  .brand-subtext {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    color: var(--mn-green-dark);
+  }
+
+  .brand-leaf-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-full);
+    background: var(--bg-tint-green);
+    color: var(--mn-green);
+  }
+
+  /* Nav Links */
+  .nav-menu {
+    display: none;
+  }
+
+  @media (min-width: 980px) {
+    .nav-menu {
+      display: block;
+    }
+  }
+
+  .nav-list {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    list-style: none;
+  }
+
+  .nav-link {
+    font-size: 0.94rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0;
+    position: relative;
+    transition: color var(--transition-fast);
+  }
+
+  .nav-link:hover {
+    color: var(--mn-orange);
+  }
+
+  .nav-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.15rem 0.45rem;
+    border-radius: var(--radius-full);
+    background: var(--bg-tint-orange);
+    color: var(--mn-orange);
+    border: 1px solid var(--border-accent);
+  }
+
+  .nav-link-quiz {
+    color: var(--mn-green-dark);
+    background: var(--bg-tint-green);
+    padding: 0.35rem 0.85rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-green);
+  }
+
+  .nav-link-quiz:hover {
+    background: #D1FAE5;
+    color: var(--mn-green-dark);
+  }
+
+  /* Actions */
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .action-icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    background: var(--bg-subtle);
+    position: relative;
+    transition: all var(--transition-bounce);
+  }
+
+  .action-icon-btn:hover {
+    color: var(--mn-orange);
+    background: var(--bg-tint-orange);
+    transform: scale(1.06);
+  }
+
+  .cart-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: var(--mn-orange);
+    color: #FFFFFF;
+    font-size: 0.7rem;
+    font-weight: 800;
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(255, 104, 56, 0.4);
+  }
+
+  .nav-cta {
+    display: none;
+    padding: 0.65rem 1.35rem;
+    font-size: 0.9rem;
+  }
+
+  @media (min-width: 680px) {
+    .nav-cta {
+      display: inline-flex;
+    }
+  }
+
+  /* Mobile Toggle */
+  .mobile-toggle {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 40px;
+    height: 40px;
+    padding: 11px 9px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-subtle);
+  }
+
+  @media (min-width: 980px) {
+    .mobile-toggle {
+      display: none;
+    }
+  }
+
+  .bar {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background-color: var(--text-primary);
+    border-radius: 2px;
+    transition: all 0.25s ease-in-out;
+  }
+
+  /* Mobile Menu */
+  .mobile-menu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .mobile-menu.open {
+    max-height: 460px;
+  }
+
+  .mobile-menu-inner {
+    padding-top: 1rem;
+    padding-bottom: 1.75rem;
+  }
+
+  .mobile-nav-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .mobile-nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 1px solid #F3F4F6;
+  }
+
+  .mobile-nav-link:hover {
+    color: var(--mn-orange);
+    padding-left: 0.5rem;
+  }
+
+  .mobile-cta-wrap {
+    margin-top: 1.5rem;
+  }
+
+  .mobile-toggle.active .bar-top {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .mobile-toggle.active .bar-mid {
+    opacity: 0;
+  }
+  .mobile-toggle.active .bar-bot {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+</style>
+
+<script>
+  const toggleBtn = document.getElementById('mobile-toggle-btn');
+  const mobileMenu = document.getElementById('mobile-nav-menu');
+
+  if (toggleBtn && mobileMenu) {
+    toggleBtn.addEventListener('click', () => {
+      const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+      toggleBtn.setAttribute('aria-expanded', String(!isExpanded));
+      toggleBtn.classList.toggle('active');
+      mobileMenu.classList.toggle('open');
+    });
+
+    const mobileLinks = mobileMenu.querySelectorAll('a');
+    mobileLinks.forEach((link) => {
+      link.addEventListener('click', () => {
+        toggleBtn.classList.remove('active');
+        toggleBtn.setAttribute('aria-expanded', 'false');
+        mobileMenu.classList.remove('open');
+      });
+    });
+  }
+</script>
