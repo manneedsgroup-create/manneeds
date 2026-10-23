@@ -131,15 +131,16 @@ const {
             <p class="newsletter-desc">
               Get secret flash drops, delicious health recipes, and an instant <strong>Flat 15% OFF</strong> voucher on your first order.
             </p>
-            <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Yay! Welcome to the ManNeeds Tribe. Use coupon MANNEEDS15 at checkout.');">
+            <form class="newsletter-form" id="newsletter-form">
               <input 
                 type="email" 
                 placeholder="Enter your email" 
                 required 
                 class="newsletter-input" 
+                id="newsletter-email"
                 aria-label="Email for ManNeeds Tribe"
               />
-              <button type="submit" class="btn btn-primary newsletter-btn">
+              <button type="submit" class="btn btn-primary newsletter-btn" id="newsletter-submit-btn">
                 Claim 15%
               </button>
             </form>
@@ -412,3 +413,32 @@ const {
     color: #FFFFFF;
   }
 </style>
+
+<script>
+  import { addSubscriber } from '../lib/db';
+
+  const form = document.getElementById('newsletter-form') as HTMLFormElement;
+  const input = document.getElementById('newsletter-email') as HTMLInputElement;
+  const btn = document.getElementById('newsletter-submit-btn') as HTMLButtonElement;
+
+  if (form && input && btn) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = input.value.trim();
+      if (!email) return;
+
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+
+      const res = await addSubscriber(email);
+      alert(res.message);
+
+      btn.disabled = false;
+      btn.textContent = originalText || 'Claim 15%';
+      if (res.success) {
+        input.value = '';
+      }
+    });
+  }
+</script>

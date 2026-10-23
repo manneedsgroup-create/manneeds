@@ -1,6 +1,9 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
 
+import { getProducts } from '../lib/db';
+import { isSupabaseConfigured } from '../lib/supabase';
+
 const categories = [
   {
     title: 'Drop & Fizz',
@@ -40,60 +43,8 @@ const categories = [
   }
 ];
 
-const bestsellers = [
-  {
-    id: 1,
-    name: 'ManNeeds Apple Cider Vinegar Effervescent Fizz',
-    category: 'Drop & Fizz',
-    flavour: 'Pomegranate Burst',
-    price: '₹699',
-    originalPrice: '₹999',
-    discount: '30% OFF',
-    rating: 4.9,
-    reviews: '8,420',
-    badge: 'India’s #1 ACV Fizz',
-    desc: 'Pure Himalayan ACV with "The Mother", Vitamin B6 & B12 for gut detox and healthy weight management without the pungent taste.'
-  },
-  {
-    id: 2,
-    name: 'ManNeeds Rosemary Advanced Hair Growth Serum',
-    category: 'Hair Care',
-    flavour: 'Scalp Actives',
-    price: '₹849',
-    originalPrice: '₹1,199',
-    discount: '29% OFF',
-    rating: 4.8,
-    reviews: '5,910',
-    badge: 'Clinical Favorite',
-    desc: 'Targeted scalp concentrate powered by 3% Redensyl, 4% Baicapil, and pure Rosemary extract to stimulate dormant follicles.'
-  },
-  {
-    id: 3,
-    name: 'ManNeeds Glutathione Skin Glow Effervescent Drink',
-    category: 'Skin Glow',
-    flavour: 'Fruity Strawberry',
-    price: '₹999',
-    originalPrice: '₹1,400',
-    discount: '28% OFF',
-    rating: 4.9,
-    reviews: '12,300',
-    badge: 'Mega Bestseller',
-    desc: '500mg L-Glutathione, Hyaluronic Acid & Berry Extracts for radiant skin luminosity and reduced dark spots from within.'
-  },
-  {
-    id: 4,
-    name: 'ManNeeds Super Greens & Debloat Effervescent',
-    category: 'Daily Wellness',
-    flavour: 'Zesty Green Citrus',
-    price: '₹649',
-    originalPrice: '₹899',
-    discount: '27% OFF',
-    rating: 4.7,
-    reviews: '4,150',
-    badge: 'Instant Debloat',
-    desc: '35+ alkalising superfoods, spirulina, wheatgrass & digestive enzymes that ease acidity and bloating in minutes.'
-  }
-];
+// Fetch dynamically from Supabase database with automatic fallback
+const bestsellers = await getProducts();
 ---
 
 <MainLayout title="ManNeeds — Clean Plant Nutrition, Grooming & Daily Essentials">
@@ -327,16 +278,73 @@ const bestsellers = [
   <section class="section quiz-section" id="quiz">
     <div class="container">
       <div class="quiz-box">
-        <div class="quiz-content">
+        <!-- Intro Screen -->
+        <div class="quiz-content" id="quiz-intro">
           <span class="badge badge-green">Personalized Routine</span>
           <h2 class="quiz-title">Find Your Exact Routine in 60 Seconds</h2>
           <p class="quiz-desc">
             Take our doctor-crafted lifestyle questionnaire. Tell us your hair, skin, or wellness goals and get an instant custom recommendation + extra 10% coupon!
           </p>
           <div class="quiz-actions">
-            <button class="btn btn-green" onclick="alert('Starting your 60-second ManNeeds Routine Quiz!');">
+            <button class="btn btn-green" id="open-quiz-btn">
               Start The Free Quiz →
             </button>
+          </div>
+        </div>
+
+        <!-- Interactive Quiz Form -->
+        <div class="quiz-form-wrap" id="quiz-form-wrap" style="display: none;">
+          <span class="badge badge-orange">Quick Assessment</span>
+          <h3 class="quiz-form-title">Select Your Goal & Preference</h3>
+          <form id="routine-quiz-form" class="quiz-form">
+            <div class="quiz-form-grid">
+              <div class="quiz-field">
+                <label for="quiz-concern">Primary Wellness Goal:</label>
+                <select id="quiz-concern" required class="quiz-select">
+                  <option value="Hair Fall Control & Scalp Density">Hair Fall Control & Scalp Density (Rosemary)</option>
+                  <option value="Glowing Skin & Dark Spot Reduction">Glowing Skin & Dark Spots (Glutathione)</option>
+                  <option value="Gut Detox & Healthy Weight">Gut Detox & Healthy Weight (ACV with Mother)</option>
+                  <option value="Instant Debloat & Daily Greens">Instant Debloat & Alkalising Greens</option>
+                  <option value="Clean Plant Protein & Muscle">Clean Plant Protein & Lean Muscle</option>
+                </select>
+              </div>
+
+              <div class="quiz-field">
+                <label for="quiz-format">Preferred Format:</label>
+                <select id="quiz-format" required class="quiz-select">
+                  <option value="Drop & Fizz (Effervescent)">Drop & Fizz (Effervescent Drink)</option>
+                  <option value="Targeted Scalp Serum">Targeted Scalp Serum</option>
+                  <option value="Chewable Gummies">Chewable Gummies</option>
+                  <option value="Plant Protein Shake">Plant Protein Shake</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="quiz-field">
+              <label for="quiz-email">Where should we send your custom discount?</label>
+              <input type="email" id="quiz-email" placeholder="Enter your email" required class="quiz-input" />
+            </div>
+
+            <div class="quiz-form-actions">
+              <button type="button" class="btn btn-secondary" id="cancel-quiz-btn">Back</button>
+              <button type="submit" class="btn btn-green" id="submit-quiz-btn">Get My Routine & 10% Off →</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Quiz Result Box -->
+        <div class="quiz-result-wrap" id="quiz-result-wrap" style="display: none;">
+          <div class="quiz-result-card">
+            <span class="badge badge-green">Your Recommended Match</span>
+            <h3 id="recommendation-title">ManNeeds Recommended Routine</h3>
+            <p id="recommendation-desc" class="recommendation-desc"></p>
+            <div class="quiz-coupon-alert">
+              Use code <strong class="coupon-highlight">ROUTINE10</strong> for an instant extra 10% off!
+            </div>
+            <div class="quiz-result-actions">
+              <a href="#bestsellers" class="btn btn-primary">Shop This Routine</a>
+              <button type="button" class="btn btn-secondary" id="retake-quiz-btn">Retake Quiz</button>
+            </div>
           </div>
         </div>
       </div>
@@ -958,4 +966,206 @@ const bestsellers = [
     border-radius: 6px;
     border: 1px dashed var(--mn-orange);
   }
+
+  /* Interactive Quiz Styles */
+  .quiz-form-wrap, .quiz-result-wrap {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: left;
+    background: #FFFFFF;
+    border-radius: var(--radius-lg);
+    padding: 2.25rem 2rem;
+    box-shadow: var(--shadow-md);
+  }
+
+  .quiz-form-title {
+    font-size: 1.4rem;
+    margin-top: 0.75rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+  }
+
+  .quiz-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .quiz-form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  @media (min-width: 600px) {
+    .quiz-form-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .quiz-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .quiz-field label {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .quiz-select, .quiz-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    background: #FFFFFF;
+    font-size: 0.92rem;
+    outline: none;
+    transition: border-color var(--transition-fast);
+  }
+
+  .quiz-select:focus, .quiz-input:focus {
+    border-color: var(--mn-green-dark);
+  }
+
+  .quiz-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  .quiz-result-card {
+    text-align: center;
+  }
+
+  .quiz-result-card h3 {
+    font-size: 1.5rem;
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+  }
+
+  .recommendation-desc {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  .quiz-coupon-alert {
+    background: var(--bg-tint-orange);
+    border: 1.5px dashed var(--mn-orange);
+    padding: 0.85rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    color: #7C2D12;
+  }
+
+  .coupon-highlight {
+    color: var(--mn-orange);
+    font-size: 1.1rem;
+    letter-spacing: 0.05em;
+  }
+
+  .quiz-result-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
 </style>
+
+<script>
+  import { saveQuizLead } from '../lib/db';
+
+  const intro = document.getElementById('quiz-intro');
+  const openBtn = document.getElementById('open-quiz-btn');
+  const formWrap = document.getElementById('quiz-form-wrap');
+  const form = document.getElementById('routine-quiz-form') as HTMLFormElement;
+  const cancelBtn = document.getElementById('cancel-quiz-btn');
+  const submitBtn = document.getElementById('submit-quiz-btn') as HTMLButtonElement;
+  const resultWrap = document.getElementById('quiz-result-wrap');
+  const recTitle = document.getElementById('recommendation-title');
+  const recDesc = document.getElementById('recommendation-desc');
+  const retakeBtn = document.getElementById('retake-quiz-btn');
+
+  // Open Quiz
+  if (openBtn && intro && formWrap) {
+    openBtn.addEventListener('click', () => {
+      intro.style.display = 'none';
+      formWrap.style.display = 'block';
+    });
+  }
+
+  // Cancel Quiz
+  if (cancelBtn && intro && formWrap) {
+    cancelBtn.addEventListener('click', () => {
+      formWrap.style.display = 'none';
+      intro.style.display = 'block';
+    });
+  }
+
+  // Submit Quiz to Supabase
+  if (form && submitBtn && recTitle && recDesc && resultWrap && formWrap) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const concern = (document.getElementById('quiz-concern') as HTMLSelectElement).value;
+      const format = (document.getElementById('quiz-format') as HTMLSelectElement).value;
+      const email = (document.getElementById('quiz-email') as HTMLInputElement).value.trim();
+
+      const originalBtnText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Generating Routine...';
+
+      let recommendation = 'ManNeeds Daily Multivitamin & Debloat Fizz';
+      let details = 'A synergistic plant-based daily routine designed to optimize your energy and vitality.';
+
+      if (concern.includes('Hair Fall')) {
+        recommendation = 'ManNeeds Rosemary Advanced Hair Growth Serum + Biotin Boost';
+        details = 'Powered by 3% Redensyl and Baicapil to nourish follicles and reduce hair fall in 60-90 days.';
+      } else if (concern.includes('Skin')) {
+        recommendation = 'ManNeeds Glutathione Glow Effervescent + Vitamin C';
+        details = '500mg clinical-grade L-Glutathione to reduce hyperpigmentation and promote a radiant skin tone.';
+      } else if (concern.includes('Gut') || concern.includes('Weight')) {
+        recommendation = 'ManNeeds Apple Cider Vinegar Daily Fizz (With Mother)';
+        details = 'Pure Himalayan ACV with Pomegranate extract for healthy gut biome, digestion, and metabolism.';
+      } else if (concern.includes('Debloat')) {
+        recommendation = 'ManNeeds Super Greens & Debloat Effervescent';
+        details = '35+ alkalising superfoods and digestive enzymes to instantly relieve bloating and acidity.';
+      } else if (concern.includes('Protein')) {
+        recommendation = 'ManNeeds 100% Plant Protein Powder (Rich Belgian Chocolate)';
+        details = '25g complete amino-acid profile pea & brown rice protein with enzymes for easy digestion and zero bloating.';
+      }
+
+      // Save lead directly to Supabase
+      await saveQuizLead({
+        email,
+        concern,
+        preferred_format: format,
+        recommendation
+      });
+
+      recTitle.textContent = recommendation;
+      recDesc.textContent = details;
+
+      formWrap.style.display = 'none';
+      resultWrap.style.display = 'block';
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalBtnText || 'Get My Routine';
+    });
+  }
+
+  // Retake Quiz
+  if (retakeBtn && resultWrap && intro) {
+    retakeBtn.addEventListener('click', () => {
+      resultWrap.style.display = 'none';
+      intro.style.display = 'block';
+    });
+  }
+</script>
