@@ -6,40 +6,40 @@ import { isSupabaseConfigured } from '../lib/supabase';
 
 const categories = [
   {
-    title: 'Drop & Fizz',
-    subtitle: 'Effervescent tablets that turn ordinary water into delicious wellness',
-    tag: 'Flagship',
-    icon: '🥤',
+    title: 'Healthy Snacks',
+    subtitle: 'Crunchy roasted wholesome munchies in Peri Peri, Chat Masala & Salted',
+    tag: 'Guilt-Free',
+    icon: '🍿',
     color: '#FF6838',
     bg: '#FFF7ED',
-    itemsCount: '16 Blends'
+    itemsCount: '3 Products'
   },
   {
-    title: 'Rosemary Hair Care',
-    subtitle: 'Clinically backed 3% Redensyl & rosemary extracts to halt hair fall',
-    tag: 'Bestseller',
+    title: 'Dried Fruit Chips',
+    subtitle: '100% natural vacuum-crisped Mango, Jackfruit & Banana slices',
+    tag: 'Zero Palm Oil',
+    icon: '🥭',
+    color: '#F59E0B',
+    bg: '#FEF3C7',
+    itemsCount: '3 Products'
+  },
+  {
+    title: 'Real Fruit Candies',
+    subtitle: 'Chewy bite-sized treats made from Mango, Jackfruit, Pumpkin & Banana',
+    tag: '100% Real Pulp',
+    icon: '🍬',
+    color: '#EC4899',
+    bg: '#FDF2F8',
+    itemsCount: '4 Products'
+  },
+  {
+    title: 'Botanical Powders',
+    subtitle: 'Moringa, Thankuni (Gotu Kola), Chalkumro (Ash Gourd) & Lemon detox',
+    tag: 'Ayurvedic Actives',
     icon: '🌿',
     color: '#059669',
     bg: '#ECFDF5',
-    itemsCount: '8 Products'
-  },
-  {
-    title: 'Skin Glow & Actives',
-    subtitle: 'Glutathione fizz, Jamun acne washes & fruit antioxidant serums',
-    tag: 'Trending',
-    icon: '✨',
-    color: '#D946EF',
-    bg: '#FDF2F8',
-    itemsCount: '14 Products'
-  },
-  {
-    title: 'Clean Plant Protein',
-    subtitle: '25g Pea & Brown Rice protein with enzymes for zero bloating',
-    tag: 'Clean Vegan',
-    icon: '💪',
-    color: '#0284C7',
-    bg: '#F0F9FF',
-    itemsCount: '6 Flavours'
+    itemsCount: '6 Powders'
   }
 ];
 
@@ -195,11 +195,11 @@ const bestsellers = await getProducts();
             <div class="product-content">
               <div class="product-header-meta">
                 <span class="product-cat-name">{item.category}</span>
-                <div class="product-rating">
-                  <span class="stars">★</span>
-                  <strong>{item.rating}</strong>
-                  <span class="reviews-count">({item.reviews})</span>
-                </div>
+                {item.stockQuantity !== undefined && (
+                  <span class={`stock-indicator ${item.stockQuantity <= 10 ? 'low-stock' : ''}`}>
+                    {item.stockQuantity <= 10 ? `🔥 Only ${item.stockQuantity} Left` : `✓ Stock: ${item.stockQuantity}`}
+                  </span>
+                )}
               </div>
 
               <h3 class="product-name">{item.name}</h3>
@@ -773,6 +773,20 @@ const bestsellers = await getProducts();
     color: var(--mn-green-dark);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+  }
+
+  .stock-indicator {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--mn-green-dark);
+    background: var(--bg-tint-green);
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-full);
+  }
+
+  .stock-indicator.low-stock {
+    color: #DC2626;
+    background: #FEE2E2;
   }
 
   .product-rating {

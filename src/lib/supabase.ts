@@ -13,6 +13,7 @@ export interface Product {
   badge?: string;
   desc: string;
   inStock?: boolean;
+  stockQuantity?: number;
 }
 
 export interface Subscriber {
