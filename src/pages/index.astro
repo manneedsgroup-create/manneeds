@@ -187,8 +187,23 @@ const bestsellers = await getProducts();
         </div>
       </div>
 
-      <!-- Interactive Category Filter Bar -->
+      <!-- Interactive Catalog Controls (Search & Category Filters) -->
       <div class="category-filters-container">
+        <!-- Live Instant Search Bar -->
+        <div class="catalog-search-box">
+          <svg class="search-box-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input 
+            type="search" 
+            id="catalog-search-input" 
+            placeholder="Instant search by name, flavor, active or pack size..." 
+            aria-label="Filter 22 products live"
+          />
+          <button type="button" class="catalog-search-clear" id="catalog-search-clear" style="display: none;" aria-label="Clear Search Input">✕</button>
+        </div>
+
         <div class="category-filters-bar" id="category-filters-bar" role="tablist" aria-label="Filter products by category">
           <button type="button" class="cat-filter-btn active" data-cat="all" role="tab" aria-selected="true">
             <span class="cat-icon">✨</span>
@@ -221,6 +236,14 @@ const bestsellers = await getProducts();
             <span class="cat-count-badge">1</span>
           </button>
         </div>
+      </div>
+
+      <!-- No Products Found Empty State -->
+      <div class="no-products-found" id="no-products-found" style="display: none;">
+        <div class="no-products-icon">🌿</div>
+        <h3>No matching products found</h3>
+        <p id="no-products-query-text">Try searching for "Honey", "Okra", "Moringa", or "Snack"</p>
+        <button type="button" class="btn btn-secondary reset-filters-btn" id="reset-filters-btn">Clear Filter & View All 22</button>
       </div>
 
       <div class="products-grid" id="products-grid">
@@ -805,20 +828,115 @@ const bestsellers = await getProducts();
     }
   }
 
-  /* Category Filters Bar */
+  /* Category Filters Bar & Search Controls */
   .category-filters-container {
     margin-bottom: 2.25rem;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .catalog-search-box {
+    position: relative;
+    max-width: 480px;
+    display: flex;
+    align-items: center;
+  }
+
+  .search-box-icon {
+    position: absolute;
+    left: 1.15rem;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  #catalog-search-input {
+    width: 100%;
+    padding: 0.75rem 2.5rem 0.75rem 2.9rem;
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-full);
+    background: #FFFFFF;
+    font-size: 0.92rem;
+    color: var(--text-primary);
+    outline: none;
+    transition: all var(--transition-fast);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  }
+
+  #catalog-search-input:focus {
+    border-color: var(--mn-orange);
+    box-shadow: 0 0 0 3px rgba(255, 104, 56, 0.15);
+  }
+
+  .catalog-search-clear {
+    position: absolute;
+    right: 0.85rem;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-full);
+    border: none;
+    background: #E5E7EB;
+    color: #4B5563;
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition-fast);
+  }
+
+  .catalog-search-clear:hover {
+    background: #D1D5DB;
+    color: #111827;
   }
 
   .category-filters-bar {
     display: flex;
     align-items: center;
     gap: 0.65rem;
-    min-width: max-content;
-    padding: 0.25rem 0.15rem;
+    overflow-x: auto;
+    padding-bottom: 0.4rem;
+    -webkit-overflow-scrolling: touch;
+    min-width: 0;
+  }
+
+  /* No Products Empty State */
+  .no-products-found {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3.5rem 1.5rem;
+    text-align: center;
+    background: #FAFAFA;
+    border: 1.5px dashed var(--border-subtle);
+    border-radius: var(--radius-lg);
+    margin: 1rem 0 2.5rem;
+  }
+
+  .no-products-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .no-products-found h3 {
+    font-family: var(--font-heading);
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 0.4rem;
+  }
+
+  .no-products-found p {
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+    margin-bottom: 1.25rem;
+    max-width: 360px;
+  }
+
+  .reset-filters-btn {
+    padding: 0.65rem 1.4rem;
+    font-size: 0.88rem;
   }
 
   .cat-filter-btn {
@@ -1469,42 +1587,78 @@ const bestsellers = await getProducts();
       btn.addEventListener('click', (e) => {
         const card = (e.currentTarget as HTMLElement).closest('.product-card');
         if (!card) return;
+        const id = card.getAttribute('data-product-id') || 'product';
         const name = card.getAttribute('data-product-name') || 'Product';
         const weight = card.getAttribute('data-selected-weight') || '100g';
         const price = card.getAttribute('data-selected-price') || '';
-        alert(`Added ${name} (${weight}) - ${price} to your ManNeeds cart!\nUse coupon code MANNEEDS15 for 15% off.`);
+        const originalPrice = card.querySelector('[data-orig-price-target]')?.textContent || undefined;
+        const category = card.getAttribute('data-category') || '';
+
+        if ((window as any).manneedsCart?.add) {
+          (window as any).manneedsCart.add({
+            id,
+            name,
+            weight,
+            price,
+            originalPrice,
+            category
+          });
+        }
       });
     });
   }
 
-  // Filter products by category
-  function applyCategoryFilter(cat: string) {
-    currentActiveCategory = cat;
+  // Filter products by category & live search query
+  let currentSearchQuery = '';
+  const catalogSearchInput = document.getElementById('catalog-search-input') as HTMLInputElement | null;
+  const catalogSearchClear = document.getElementById('catalog-search-clear') as HTMLButtonElement | null;
+  const emptyState = document.getElementById('no-products-found');
+  const emptyStateQueryText = document.getElementById('no-products-query-text');
+  const resetFiltersBtn = document.getElementById('reset-filters-btn');
+
+  function applyFilters() {
     if (!productsGrid) return;
 
     const cards = productsGrid.querySelectorAll('.product-card');
     let visibleCount = 0;
+    const q = currentSearchQuery.toLowerCase().trim();
 
     cards.forEach((card) => {
       const cardCat = (card.getAttribute('data-category') || '').trim();
-      let isVisible = false;
+      const cardName = (card.getAttribute('data-product-name') || '').toLowerCase();
+      const cardDesc = (card.querySelector('.product-desc')?.textContent || '').toLowerCase();
+      const cardFlavour = (card.querySelector('.flavour-tag strong')?.textContent || '').toLowerCase();
+      const cardWeight = (card.getAttribute('data-selected-weight') || '').toLowerCase();
 
-      if (cat === 'all') {
-        isVisible = true;
-      } else if (cat === 'Herbal & Superfood Powders') {
-        isVisible = cardCat === 'Herbal & Superfood Powders' || cardCat.includes('Powder');
-      } else if (cat === 'Healthy Snacks') {
-        isVisible = cardCat === 'Healthy Snacks' || cardCat.includes('Snack');
-      } else if (cat === 'Real Fruit Candies') {
-        isVisible = cardCat === 'Real Fruit Candies' || cardCat.includes('Cand');
-      } else if (cat === 'Dried Fruit Chips') {
-        isVisible = cardCat === 'Dried Fruit Chips' || cardCat.includes('Chip');
-      } else if (cat === 'Raw Honey & Pure Elixirs') {
-        isVisible = cardCat === 'Raw Honey & Pure Elixirs' || cardCat.includes('Honey') || cardCat.includes('Elixir');
+      // Check category
+      let matchesCat = false;
+      if (currentActiveCategory === 'all') {
+        matchesCat = true;
+      } else if (currentActiveCategory === 'Herbal & Superfood Powders') {
+        matchesCat = cardCat === 'Herbal & Superfood Powders' || cardCat.includes('Powder');
+      } else if (currentActiveCategory === 'Healthy Snacks') {
+        matchesCat = cardCat === 'Healthy Snacks' || cardCat.includes('Snack');
+      } else if (currentActiveCategory === 'Real Fruit Candies') {
+        matchesCat = cardCat === 'Real Fruit Candies' || cardCat.includes('Cand');
+      } else if (currentActiveCategory === 'Dried Fruit Chips') {
+        matchesCat = cardCat === 'Dried Fruit Chips' || cardCat.includes('Chip');
+      } else if (currentActiveCategory === 'Raw Honey & Pure Elixirs') {
+        matchesCat = cardCat === 'Raw Honey & Pure Elixirs' || cardCat.includes('Honey') || cardCat.includes('Elixir');
       } else {
-        isVisible = cardCat.toLowerCase().includes(cat.toLowerCase());
+        matchesCat = cardCat.toLowerCase().includes(currentActiveCategory.toLowerCase());
       }
 
+      // Check search
+      let matchesSearch = true;
+      if (q) {
+        matchesSearch = cardName.includes(q) ||
+          cardDesc.includes(q) ||
+          cardFlavour.includes(q) ||
+          cardCat.toLowerCase().includes(q) ||
+          cardWeight.includes(q);
+      }
+
+      const isVisible = matchesCat && matchesSearch;
       const cardEl = card as HTMLElement;
       if (isVisible) {
         cardEl.style.display = '';
@@ -1519,6 +1673,25 @@ const bestsellers = await getProducts();
     if (countLabel) {
       countLabel.textContent = `${visibleCount} Products Available`;
     }
+
+    if (emptyState) {
+      if (visibleCount === 0) {
+        emptyState.style.display = 'flex';
+        if (emptyStateQueryText) {
+          emptyStateQueryText.textContent = q
+            ? `No products found matching "${currentSearchQuery}". Try clearing search or selecting All Products.`
+            : `No products currently available in this category.`;
+        }
+      } else {
+        emptyState.style.display = 'none';
+      }
+    }
+  }
+
+  // Backward-compatible category filter helper
+  function applyCategoryFilter(cat: string) {
+    currentActiveCategory = cat;
+    applyFilters();
   }
 
   // Setup category filter tabs
@@ -1534,8 +1707,59 @@ const bestsellers = await getProducts();
       targetBtn.setAttribute('aria-selected', 'true');
 
       const cat = targetBtn.getAttribute('data-cat') || 'all';
-      applyCategoryFilter(cat);
+      currentActiveCategory = cat;
+      applyFilters();
     });
+  });
+
+  // Setup live search input & clear
+  if (catalogSearchInput) {
+    catalogSearchInput.addEventListener('input', () => {
+      currentSearchQuery = catalogSearchInput.value;
+      if (catalogSearchClear) {
+        catalogSearchClear.style.display = currentSearchQuery ? 'flex' : 'none';
+      }
+      applyFilters();
+    });
+  }
+
+  if (catalogSearchClear) {
+    catalogSearchClear.addEventListener('click', () => {
+      currentSearchQuery = '';
+      if (catalogSearchInput) catalogSearchInput.value = '';
+      catalogSearchClear.style.display = 'none';
+      applyFilters();
+      catalogSearchInput?.focus();
+    });
+  }
+
+  // Reset filters button in empty state
+  if (resetFiltersBtn) {
+    resetFiltersBtn.addEventListener('click', () => {
+      currentActiveCategory = 'all';
+      currentSearchQuery = '';
+      if (catalogSearchInput) catalogSearchInput.value = '';
+      if (catalogSearchClear) catalogSearchClear.style.display = 'none';
+      filterButtons.forEach((b) => {
+        const isAll = b.getAttribute('data-cat') === 'all';
+        b.classList.toggle('active', isAll);
+        b.setAttribute('aria-selected', String(isAll));
+      });
+      applyFilters();
+    });
+  }
+
+  // Listen for search dispatched from top header navbar
+  window.addEventListener('manneeds-search', (e: any) => {
+    const q = e.detail?.query || '';
+    currentSearchQuery = q;
+    if (catalogSearchInput) {
+      catalogSearchInput.value = q;
+      if (catalogSearchClear) {
+        catalogSearchClear.style.display = q ? 'flex' : 'none';
+      }
+    }
+    applyFilters();
   });
 
   // Also hook up category showcase cards to filter
@@ -1556,7 +1780,8 @@ const bestsellers = await getProducts();
         b.setAttribute('aria-selected', String(matches));
       });
 
-      applyCategoryFilter(targetCat);
+      currentActiveCategory = targetCat;
+      applyFilters();
       document.getElementById('bestsellers')?.scrollIntoView({ behavior: 'smooth' });
     });
   });
@@ -1666,7 +1891,7 @@ const bestsellers = await getProducts();
     }).join('');
 
     bindProductInteractions();
-    applyCategoryFilter(currentActiveCategory);
+    applyFilters();
   }
 
   // Initialize interactive handlers on server-rendered cards
@@ -1674,15 +1899,62 @@ const bestsellers = await getProducts();
 
   // Live Auto-Sync with Supabase
   if (isSupabaseConfigured) {
-    // Fetch live products on page load
+    // Check if live products on page load have any difference before updating DOM
     getProducts().then((latest) => {
-      if (latest && latest.length > 0) renderProducts(latest);
+      if (latest && latest.length > 0) {
+        const existingCards = productsGrid?.querySelectorAll('.product-card');
+        if (!existingCards || existingCards.length !== latest.length) {
+          renderProducts(latest);
+        } else {
+          // Just update stock / prices in place without re-rendering entire grid
+          latest.forEach((p) => {
+            const card = productsGrid?.querySelector(`[data-product-id="${p.id}"]`);
+            if (card) {
+              const stockEl = card.querySelector('[data-stock-target]');
+              const masterStock = p.stockQuantity ?? 0;
+              if (stockEl) {
+                stockEl.className = `stock-indicator ${masterStock <= 10 ? 'low-stock' : ''}`;
+                stockEl.textContent = masterStock <= 0 ? '❌ Out of Stock' : masterStock <= 10 ? `🔥 Only ${masterStock} Left` : `✓ Stock: ${masterStock}`;
+              }
+            }
+          });
+        }
+      }
     });
 
     // Realtime subscription: updates DOM automatically when any row in Supabase changes
     supabase
       .channel('realtime:products')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'products' }, (payload: any) => {
+        const row = payload.new;
+        if (!row || !row.id) return;
+        const card = productsGrid?.querySelector(`[data-product-id="${row.id}"]`);
+        if (card) {
+          const masterStock = row.stock_quantity !== undefined && row.stock_quantity !== null
+            ? Number(row.stock_quantity)
+            : Number(row.stock || 0);
+
+          // Update stock indicator
+          const stockEl = card.querySelector('[data-stock-target]');
+          if (stockEl) {
+            stockEl.className = `stock-indicator ${masterStock <= 10 ? 'low-stock' : ''}`;
+            stockEl.textContent = masterStock <= 0 ? '❌ Out of Stock' : masterStock <= 10 ? `🔥 Only ${masterStock} Left` : `✓ Stock: ${masterStock}`;
+          }
+
+          // Update first pill stock
+          const firstPill = card.querySelector('.weight-pill');
+          if (firstPill) {
+            firstPill.setAttribute('data-stock', String(masterStock));
+          }
+        } else {
+          getProducts().then((refreshed) => renderProducts(refreshed));
+        }
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'products' }, async () => {
+        const refreshed = await getProducts();
+        renderProducts(refreshed);
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'products' }, async () => {
         const refreshed = await getProducts();
         renderProducts(refreshed);
       })

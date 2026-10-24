@@ -3,7 +3,7 @@ interface Props {
   cartCount?: number;
 }
 
-const { cartCount = 3 } = Astro.props;
+const { cartCount = 0 } = Astro.props;
 
 const navLinks = [
   { label: 'Herbal Powders', href: '#categories', badge: '11 Actives' },
@@ -80,7 +80,7 @@ const navLinks = [
           <line x1="3" y1="6" x2="21" y2="6"></line>
           <path d="M16 10a4 4 0 0 1-8 0"></path>
         </svg>
-        {cartCount > 0 && <span class="cart-badge">{cartCount}</span>}
+        <span class="cart-badge" style={cartCount > 0 ? '' : 'display: none;'}>{cartCount}</span>
       </button>
 
       <!-- Shop Now Primary Button -->
@@ -94,6 +94,30 @@ const navLinks = [
         <span class="bar bar-mid"></span>
         <span class="bar bar-bot"></span>
       </button>
+    </div>
+
+    <!-- Expandable Search Bar in Header -->
+    <div class="nav-search-bar" id="nav-search-bar" aria-hidden="true">
+      <div class="nav-search-inner">
+        <svg class="search-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input 
+          type="search" 
+          id="nav-search-input" 
+          placeholder="Search 22 clean products (e.g. Okra, Honey, Peri Peri, Moringa)..." 
+          autocomplete="off" 
+          aria-label="Search products"
+        />
+        <span class="search-shortcut-badge">ESC</span>
+        <button type="button" class="search-close-btn" id="nav-search-close-btn" aria-label="Close Search Bar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -422,9 +446,105 @@ const navLinks = [
   .mobile-toggle.active .bar-bot {
     transform: translateY(-7px) rotate(-45deg);
   }
+
+  /* Expandable Search Bar in Header */
+  .nav-search-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #FFFFFF;
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    z-index: 1010;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .nav-search-bar.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .nav-search-inner {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #F9FAFB;
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-full);
+    padding: 0.45rem 1rem;
+    transition: border-color var(--transition-fast);
+  }
+
+  .nav-search-inner:focus-within {
+    border-color: var(--mn-orange);
+    background: #FFFFFF;
+    box-shadow: 0 0 0 4px rgba(255, 104, 56, 0.12);
+  }
+
+  .search-input-icon {
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  #nav-search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .search-shortcut-badge {
+    display: none;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    background: #E5E7EB;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  @media (min-width: 640px) {
+    .search-shortcut-badge {
+      display: inline-block;
+    }
+  }
+
+  .search-close-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-full);
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .search-close-btn:hover {
+    background: #F3F4F6;
+    color: var(--text-primary);
+  }
 </style>
 
 <script>
+  // Mobile Hamburger Toggle
   const toggleBtn = document.getElementById('mobile-toggle-btn');
   const mobileMenu = document.getElementById('mobile-nav-menu');
 
@@ -445,4 +565,49 @@ const navLinks = [
       });
     });
   }
+
+  // Header Instant Search Bar
+  const searchBtn = document.getElementById('search-btn');
+  const searchBar = document.getElementById('nav-search-bar');
+  const searchInput = document.getElementById('nav-search-input') as HTMLInputElement;
+  const searchClose = document.getElementById('nav-search-close-btn');
+
+  function openSearch() {
+    if (searchBar && searchInput) {
+      searchBar.classList.add('active');
+      searchBar.setAttribute('aria-hidden', 'false');
+      searchInput.focus();
+    }
+  }
+
+  function closeSearch() {
+    if (searchBar && searchInput) {
+      searchBar.classList.remove('active');
+      searchBar.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  if (searchBtn) searchBtn.addEventListener('click', openSearch);
+  if (searchClose) searchClose.addEventListener('click', closeSearch);
+
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value;
+      window.dispatchEvent(new CustomEvent('manneeds-search', { detail: { query } }));
+      const bestsellersSection = document.getElementById('bestsellers');
+      if (bestsellersSection && window.scrollY < bestsellersSection.offsetTop - 140) {
+        bestsellersSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      openSearch();
+    }
+    if (e.key === 'Escape') {
+      closeSearch();
+    }
+  });
 </script>

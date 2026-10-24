@@ -1,5 +1,6 @@
 ---
 import Navbar from '../components/Navbar.astro';
+import CartDrawer from '../components/CartDrawer.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -160,6 +161,9 @@ const {
         </div>
       </div>
     </footer>
+
+    <!-- Slide-Over Interactive Cart Drawer & Toast Notifications -->
+    <CartDrawer />
   </body>
 </html>
 
@@ -432,7 +436,11 @@ const {
       btn.textContent = 'Submitting...';
 
       const res = await addSubscriber(email);
-      alert(res.message);
+      if ((window as any).manneedsCart?.showToast) {
+        (window as any).manneedsCart.showToast(res.message);
+      } else {
+        alert(res.message);
+      }
 
       btn.disabled = false;
       btn.textContent = originalText || 'Claim 15%';
