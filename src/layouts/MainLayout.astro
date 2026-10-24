@@ -9,8 +9,8 @@ interface Props {
 }
 
 const {
-  title = "ManNeeds — Clean Plant Nutrition, Grooming & Daily Essentials",
-  description = "Take care, have fun! Explore ManNeeds' yummy effervescent drinks, rosemary hair serums, glowing skin fizzes, and vegan protein. 100% clean, delicious, and clinically proven."
+  title = "ManNeeds — Pure Indian Kitchen Essentials, Spices, Honey & Healthy Foods",
+  description = "100% pure, unadulterated kitchen essentials, raw wild honey, cold-processed spices & healthy roasted snacks. Farm fresh, authentic taste, and zero artificial additives."
 } = Astro.props;
 ---
 
@@ -32,6 +32,23 @@ const {
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
+
+    <!-- Dark Mode Initialization (Zero-Flicker Sync) -->
+    <script is:inline>
+      (function() {
+        try {
+          const savedTheme = localStorage.getItem('manneeds_theme');
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.setAttribute('data-theme', 'dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.setAttribute('data-theme', 'light');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <!-- Navbar Component -->
@@ -48,29 +65,29 @@ const {
         <div class="trust-item">
           <div class="trust-icon-box bg-green">🌿</div>
           <div>
-            <strong>100% Plant-Based</strong>
-            <span>Clean & vegan certified</span>
+            <strong>100% Pure & Clean</strong>
+            <span>Zero adulteration or fillers</span>
           </div>
         </div>
         <div class="trust-item">
-          <div class="trust-icon-box bg-orange">🔬</div>
+          <div class="trust-icon-box bg-orange">🌾</div>
           <div>
-            <strong>Clinically Proven</strong>
-            <span>Tested on real subjects</span>
+            <strong>Direct Farm Harvest</strong>
+            <span>From honest Indian growers</span>
           </div>
         </div>
         <div class="trust-item">
-          <div class="trust-icon-box bg-berry">🍓</div>
+          <div class="trust-icon-box bg-berry">🔬</div>
           <div>
-            <strong>Naturally Yummy</strong>
-            <span>Zero added refined sugars</span>
+            <strong>Lab Tested Purity</strong>
+            <span>Zero synthetic dyes or preservatives</span>
           </div>
         </div>
         <div class="trust-item">
           <div class="trust-icon-box bg-yellow">⭐</div>
           <div>
-            <strong>2 Million+ Sips</strong>
-            <span>Loved across 500+ cities</span>
+            <strong>50,000+ Happy Kitchens</strong>
+            <span>Delivered across 500+ Indian cities</span>
           </div>
         </div>
       </div>
@@ -84,10 +101,10 @@ const {
           <div class="footer-brand-col">
             <a href="/" class="footer-logo">
               <span class="mn-brand">MAN<span class="mn-brand-accent">NEEDS</span></span>
-              <span class="mn-sub">THE DAILY FIX</span>
+              <span class="mn-sub">PURE KITCHEN ESSENTIALS</span>
             </a>
             <p class="footer-tagline">
-              <strong>Take care, have fun!</strong> We make good health, radiant skin, and luscious hair feel like an everyday celebration with yummy, fizzy plant solutions.
+              <strong>Purity from farm soil to kitchen tadka.</strong> We bring uncompromised, unadulterated spices, raw honey, stone-ground flours, and wholesome snacks directly to conscious homes.
             </p>
             <div class="social-links">
               <a href="#" aria-label="Instagram" class="social-btn">
@@ -104,13 +121,13 @@ const {
 
           <!-- Links 1 -->
           <div class="footer-links-col">
-            <h4 class="footer-heading">Shop Formats</h4>
+            <h4 class="footer-heading">Shop Essentials</h4>
             <ul class="footer-list">
-              <li><a href="#fizz">Effervescent Fizz Tablets</a></li>
-              <li><a href="#haircare">Rosemary Hair Growth</a></li>
-              <li><a href="#skincare">Glutathione & Fruit Actives</a></li>
-              <li><a href="#protein">Clean Plant Protein</a></li>
-              <li><a href="#gummies">Tasty Chewable Gummies</a></li>
+              <li><a href="#categories">Botanical & Herbal Powders</a></li>
+              <li><a href="#categories">Healthy Roasted Snacks</a></li>
+              <li><a href="#categories">Real Fruit Candies</a></li>
+              <li><a href="#categories">Dried Fruit Chips</a></li>
+              <li><a href="#categories">Raw Honey & Pure Elixirs</a></li>
             </ul>
           </div>
 
@@ -118,19 +135,20 @@ const {
           <div class="footer-links-col">
             <h4 class="footer-heading">Support & Care</h4>
             <ul class="footer-list">
-              <li><a href="#track">Track Your Order</a></li>
-              <li><a href="#quiz">Free 60-Sec Routine Quiz</a></li>
-              <li><a href="#faqs">Frequently Asked Questions</a></li>
-              <li><a href="#returns">Returns & Easy Exchange</a></li>
-              <li><a href="#contact">WhatsApp ManNeeds Care</a></li>
+              <li><a href="/inventory">Live Stock & Inventory Ledger</a></li>
+              <li><a href="#bestsellers">Track Your Order</a></li>
+              <li><a href="#categories">Pantry Food Guide</a></li>
+              <li><a href="#bestsellers">Frequently Asked Questions</a></li>
+              <li><a href="#bestsellers">Returns & Replacement Policy</a></li>
+              <li><a href="#contact">WhatsApp Customer Care</a></li>
             </ul>
           </div>
 
           <!-- Newsletter Column -->
           <div class="footer-newsletter-col">
-            <h4 class="footer-heading">Join The ManNeeds Tribe</h4>
+            <h4 class="footer-heading">Join The Family</h4>
             <p class="newsletter-desc">
-              Get secret flash drops, delicious health recipes, and an instant <strong>Flat 15% OFF</strong> voucher on your first order.
+              Get harvest updates, pure kitchen recipes, and an instant <strong>Flat 15% OFF</strong> voucher on your first box.
             </p>
             <form class="newsletter-form" id="newsletter-form">
               <input 
@@ -139,7 +157,7 @@ const {
                 required 
                 class="newsletter-input" 
                 id="newsletter-email"
-                aria-label="Email for ManNeeds Tribe"
+                aria-label="Email for Natural Food Family"
               />
               <button type="submit" class="btn btn-primary newsletter-btn" id="newsletter-submit-btn">
                 Claim 15%
@@ -151,7 +169,7 @@ const {
         <!-- Footer Bottom Bar -->
         <div class="footer-bottom">
           <p class="copyright">
-            &copy; {new Date().getFullYear()} ManNeeds Life (The Daily Fix). Take Care, Have Fun. All rights reserved.
+            &copy; {new Date().getFullYear()} Clean Food & Kitchen Essentials. 100% Pure & Natural. All rights reserved.
           </p>
           <div class="footer-legal-links">
             <a href="#privacy">Privacy Policy</a>
@@ -174,7 +192,7 @@ const {
 
   /* Trust Banner */
   .trust-banner {
-    background: #FFFFFF;
+    background: var(--bg-surface);
     border-top: 1px solid var(--border-subtle);
     border-bottom: 1px solid var(--border-subtle);
     padding: 2.25rem 0;
@@ -215,10 +233,25 @@ const {
     flex-shrink: 0;
   }
 
-  .bg-green { background: #ECFDF5; }
-  .bg-orange { background: #FFF7ED; }
-  .bg-berry { background: #FDF2F8; }
-  .bg-yellow { background: #FEF9C3; }
+  .bg-green { background: var(--bg-tint-green); }
+  .bg-orange { background: var(--bg-tint-orange); }
+  .bg-berry { background: var(--bg-tint-berry); }
+  .bg-yellow { background: var(--bg-tint-gold); }
+
+  :global(html.dark) .trust-banner {
+    background: var(--bg-surface);
+  }
+
+  :global(html.dark) .trust-icon-box {
+    background: var(--bg-subtle) !important;
+    border: 1px solid var(--border-subtle);
+  }
+
+  :global(html.dark) .site-footer,
+  :global([data-theme="dark"]) .site-footer {
+    background: #0E1115;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
 
   .trust-item strong {
     display: block;
@@ -233,10 +266,11 @@ const {
 
   /* Site Footer */
   .site-footer {
-    background: #18202F;
+    background: #153417;
     color: #F9FAFB;
     padding-top: 4.5rem;
     padding-bottom: 2.5rem;
+    border-top: 1px solid rgba(229, 169, 60, 0.2);
   }
 
   .footer-top-grid {
@@ -275,18 +309,18 @@ const {
   }
 
   .mn-brand-accent {
-    color: var(--mn-orange);
+    color: var(--mn-cta);
   }
 
   .mn-sub {
     font-size: 0.65rem;
     font-weight: 800;
     letter-spacing: 0.16em;
-    color: var(--mn-green);
+    color: var(--mn-accent-gold);
   }
 
   .footer-tagline {
-    color: #9CA3AF;
+    color: #C8D3C8;
     font-size: 0.92rem;
     line-height: 1.65;
     margin-bottom: 1.5rem;
@@ -309,14 +343,14 @@ const {
     width: 38px;
     height: 38px;
     border-radius: var(--radius-full);
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.1);
     color: #E5E7EB;
     transition: all var(--transition-fast);
   }
 
   .social-btn:hover {
     color: #FFFFFF;
-    background: var(--mn-orange);
+    background: var(--mn-cta);
     transform: translateY(-2px);
   }
 
@@ -335,25 +369,25 @@ const {
   }
 
   .footer-list a {
-    color: #9CA3AF;
+    color: #C8D3C8;
     font-size: 0.92rem;
     transition: color var(--transition-fast);
   }
 
   .footer-list a:hover {
-    color: var(--mn-orange);
+    color: var(--mn-accent-gold);
     padding-left: 2px;
   }
 
   .newsletter-desc {
-    color: #9CA3AF;
+    color: #C8D3C8;
     font-size: 0.9rem;
     line-height: 1.6;
     margin-bottom: 1.25rem;
   }
 
   .newsletter-desc strong {
-    color: #FBBF24;
+    color: var(--mn-accent-gold);
   }
 
   .newsletter-form {
@@ -364,7 +398,7 @@ const {
   .newsletter-input {
     flex: 1;
     background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: var(--radius-full);
     padding: 0.75rem 1.15rem;
     font-size: 0.88rem;
@@ -373,7 +407,7 @@ const {
   }
 
   .newsletter-input:focus {
-    border-color: var(--mn-orange);
+    border-color: var(--mn-cta);
   }
 
   .newsletter-btn {
@@ -415,6 +449,87 @@ const {
 
   .footer-legal-links a:hover {
     color: #FFFFFF;
+  }
+
+  /* Mobile compact optimization (< 640px) */
+  @media (max-width: 639px) {
+    .trust-banner {
+      padding: 1.25rem 0 !important;
+    }
+
+    .trust-container {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 0.75rem !important;
+    }
+
+    .trust-item {
+      gap: 0.5rem !important;
+    }
+
+    .trust-icon-box {
+      width: 36px !important;
+      height: 36px !important;
+      font-size: 1.1rem !important;
+    }
+
+    .trust-item strong {
+      font-size: 0.78rem !important;
+    }
+
+    .trust-item span {
+      font-size: 0.68rem !important;
+    }
+
+    .site-footer {
+      padding-top: 2rem !important;
+      padding-bottom: 1.5rem !important;
+    }
+
+    .footer-top-grid {
+      grid-template-columns: 1fr !important;
+      gap: 1.5rem !important;
+      margin-bottom: 1.5rem !important;
+    }
+
+    .footer-brand-col {
+      margin-bottom: 0 !important;
+    }
+
+    .footer-tagline {
+      font-size: 0.82rem !important;
+      line-height: 1.45 !important;
+      margin-bottom: 0.75rem !important;
+    }
+
+    .footer-heading {
+      font-size: 0.95rem !important;
+      margin-bottom: 0.5rem !important;
+    }
+
+    .footer-list {
+      gap: 0.4rem !important;
+    }
+
+    .footer-list a {
+      font-size: 0.82rem !important;
+    }
+
+    .newsletter-desc {
+      font-size: 0.82rem !important;
+      line-height: 1.4 !important;
+      margin-bottom: 0.75rem !important;
+    }
+
+    .footer-bottom {
+      flex-direction: column !important;
+      gap: 0.75rem !important;
+      text-align: center !important;
+    }
+
+    .footer-legal-links {
+      justify-content: center !important;
+      gap: 1rem !important;
+    }
   }
 </style>
 

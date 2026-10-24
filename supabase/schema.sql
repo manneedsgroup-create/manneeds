@@ -47,12 +47,39 @@ CREATE TABLE IF NOT EXISTS public.quiz_leads (
 CREATE TABLE IF NOT EXISTS public.orders (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   customer_name TEXT,
-  customer_email TEXT NOT NULL,
+  customer_phone TEXT,
+  customer_email TEXT,
+  shipping_address TEXT,
+  city TEXT,
+  state TEXT,
+  pincode TEXT,
+  payment_method TEXT DEFAULT 'cod',
+  payment_status TEXT DEFAULT 'pending',
+  subtotal NUMERIC(10,2) DEFAULT 0,
+  discount_amount NUMERIC(10,2) DEFAULT 0,
+  discount_code TEXT,
+  shipping_fee NUMERIC(10,2) DEFAULT 0,
   items JSONB NOT NULL DEFAULT '[]'::jsonb,
   total_amount NUMERIC(10,2) NOT NULL,
-  status TEXT DEFAULT 'pending',
+  status TEXT DEFAULT 'confirmed',
+  notes TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- Safe migration statements if table already exists in Supabase
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS customer_phone TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS shipping_address TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS city TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS state TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS pincode TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT 'cod';
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT 'pending';
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS subtotal NUMERIC(10,2) DEFAULT 0;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS discount_amount NUMERIC(10,2) DEFAULT 0;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS discount_code TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS shipping_fee NUMERIC(10,2) DEFAULT 0;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE public.orders ALTER COLUMN customer_email DROP NOT NULL;
 
 -- 3. PERMISSIONS & ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
@@ -82,6 +109,10 @@ DROP POLICY IF EXISTS "Allow public insert on orders" ON public.orders;
 CREATE POLICY "Allow public insert on orders"
   ON public.orders FOR INSERT TO public WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Allow public select on orders" ON public.orders;
+CREATE POLICY "Allow public select on orders"
+  ON public.orders FOR SELECT TO public USING (true);
+
 -- Enable realtime updates
 ALTER PUBLICATION supabase_realtime ADD TABLE public.products;
 
@@ -94,7 +125,7 @@ VALUES
   -- 1. PERI PERI SNACKS
   (
     1,
-    'ManNeeds Peri Peri Snacks',
+    'Peri Peri Snacks',
     'Healthy Snacks',
     'Fiery Peri Peri',
     '₹149',
@@ -111,7 +142,7 @@ VALUES
   -- 2. CHAT MASALA SNACKS
   (
     2,
-    'ManNeeds Chat Masala Snacks',
+    'Chat Masala Snacks',
     'Healthy Snacks',
     'Tangy Desi Chat',
     '₹149',
@@ -128,7 +159,7 @@ VALUES
   -- 3. SALTED SNACKS
   (
     3,
-    'ManNeeds Salted Snacks',
+    'Salted Snacks',
     'Healthy Snacks',
     'Classic Pink Salt',
     '₹139',
@@ -145,7 +176,7 @@ VALUES
   -- 4. MANGO CANDY
   (
     4,
-    'ManNeeds Mango Candy',
+    'Mango Candy',
     'Real Fruit Candies',
     'Alphonso Mango',
     '₹199',
@@ -162,7 +193,7 @@ VALUES
   -- 5. JACKFRUIT CANDY
   (
     5,
-    'ManNeeds Jackfruit Candy',
+    'Jackfruit Candy',
     'Real Fruit Candies',
     'Ripe Kathal Honey',
     '₹219',
@@ -179,7 +210,7 @@ VALUES
   -- 6. BANANA CANDY
   (
     6,
-    'ManNeeds Banana Candy',
+    'Banana Candy',
     'Real Fruit Candies',
     'Caramelized Banana',
     '₹179',
@@ -196,7 +227,7 @@ VALUES
   -- 7. PUMPKIN CANDY
   (
     7,
-    'ManNeeds Pumpkin Candy',
+    'Pumpkin Candy',
     'Real Fruit Candies',
     'Spiced Pumpkin Gold',
     '₹189',
@@ -213,7 +244,7 @@ VALUES
   -- 8. DRIED MANGO CHIPS
   (
     8,
-    'ManNeeds Dried Mango Chips',
+    'Dried Mango Chips',
     'Dried Fruit Chips',
     'Sun-Dried Golden Mango',
     '₹249',
@@ -230,7 +261,7 @@ VALUES
   -- 9. DRIED JACKFRUIT CHIPS
   (
     9,
-    'ManNeeds Dried Jackfruit Chips',
+    'Dried Jackfruit Chips',
     'Dried Fruit Chips',
     'Crisp Jackfruit & Rock Salt',
     '₹229',
@@ -247,7 +278,7 @@ VALUES
   -- 10. DRIED BANANA CHIPS
   (
     10,
-    'ManNeeds Dried Banana Chips',
+    'Dried Banana Chips',
     'Dried Fruit Chips',
     'Crisp Nendran Banana',
     '₹199',
@@ -264,7 +295,7 @@ VALUES
   -- 11. MANGO POWDER
   (
     11,
-    'ManNeeds Mango Powder',
+    'Mango Powder',
     'Herbal & Superfood Powders',
     'Pure Raw Amchur',
     '₹299',
@@ -281,7 +312,7 @@ VALUES
   -- 12. THANKUNI POWDER
   (
     12,
-    'ManNeeds Thankuni Powder',
+    'Thankuni Powder',
     'Herbal & Superfood Powders',
     'Gotu Kola Leaf Extract',
     '₹349',
@@ -298,7 +329,7 @@ VALUES
   -- 13. CHALKUMRO POWDER
   (
     13,
-    'ManNeeds Chalkumro Powder',
+    'Chalkumro Powder',
     'Herbal & Superfood Powders',
     'Pure Ash Gourd Alkaline',
     '₹319',
@@ -315,7 +346,7 @@ VALUES
   -- 14. LEMON POWDER
   (
     14,
-    'ManNeeds Lemon Powder',
+    'Lemon Powder',
     'Herbal & Superfood Powders',
     'Zesty Citrus Vitamin C',
     '₹269',
@@ -332,7 +363,7 @@ VALUES
   -- 15. MORINGA POWDER
   (
     15,
-    'ManNeeds Moringa Powder',
+    'Moringa Powder',
     'Herbal & Superfood Powders',
     'Miracle Leaf Green',
     '₹329',
@@ -349,7 +380,7 @@ VALUES
   -- 16. BANANA POWDER
   (
     16,
-    'ManNeeds Banana Powder',
+    'Banana Powder',
     'Herbal & Superfood Powders',
     'Raw Plantain Prebiotic',
     '₹279',
@@ -366,7 +397,7 @@ VALUES
   -- 17. OKRA POWDER (NEW)
   (
     17,
-    'ManNeeds Okra Powder',
+    'Okra Powder',
     'Herbal & Superfood Powders',
     'Pure Ladyfinger Extract',
     '₹289',
@@ -383,7 +414,7 @@ VALUES
   -- 18. KULEKHARA POWDER (NEW)
   (
     18,
-    'ManNeeds Kulekhara Powder',
+    'Kulekhara Powder',
     'Herbal & Superfood Powders',
     'Ayurvedic Iron Elixir',
     '₹319',
@@ -400,7 +431,7 @@ VALUES
   -- 19. CHALTA POWDER (NEW)
   (
     19,
-    'ManNeeds Chalta Powder',
+    'Chalta Powder',
     'Herbal & Superfood Powders',
     'Elephant Apple Tang',
     '₹279',
@@ -417,7 +448,7 @@ VALUES
   -- 20. PROTEIN & VITAMIN POWDER (NEW)
   (
     20,
-    'ManNeeds Protein & Vitamin Powder',
+    'Protein & Vitamin Powder',
     'Herbal & Superfood Powders',
     'Vanilla Malt Berry',
     '₹599',
@@ -434,7 +465,7 @@ VALUES
   -- 21. AMLA POWDER (NEW)
   (
     21,
-    'ManNeeds Amla Powder',
+    'Amla Powder',
     'Herbal & Superfood Powders',
     'Pure Indian Gooseberry',
     '₹229',
@@ -451,7 +482,7 @@ VALUES
   -- 22. PREMIUM HONEY (NEW)
   (
     22,
-    'ManNeeds Premium Honey',
+    'Premium Honey',
     'Raw Honey & Pure Elixirs',
     'Wild Sundarban Floral',
     '₹399',
@@ -468,7 +499,7 @@ VALUES
   -- 23. PURE AJWAIN HONEY (NEW)
   (
     23,
-    'ManNeeds Pure Ajwain Honey',
+    'Pure Ajwain Honey',
     'Raw Honey & Pure Elixirs',
     'Ajwain Blossom Nectar',
     '₹449',
@@ -496,3 +527,170 @@ ON CONFLICT (id) DO UPDATE SET
   stock_quantity = EXCLUDED.stock_quantity,
   variants = EXCLUDED.variants,
   in_stock = EXCLUDED.in_stock;
+
+-- ==============================================================================
+-- 5. 3-TABLE INVENTORY ARCHITECTURE
+-- Formula: stock_items (initial) + new_stock_inventory - sold_items = available_quantity
+-- ==============================================================================
+
+-- Table 1: stock_items (Opening Baseline Stock)
+CREATE TABLE IF NOT EXISTS public.stock_items (
+  id BIGSERIAL PRIMARY KEY,
+  product_id BIGINT NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
+  variant_weight TEXT NOT NULL DEFAULT 'all',
+  quantity INTEGER NOT NULL DEFAULT 0 CHECK (quantity >= 0),
+  unit_cost NUMERIC(10,2) DEFAULT NULL,
+  notes TEXT DEFAULT 'Opening baseline stock',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  CONSTRAINT uq_stock_items_product_variant UNIQUE (product_id, variant_weight)
+);
+
+-- Table 2: new_stock_inventory (Incoming Restocks & New Batches)
+CREATE TABLE IF NOT EXISTS public.new_stock_inventory (
+  id BIGSERIAL PRIMARY KEY,
+  product_id BIGINT NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
+  variant_weight TEXT NOT NULL DEFAULT 'all',
+  quantity INTEGER NOT NULL CHECK (quantity > 0),
+  batch_number TEXT,
+  supplier TEXT,
+  cost_per_unit NUMERIC(10,2) DEFAULT NULL,
+  received_date DATE DEFAULT CURRENT_DATE NOT NULL,
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Table 3: sold_items (Sales Outflow & Customer Purchases)
+CREATE TABLE IF NOT EXISTS public.sold_items (
+  id BIGSERIAL PRIMARY KEY,
+  product_id BIGINT NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
+  variant_weight TEXT NOT NULL DEFAULT 'all',
+  quantity INTEGER NOT NULL CHECK (quantity > 0),
+  order_id TEXT,
+  unit_price NUMERIC(10,2) DEFAULT NULL,
+  sold_date DATE DEFAULT CURRENT_DATE NOT NULL,
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_stock_items_product ON public.stock_items(product_id);
+CREATE INDEX IF NOT EXISTS idx_new_stock_product ON public.new_stock_inventory(product_id);
+CREATE INDEX IF NOT EXISTS idx_sold_items_product ON public.sold_items(product_id);
+
+-- View: inventory_summary (Initial + New Stock - Sold = Available)
+CREATE OR REPLACE VIEW public.inventory_summary AS
+SELECT 
+  p.id AS product_id,
+  p.name AS product_name,
+  p.category,
+  p.price,
+  COALESCE(si.initial_stock, 0)::INTEGER AS initial_stock,
+  COALESCE(ns.new_stock, 0)::INTEGER AS new_stock,
+  COALESCE(so.sold_stock, 0)::INTEGER AS sold_stock,
+  GREATEST(0, (COALESCE(si.initial_stock, 0) + COALESCE(ns.new_stock, 0) - COALESCE(so.sold_stock, 0)))::INTEGER AS available_quantity,
+  CASE 
+    WHEN (COALESCE(si.initial_stock, 0) + COALESCE(ns.new_stock, 0) - COALESCE(so.sold_stock, 0)) > 0 THEN true 
+    ELSE false 
+  END AS in_stock
+FROM public.products p
+LEFT JOIN (
+  SELECT product_id, SUM(quantity) AS initial_stock
+  FROM public.stock_items
+  GROUP BY product_id
+) si ON si.product_id = p.id
+LEFT JOIN (
+  SELECT product_id, SUM(quantity) AS new_stock
+  FROM public.new_stock_inventory
+  GROUP BY product_id
+) ns ON ns.product_id = p.id
+LEFT JOIN (
+  SELECT product_id, SUM(quantity) AS sold_stock
+  FROM public.sold_items
+  GROUP BY product_id
+) so ON so.product_id = p.id
+ORDER BY p.id ASC;
+
+-- Trigger to automatically recalculate products.stock_quantity
+CREATE OR REPLACE FUNCTION public.fn_sync_product_inventory_quantity()
+RETURNS TRIGGER AS $$
+DECLARE
+  target_product_id BIGINT;
+  computed_stock INTEGER;
+BEGIN
+  IF (TG_OP = 'DELETE') THEN
+    target_product_id := OLD.product_id;
+  ELSE
+    target_product_id := NEW.product_id;
+  END IF;
+
+  SELECT GREATEST(0, (
+    COALESCE((SELECT SUM(quantity) FROM public.stock_items WHERE product_id = target_product_id), 0) +
+    COALESCE((SELECT SUM(quantity) FROM public.new_stock_inventory WHERE product_id = target_product_id), 0) -
+    COALESCE((SELECT SUM(quantity) FROM public.sold_items WHERE product_id = target_product_id), 0)
+  )) INTO computed_stock;
+
+  UPDATE public.products
+  SET 
+    stock_quantity = computed_stock,
+    in_stock = (computed_stock > 0)
+  WHERE id = target_product_id;
+
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_sync_stock_items ON public.stock_items;
+CREATE TRIGGER trg_sync_stock_items
+AFTER INSERT OR UPDATE OR DELETE ON public.stock_items
+FOR EACH ROW EXECUTE FUNCTION public.fn_sync_product_inventory_quantity();
+
+DROP TRIGGER IF EXISTS trg_sync_new_stock ON public.new_stock_inventory;
+CREATE TRIGGER trg_sync_new_stock
+AFTER INSERT OR UPDATE OR DELETE ON public.new_stock_inventory
+FOR EACH ROW EXECUTE FUNCTION public.fn_sync_product_inventory_quantity();
+
+DROP TRIGGER IF EXISTS trg_sync_sold_items ON public.sold_items;
+CREATE TRIGGER trg_sync_sold_items
+AFTER INSERT OR UPDATE OR DELETE ON public.sold_items
+FOR EACH ROW EXECUTE FUNCTION public.fn_sync_product_inventory_quantity();
+
+-- Permissions & RLS
+ALTER TABLE public.stock_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.new_stock_inventory ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sold_items ENABLE ROW LEVEL SECURITY;
+
+GRANT ALL ON TABLE public.stock_items TO anon, authenticated;
+GRANT ALL ON TABLE public.new_stock_inventory TO anon, authenticated;
+GRANT ALL ON TABLE public.sold_items TO anon, authenticated;
+GRANT SELECT ON public.inventory_summary TO anon, authenticated;
+
+DROP POLICY IF EXISTS "Allow public read on stock_items" ON public.stock_items;
+CREATE POLICY "Allow public read on stock_items" ON public.stock_items FOR SELECT TO public USING (true);
+DROP POLICY IF EXISTS "Allow public write on stock_items" ON public.stock_items;
+CREATE POLICY "Allow public write on stock_items" ON public.stock_items FOR ALL TO public USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public read on new_stock_inventory" ON public.new_stock_inventory;
+CREATE POLICY "Allow public read on new_stock_inventory" ON public.new_stock_inventory FOR SELECT TO public USING (true);
+DROP POLICY IF EXISTS "Allow public write on new_stock_inventory" ON public.new_stock_inventory;
+CREATE POLICY "Allow public write on new_stock_inventory" ON public.new_stock_inventory FOR ALL TO public USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public read on sold_items" ON public.sold_items;
+CREATE POLICY "Allow public read on sold_items" ON public.sold_items FOR SELECT TO public USING (true);
+DROP POLICY IF EXISTS "Allow public write on sold_items" ON public.sold_items;
+CREATE POLICY "Allow public write on sold_items" ON public.sold_items FOR ALL TO public USING (true) WITH CHECK (true);
+
+-- Realtime
+DO $$
+BEGIN
+  BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.stock_items; EXCEPTION WHEN duplicate_object THEN END;
+  BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.new_stock_inventory; EXCEPTION WHEN duplicate_object THEN END;
+  BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.sold_items; EXCEPTION WHEN duplicate_object THEN END;
+END $$;
+
+-- Migrate baseline stock from products table
+INSERT INTO public.stock_items (product_id, variant_weight, quantity, notes)
+SELECT id, 'all', COALESCE(stock_quantity, 0), 'Initial baseline stock migrated from products table'
+FROM public.products
+ON CONFLICT (product_id, variant_weight) DO UPDATE SET quantity = EXCLUDED.quantity;
+

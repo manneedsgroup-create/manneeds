@@ -1,183 +1,109 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+import { getProducts, cleanProductName } from '../lib/db';
 
-import { getProducts } from '../lib/db';
-import { isSupabaseConfigured } from '../lib/supabase';
+// Helper to scan each product folder for user-uploaded images and videos
+function getLocalMedia(folder?: string): { images: string[]; videos: string[] } {
+  if (!folder) return { images: [], videos: [] };
+  const baseDir = path.resolve('./public/images/products', folder);
+  const images: string[] = [];
+  const videos: string[] = [];
 
-const categories = [
-  {
-    id: 'Herbal & Superfood Powders',
-    title: 'Botanical & Herbal Powders',
-    subtitle: 'Moringa, Kulekhara, Okra, Chalta, Amla, Thankuni, Lemon & Protein',
-    tag: 'Ayurvedic Actives',
-    icon: '🌿',
-    color: '#059669',
-    bg: '#ECFDF5',
-    itemsCount: '11 Powders'
-  },
-  {
-    id: 'Healthy Snacks',
-    title: 'Healthy Roasted Snacks',
-    subtitle: 'Crunchy roasted wholesome munchies in Peri Peri, Chat Masala & Salted',
-    tag: 'Guilt-Free',
-    icon: '🍿',
-    color: '#FF6838',
-    bg: '#FFF7ED',
-    itemsCount: '3 Products'
-  },
-  {
-    id: 'Real Fruit Candies',
-    title: 'Real Fruit Candies',
-    subtitle: 'Chewy bite-sized treats made from Mango, Jackfruit, Pumpkin & Banana',
-    tag: '100% Real Pulp',
-    icon: '🍬',
-    color: '#EC4899',
-    bg: '#FDF2F8',
-    itemsCount: '4 Products'
-  },
-  {
-    id: 'Dried Fruit Chips',
-    title: 'Dried Fruit Chips',
-    subtitle: '100% natural vacuum-crisped Mango, Jackfruit & Banana slices',
-    tag: 'Zero Palm Oil',
-    icon: '🥭',
-    color: '#F59E0B',
-    bg: '#FEF3C7',
-    itemsCount: '3 Products'
-  },
-  {
-    id: 'Raw Honey & Pure Elixirs',
-    title: 'Raw Honey & Pure Elixirs',
-    subtitle: 'Unpasteurized 100% pure wild forest floral honey & therapeutic Ajwain honey',
-    tag: '100% Pure Raw',
-    icon: '🍯',
-    color: '#D97706',
-    bg: '#FEF9C3',
-    itemsCount: '2 Pure Elixirs'
+  const imageExts = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif', '.gif', '.svg']);
+  const videoExts = new Set(['.mp4', '.webm', '.ogg', '.mov']);
+
+  function scan(dir: string, urlPrefix: string) {
+    if (!fs.existsSync(dir)) return;
+    try {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isFile() && !entry.name.startsWith('.')) {
+          const ext = path.extname(entry.name).toLowerCase();
+          if (imageExts.has(ext)) {
+            images.push(`${urlPrefix}/${entry.name}`);
+          } else if (videoExts.has(ext)) {
+            videos.push(`${urlPrefix}/${entry.name}`);
+          }
+        }
+      }
+    } catch {}
   }
-];
+
+  scan(baseDir, `/images/products/${folder}`);
+  scan(path.join(baseDir, 'images'), `/images/products/${folder}/images`);
+  scan(path.join(baseDir, 'videos'), `/images/products/${folder}/videos`);
+
+  return { images, videos };
+}
 
 // Fetch dynamically from Supabase database with automatic fallback
-const bestsellers = await getProducts();
+const rawBestsellers = await getProducts();
+const bestsellers = rawBestsellers.map((item) => {
+  const localMedia = getLocalMedia(item.folder);
+  const resolvedImages = (item.images && item.images.length > 0)
+    ? item.images
+    : localMedia.images;
+  const resolvedVideos = (item.videos && item.videos.length > 0)
+    ? item.videos
+    : localMedia.videos;
+
+  return {
+    ...item,
+    image: resolvedImages[0] || item.image || item.imageUrl || '',
+    images: resolvedImages,
+    videos: resolvedVideos
+  };
+});
 ---
 
-<MainLayout title="ManNeeds — Clean Plant Nutrition, Grooming & Daily Essentials">
+<MainLayout title="Pure Indian Kitchen Essentials, Spices, Honey & Healthy Foods">
   <!-- Hero Section -->
   <section class="hero-section" id="hero">
     <div class="container hero-container">
       <div class="hero-content">
         <!-- Floating Pill Badge -->
-        <div class="badge badge-orange hero-badge">
+        <div class="badge badge-green hero-badge">
           <span class="badge-dot"></span>
-          2M+ Sips Enjoyed Nationwide • 100% Clean Vegan
+          🌾 100% Pure Indian Farm Harvest • Zero Chemical Fillers
         </div>
         
         <h1 class="hero-title">
-          TAKE CARE, <br />
-          <span class="text-gradient-orange">HAVE FUN!</span>
+          PURE FOOD, <br />
+          <span class="text-gradient-orange">HONEST HARVEST.</span>
         </h1>
         
         <p class="hero-tagline-sub">
-          POP. DROP. <span class="text-gradient-green">FIZZ.</span> SCORE.
+          COLD-MILLED. <span class="text-gradient-green">UNADULTERATED.</span> PURE AROMA.
         </p>
 
         <p class="hero-description">
-          Say goodbye to bitter pills and boring diet powders! Discover clinically proven plant nutrition, hair science, and glowing skincare that tastes wildly delicious.
+          From stone-ground botanical powders and wild forest honey to crisp vacuum-dried chips and wholesome roasted snacks — experience pure kitchen nutrition free from synthetic colors, palm oil, or preservatives.
         </p>
 
         <!-- CTA Action Buttons -->
         <div class="hero-actions">
           <a href="#bestsellers" class="btn btn-primary hero-btn-main">
-            <span>Shop Bestsellers (Flat 15% Off)</span>
+            <span>Shop Harvest Essentials (Flat 15% Off)</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <line x1="5" y1="12" x2="19" y2="12"></line>
               <polyline points="12 5 19 12 12 19"></polyline>
             </svg>
           </a>
-          <a href="#quiz" class="btn btn-secondary hero-btn-quiz">
-            <span>🌿 Take Free 60s Routine Quiz</span>
-          </a>
-        </div>
-
-        <!-- 3-Step Pop Drop Fizz Interactive Bar -->
-        <div class="fizz-steps-card">
-          <div class="fizz-step-header">
-            <span class="badge badge-green">The ManNeeds Ritual</span>
-            <span class="fizz-step-title">How Drop & Fizz Magic Works in 30 Seconds:</span>
-          </div>
-
-          <div class="fizz-steps-grid">
-            <div class="fizz-step-item">
-              <div class="step-circle bg-orange">1</div>
-              <div>
-                <strong>DROP</strong>
-                <span>1 effervescent tablet in 200ml cold water</span>
-              </div>
-            </div>
-            <div class="step-arrow">→</div>
-            <div class="fizz-step-item">
-              <div class="step-circle bg-green">2</div>
-              <div>
-                <strong>FIZZ</strong>
-                <span>Watch the bubbly fruit essence dissolve</span>
-              </div>
-            </div>
-            <div class="step-arrow">→</div>
-            <div class="fizz-step-item">
-              <div class="step-circle bg-berry">3</div>
-              <div>
-                <strong>SIP & THRIVE</strong>
-                <span>Drink your way to glowing health!</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Categories Section -->
-  <section class="section" id="categories">
-    <div class="container">
-      <div class="section-header">
-        <span class="badge badge-orange">The Daily Fix Formats</span>
-        <h2 class="section-title">Clean Plant Solutions Tailored For You</h2>
-        <p class="section-subtitle">
-          Whether you want rapid hair growth, radiant skin, or guilt-free gut detox, find your perfect plant match.
-        </p>
-      </div>
-
-      <div class="categories-grid">
-        {categories.map((cat) => (
-          <div class="mn-card category-card" style={`background-color: ${cat.bg}; border-color: ${cat.color}25;`}>
-            <div class="cat-top">
-              <span class="cat-icon-symbol">{cat.icon}</span>
-              <span class="cat-tag-badge" style={`color: ${cat.color}; background: #FFFFFF;`}>{cat.tag}</span>
-            </div>
-            <div class="cat-body">
-              <h3 class="cat-title" style={`color: #111827;`}>{cat.title}</h3>
-              <p class="cat-desc">{cat.subtitle}</p>
-            </div>
-            <div class="cat-footer">
-              <span class="cat-count">{cat.itemsCount}</span>
-              <span class="cat-cta-link" style={`color: ${cat.color};`}>
-                Shop Now →
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <!-- Flagship Bestsellers Section -->
+  <!-- Flagship Bestsellers & Categories Section -->
   <section class="section bestsellers-section" id="bestsellers">
-    <div class="container">
+    <div class="container" id="categories">
       <div class="section-header-flex">
         <div>
-          <span class="badge badge-green">Curated Plant Nutrition</span>
-          <h2 class="section-title">Explore ManNeeds Products</h2>
-          <p class="section-subtitle">Real farm-harvested actives with custom weight options (100g, 200g, 250g, 500g). Select your preferred pack size below.</p>
+          <span class="badge badge-green">Pure Food Catalog</span>
+          <h2 class="section-title">Explore Pure Kitchen Essentials</h2>
+          <p class="section-subtitle">Real farm-harvested foods with customizable pack sizes (100g, 200g, 250g, 500g). Select your preferred weight below.</p>
         </div>
         <div class="header-action-badge">
           <span class="live-status-pill">
@@ -261,77 +187,121 @@ const bestsellers = await getProducts();
               class="mn-card product-card"
               data-product-id={item.id}
               data-category={item.category}
-              data-product-name={item.name}
+              data-product-name={cleanProductName(item.name)}
               data-selected-weight={currentWeight}
               data-selected-price={currentPrice}
+              data-variants={JSON.stringify(item.variants || [])}
+              data-img={item.images && item.images.length > 0 ? item.images[0] : (item.image || item.imageUrl || '')}
+              data-discount={item.discount || '20% OFF'}
             >
-              <!-- Product Visual Banner -->
-              <div class="product-visual">
-                <span class="discount-badge">{item.discount || '20% OFF'}</span>
-                <span class="badge-corner">{item.badge || 'Pure Plant'}</span>
+              {/* Product Visual Banner with Auto-scrolling Carousel */}
+              <div class="product-visual" data-carousel>
+                {item.badge && (
+                  <div class="product-visual-badges">
+                    <span class="badge-corner" title={item.badge}>{item.badge}</span>
+                  </div>
+                )}
                 
                 <div class="product-illustration">
-                  <div class="bottle-mockup">
-                    <span class="mockup-leaf">{icon}</span>
-                    <div class="mockup-bubble b1"></div>
-                    <div class="mockup-bubble b2"></div>
+                  <div class="product-carousel-track" data-carousel-track>
+                    {item.images && item.images.length > 0 ? (
+                      item.images.map((imgUrl, imgIdx) => (
+                        <div class={`carousel-slide ${imgIdx === 0 ? 'active' : ''}`} data-slide-index={imgIdx}>
+                          <img 
+                            src={imgUrl} 
+                            alt={`${cleanProductName(item.name)} photo ${imgIdx + 1}`} 
+                            class="product-real-img" 
+                            loading={imgIdx === 0 ? "eager" : "lazy"} 
+                          />
+                        </div>
+                      ))
+                    ) : item.image || item.imageUrl ? (
+                      <div class="carousel-slide active" data-slide-index="0">
+                        <img 
+                          src={item.image || item.imageUrl} 
+                          alt={cleanProductName(item.name)} 
+                          class="product-real-img" 
+                          loading="lazy" 
+                        />
+                      </div>
+                    ) : (
+                      <div class="food-pack-emblem">
+                        <span class="emblem-icon">{icon}</span>
+                        <span class="emblem-label">{item.category.includes('Honey') ? 'RAW HONEY' : item.category.includes('Snack') ? 'ROASTED' : item.category.includes('Chip') ? 'CRISP' : item.category.includes('Cand') ? 'REAL FRUIT' : 'BOTANICAL'}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div class="flavour-tag">
-                  <span>Flavour: <strong>{item.flavour || 'Natural'}</strong></span>
-                </div>
-              </div>
-
-              <!-- Product Details -->
-              <div class="product-content">
-                <div class="product-header-meta">
-                  <span class="product-cat-name">{item.category}</span>
-                  <span class={`stock-indicator ${currentStock <= 10 ? 'low-stock' : ''}`} data-stock-target>
-                    {currentStock <= 0 ? '❌ Out of Stock' : currentStock <= 10 ? `🔥 Only ${currentStock} Left` : `✓ Stock: ${currentStock}`}
-                  </span>
-                </div>
-
-                <h3 class="product-name">{item.name}</h3>
-                <p class="product-desc">{item.desc}</p>
-
-                <!-- Weight / Pack Variants Selector -->
-                {item.variants && item.variants.length > 0 && (
-                  <div class="weight-variants-box">
-                    <div class="variants-header-line">
-                      <span class="weight-variants-label">Select Pack Size:</span>
-                      <span class="weight-selected-badge" data-weight-display>{currentWeight}</span>
-                    </div>
-                    <div class="weight-pill-group">
-                      {item.variants.map((v, vIdx) => (
-                        <button
-                          type="button"
-                          class={`weight-pill ${vIdx === 0 ? 'active' : ''}`}
-                          data-weight={v.weight}
-                          data-price={v.price}
-                          data-orig-price={v.originalPrice || ''}
-                          data-stock={vIdx === 0 ? masterStock : (v.stock !== undefined && v.stock !== null ? Number(v.stock) : Math.max(1, Math.floor(masterStock / 2)))}
-                          aria-label={`Select ${v.weight} pack`}
-                        >
-                          <span class="pill-weight">{v.weight}</span>
-                        </button>
-                      ))}
-                    </div>
+                {item.images && item.images.length > 1 && (
+                  <div class="carousel-dots" data-carousel-dots aria-label="Image indicators">
+                    {item.images.map((_, dotIdx) => (
+                      <button
+                        type="button"
+                        class={`carousel-dot ${dotIdx === 0 ? 'active' : ''}`}
+                        data-dot-index={dotIdx}
+                        aria-label={`Show image ${dotIdx + 1}`}
+                      ></button>
+                    ))}
                   </div>
                 )}
 
-                <!-- Price Box -->
+                <div class="flavour-tag">
+                  <span>Variant: <strong>{item.flavour || 'Natural Harvest'}</strong></span>
+                </div>
+              </div>
+
+              {/* Product Details */}
+              <div class="product-content">
+                <div class="product-header-meta">
+                  <span class="product-cat-name" title={item.category}>{item.category}</span>
+                  <span class={`stock-indicator ${currentStock <= 10 ? 'low-stock' : ''}`} data-stock-target>
+                    {currentStock <= 0 ? 'Out of stock' : currentStock <= 10 ? `🔥 Only ${currentStock} left` : `${currentStock} left`}
+                  </span>
+                </div>
+
+                <h3 class="product-name" title={cleanProductName(item.name)}>{cleanProductName(item.name)}</h3>
+
+                {/* Rating & Review Count - Blinkit Inspired */}
+                <div class="product-rating" aria-label={`Rated ${item.rating || 4.8} out of 5 stars with ${item.reviews || '250+'} reviews`}>
+                  <span class="rating-star">★</span>
+                  <span class="rating-score">{item.rating || 4.8}</span>
+                  <span class="rating-count">({item.reviews || '250+'})</span>
+                </div>
+                <p class="product-desc">{item.desc}</p>
+
+                {/* Pack Size Selector Indicator */}
+                {item.variants && item.variants.length > 0 && (
+                  <div 
+                    class="pack-size-selector" 
+                    data-open-weight-picker 
+                    role="button" 
+                    tabindex="0" 
+                    aria-label={`Select pack size for ${cleanProductName(item.name)}`}
+                    title="Click to view all pack sizes"
+                  >
+                    <span class="pack-size-val" data-weight-display>{currentWeight}</span>
+                    {item.variants.length > 1 ? (
+                      <span class="pack-size-arrow">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        <span class="pack-size-count">{item.variants.length} sizes</span>
+                      </span>
+                    ) : null}
+                  </div>
+                )}
+
+                {/* Price Box */}
                 <div class="product-price-row">
                   <div class="price-wrap">
                     <span class="current-price" data-price-target>{currentPrice}</span>
                     {originalPrice && (
                       <span class="original-price" data-orig-price-target>{originalPrice}</span>
                     )}
+                    <span class="discount-tag" data-discount-target>{item.discount || '20% OFF'}</span>
                   </div>
-                  <span class="save-tag">{item.discount || 'SAVE 20%'}</span>
                 </div>
 
-                <!-- Add to Cart CTA -->
+                {/* Add to Cart CTA */}
                 <button 
                   type="button"
                   class="btn btn-primary add-to-cart-btn"
@@ -343,6 +313,9 @@ const bestsellers = await getProducts();
                     <path d="M16 10a4 4 0 0 1-8 0"></path>
                   </svg>
                   <span>Add To Cart</span>
+                  {item.variants && item.variants.length > 1 && (
+                    <span class="btn-chevron">▾</span>
+                  )}
                 </button>
               </div>
             </div>
@@ -352,148 +325,100 @@ const bestsellers = await getProducts();
     </div>
   </section>
 
-  <!-- Why The Daily Fix Works -->
+  <!-- Why The Food Standard Works -->
   <section class="section promise-section">
     <div class="container">
       <div class="promise-card">
         <div class="promise-header">
-          <span class="badge badge-orange">The ManNeeds Promise</span>
-          <h2 class="section-title">Why 2 Million+ People Switched to ManNeeds</h2>
+          <span class="badge badge-orange">The Quality Standard</span>
+          <h2 class="section-title">Why 50,000+ Conscious Kitchens Choose Our Pure Foods</h2>
           <p class="section-subtitle">
-            We stripped away the harsh chemicals, the pills, and the boring diet culture.
+            Pure, authentic Indian kitchen staples without adulteration, synthetic chemicals, or shortcuts.
           </p>
         </div>
 
         <div class="promise-grid">
           <div class="promise-item">
             <div class="promise-icon-wrap bg-green">🌱</div>
-            <h4>100% Plant Sourced</h4>
-            <p>Every active is extracted from nature — pea protein, apple cider, rosemary, and berries. Zero animal derivatives.</p>
+            <h4>100% Farm Sourced</h4>
+            <p>Direct partnerships with ethical Indian farming clusters, harvested with respect for soil and seasonal cycles.</p>
           </div>
 
           <div class="promise-item">
             <div class="promise-icon-wrap bg-orange">🔬</div>
-            <h4>Clinically Validated Actives</h4>
-            <p>No guesswork. Formulas are tested in certified labs to ensure high bioavailability and visible results in 60-90 days.</p>
+            <h4>Zero Adulteration Guarantee</h4>
+            <p>Every single batch undergoes NABL-certified laboratory screening for heavy metals, pesticides, and adulterants.</p>
           </div>
 
           <div class="promise-item">
-            <div class="promise-icon-wrap bg-berry">😋</div>
-            <h4>Wildly Delicious Taste</h4>
-            <p>Made with real fruit aromas and zero added sugar. Nutrition that feels like a treat you crave every single morning.</p>
+            <div class="promise-icon-wrap bg-berry">🌾</div>
+            <h4>Slow Roasted & Cold Milled</h4>
+            <p>Traditional stone-grinding and slow-roasting below 40°C to preserve volatile essential oils, aroma, and nutrients.</p>
           </div>
 
           <div class="promise-item">
             <div class="promise-icon-wrap bg-yellow">🛡️</div>
-            <h4>Gentle on Your Gut</h4>
-            <p>Lactose-free, non-GMO, and enriched with digestive enzymes so you never face bloating or stomach discomfort.</p>
+            <h4>100% Clean Label Food</h4>
+            <p>Zero synthetic colors, zero artificial preservatives, zero palm oil, and zero added refined sugars.</p>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Interactive Quiz Callout -->
-  <section class="section quiz-section" id="quiz">
-    <div class="container">
-      <div class="quiz-box">
-        <!-- Intro Screen -->
-        <div class="quiz-content" id="quiz-intro">
-          <span class="badge badge-green">Personalized Routine</span>
-          <h2 class="quiz-title">Find Your Exact Routine in 60 Seconds</h2>
-          <p class="quiz-desc">
-            Take our doctor-crafted lifestyle questionnaire. Tell us your hair, skin, or wellness goals and get an instant custom recommendation + extra 10% coupon!
-          </p>
-          <div class="quiz-actions">
-            <button class="btn btn-green" id="open-quiz-btn">
-              Start The Free Quiz →
-            </button>
-          </div>
-        </div>
-
-        <!-- Interactive Quiz Form -->
-        <div class="quiz-form-wrap" id="quiz-form-wrap" style="display: none;">
-          <span class="badge badge-orange">Quick Assessment</span>
-          <h3 class="quiz-form-title">Select Your Goal & Preference</h3>
-          <form id="routine-quiz-form" class="quiz-form">
-            <div class="quiz-form-grid">
-              <div class="quiz-field">
-                <label for="quiz-concern">Primary Wellness Goal:</label>
-                <select id="quiz-concern" required class="quiz-select">
-                  <option value="Hair Fall Control & Scalp Density">Hair Fall Control & Scalp Density (Rosemary)</option>
-                  <option value="Glowing Skin & Dark Spot Reduction">Glowing Skin & Dark Spots (Glutathione)</option>
-                  <option value="Gut Detox & Healthy Weight">Gut Detox & Healthy Weight (ACV with Mother)</option>
-                  <option value="Instant Debloat & Daily Greens">Instant Debloat & Alkalising Greens</option>
-                  <option value="Clean Plant Protein & Muscle">Clean Plant Protein & Lean Muscle</option>
-                </select>
-              </div>
-
-              <div class="quiz-field">
-                <label for="quiz-format">Preferred Format:</label>
-                <select id="quiz-format" required class="quiz-select">
-                  <option value="Drop & Fizz (Effervescent)">Drop & Fizz (Effervescent Drink)</option>
-                  <option value="Targeted Scalp Serum">Targeted Scalp Serum</option>
-                  <option value="Chewable Gummies">Chewable Gummies</option>
-                  <option value="Plant Protein Shake">Plant Protein Shake</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="quiz-field">
-              <label for="quiz-email">Where should we send your custom discount?</label>
-              <input type="email" id="quiz-email" placeholder="Enter your email" required class="quiz-input" />
-            </div>
-
-            <div class="quiz-form-actions">
-              <button type="button" class="btn btn-secondary" id="cancel-quiz-btn">Back</button>
-              <button type="submit" class="btn btn-green" id="submit-quiz-btn">Get My Routine & 10% Off →</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Quiz Result Box -->
-        <div class="quiz-result-wrap" id="quiz-result-wrap" style="display: none;">
-          <div class="quiz-result-card">
-            <span class="badge badge-green">Your Recommended Match</span>
-            <h3 id="recommendation-title">ManNeeds Recommended Routine</h3>
-            <p id="recommendation-desc" class="recommendation-desc"></p>
-            <div class="quiz-coupon-alert">
-              Use code <strong class="coupon-highlight">ROUTINE10</strong> for an instant extra 10% off!
-            </div>
-            <div class="quiz-result-actions">
-              <a href="#bestsellers" class="btn btn-primary">Shop This Routine</a>
-              <button type="button" class="btn btn-secondary" id="retake-quiz-btn">Retake Quiz</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <!-- VIP Promo CTA -->
   <section class="section promo-cta-section">
     <div class="container">
       <div class="promo-box">
         <span class="badge badge-orange">Exclusive Welcome Offer</span>
-        <h2 class="promo-title">Ready to Take Care & Have Fun?</h2>
+        <h2 class="promo-title">Bring 100% Honest Harvest To Your Kitchen</h2>
         <p class="promo-desc">
-          Join over 2,000,000 community members embracing delicious plant wellness. Use code <strong class="promo-code">MANNEEDS15</strong> at checkout for 15% instant savings.
+          Join over 50,000 households choosing unadulterated cold-milled botanicals, raw forest honey, and slow-roasted snacks. Use code <strong class="promo-code">MANNEEDS15</strong> at checkout for 15% instant savings.
         </p>
         <div class="promo-btn-wrap">
-          <a href="#bestsellers" class="btn btn-primary">Start Your Routine Now</a>
+          <a href="#bestsellers" class="btn btn-primary">Explore Kitchen Essentials Now</a>
         </div>
       </div>
     </div>
   </section>
+
+  <!-- Weight Selection Modal / Bottom Sheet (Quick-commerce style) -->
+  <div id="weight-picker-modal" class="weight-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="weight-modal-title">
+    <div class="weight-modal-backdrop" data-close-weight-modal></div>
+    <div class="weight-modal-sheet">
+      <div class="weight-modal-handle" aria-hidden="true"></div>
+      
+      <div class="weight-modal-header">
+        <div class="weight-modal-product-info">
+          <div class="weight-modal-thumb-wrap" id="weight-modal-thumb"></div>
+          <div class="weight-modal-titles">
+            <span class="weight-modal-cat" id="weight-modal-category">Healthy Snacks</span>
+            <h3 class="weight-modal-title" id="weight-modal-title">Select Pack Size</h3>
+          </div>
+        </div>
+        <button type="button" class="weight-modal-close" data-close-weight-modal aria-label="Close weight selector">✕</button>
+      </div>
+
+      <div class="weight-modal-subheading">
+        <span>Available Pack Sizes</span>
+        <span class="weight-modal-avail-count" id="weight-modal-options-count">2 sizes available</span>
+      </div>
+
+      <div class="weight-modal-options-list" id="weight-modal-list">
+        <!-- Variant rows injected dynamically -->
+      </div>
+    </div>
+  </div>
 </MainLayout>
 
 <style is:global>
   /* Hero */
   .hero-section {
-    padding-top: 4rem;
+    padding-top: 4.5rem;
     padding-bottom: 4rem;
-    background: radial-gradient(circle at 50% 10%, rgba(255, 104, 56, 0.08) 0%, transparent 60%),
-                radial-gradient(circle at 80% 40%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+    background: radial-gradient(circle at 50% 10%, rgba(217, 107, 39, 0.06) 0%, transparent 60%),
+                radial-gradient(circle at 80% 40%, rgba(30, 70, 32, 0.06) 0%, transparent 50%),
                 var(--bg-base);
   }
 
@@ -516,7 +441,7 @@ const bestsellers = await getProducts();
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--mn-orange);
+    background: var(--mn-cta);
     display: inline-block;
   }
 
@@ -526,6 +451,7 @@ const bestsellers = await getProducts();
     line-height: 1.05;
     margin-bottom: 0.75rem;
     letter-spacing: -0.035em;
+    color: var(--mn-primary);
   }
 
   .hero-tagline-sub {
@@ -560,100 +486,6 @@ const bestsellers = await getProducts();
     font-size: 1.05rem;
   }
 
-  .hero-btn-quiz {
-    padding: 0.95rem 1.65rem;
-    font-size: 1.05rem;
-  }
-
-  /* Pop Drop Fizz 3 Step Box */
-  .fizz-steps-card {
-    background: #FFFFFF;
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-xl);
-    padding: 2rem 2.5rem;
-    box-shadow: var(--shadow-md);
-  }
-
-  .fizz-step-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1.75rem;
-  }
-
-  .fizz-step-title {
-    font-family: var(--font-heading);
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: var(--text-primary);
-  }
-
-  .fizz-steps-grid {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem;
-  }
-
-  @media (min-width: 768px) {
-    .fizz-steps-grid {
-      flex-direction: row;
-      gap: 1rem;
-    }
-  }
-
-  .fizz-step-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    text-align: left;
-    max-width: 260px;
-  }
-
-  .step-circle {
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius-full);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 1.15rem;
-    flex-shrink: 0;
-  }
-
-  .bg-orange { background: #FFEDD5; color: #EA580C; }
-  .bg-green { background: #D1FAE5; color: #059669; }
-  .bg-berry { background: #FCE7F3; color: #DB2777; }
-  .bg-yellow { background: #FEF3C7; color: #D97706; }
-
-  .fizz-step-item strong {
-    display: block;
-    font-family: var(--font-heading);
-    font-size: 0.95rem;
-    color: var(--text-primary);
-    letter-spacing: 0.03em;
-  }
-
-  .fizz-step-item span {
-    font-size: 0.82rem;
-    color: var(--text-secondary);
-    line-height: 1.4;
-  }
-
-  .step-arrow {
-    display: none;
-    font-size: 1.5rem;
-    color: #CBD5E1;
-  }
-
-  @media (min-width: 768px) {
-    .step-arrow {
-      display: block;
-    }
-  }
 
   /* Section Styles */
   .section {
@@ -695,94 +527,6 @@ const bestsellers = await getProducts();
     color: var(--text-secondary);
     font-size: 1.02rem;
     line-height: 1.6;
-  }
-
-  /* Categories Grid */
-  .categories-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  @media (min-width: 640px) {
-    .categories-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .categories-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-
-  @media (min-width: 1280px) {
-    .categories-grid {
-      grid-template-columns: repeat(5, 1fr);
-    }
-  }
-
-  .category-card {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 240px;
-    border-radius: var(--radius-lg);
-  }
-
-  .cat-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .cat-icon-symbol {
-    font-size: 2.2rem;
-  }
-
-  .cat-tag-badge {
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    padding: 0.25rem 0.65rem;
-    border-radius: var(--radius-full);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-  }
-
-  .cat-body {
-    margin-top: 1.25rem;
-    margin-bottom: 1.25rem;
-  }
-
-  .cat-title {
-    font-size: 1.3rem;
-    margin-bottom: 0.45rem;
-  }
-
-  .cat-desc {
-    font-size: 0.88rem;
-    color: var(--text-secondary);
-    line-height: 1.5;
-  }
-
-  .cat-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
-    padding-top: 1rem;
-  }
-
-  .cat-count {
-    font-size: 0.82rem;
-    color: var(--text-muted);
-    font-weight: 600;
-  }
-
-  .cat-cta-link {
-    font-size: 0.9rem;
-    font-weight: 700;
-    font-family: var(--font-heading);
   }
 
   /* Header action pill */
@@ -855,7 +599,7 @@ const bestsellers = await getProducts();
     padding: 0.75rem 2.5rem 0.75rem 2.9rem;
     border: 1.5px solid var(--border-subtle);
     border-radius: var(--radius-full);
-    background: #FFFFFF;
+    background: var(--bg-surface);
     font-size: 0.92rem;
     color: var(--text-primary);
     outline: none;
@@ -863,9 +607,13 @@ const bestsellers = await getProducts();
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
   }
 
+  #catalog-search-input::placeholder {
+    color: var(--text-muted);
+  }
+
   #catalog-search-input:focus {
-    border-color: var(--mn-orange);
-    box-shadow: 0 0 0 3px rgba(255, 104, 56, 0.15);
+    border-color: var(--mn-cta);
+    box-shadow: 0 0 0 3px rgba(222, 110, 53, 0.16);
   }
 
   .catalog-search-clear {
@@ -944,7 +692,7 @@ const bestsellers = await getProducts();
     align-items: center;
     gap: 0.5rem;
     padding: 0.6rem 1.15rem;
-    background: #FFFFFF;
+    background: var(--bg-surface);
     border: 1.5px solid var(--border-subtle);
     border-radius: var(--radius-full);
     font-family: var(--font-heading);
@@ -957,17 +705,17 @@ const bestsellers = await getProducts();
   }
 
   .cat-filter-btn:hover {
-    border-color: var(--mn-orange);
-    color: var(--mn-orange);
-    background: #FFF7ED;
+    border-color: var(--mn-cta);
+    color: var(--mn-cta);
+    background: var(--bg-subtle);
     transform: translateY(-1px);
   }
 
   .cat-filter-btn.active {
-    background: linear-gradient(135deg, #FF6838 0%, #EA580C 100%);
+    background: var(--gradient-primary);
     color: #FFFFFF;
-    border-color: #EA580C;
-    box-shadow: 0 4px 14px rgba(255, 104, 56, 0.35);
+    border-color: var(--mn-cta);
+    box-shadow: 0 4px 14px rgba(222, 110, 53, 0.25);
   }
 
   .cat-icon {
@@ -987,7 +735,7 @@ const bestsellers = await getProducts();
     font-weight: 800;
     padding: 0.15rem 0.5rem;
     border-radius: var(--radius-full);
-    background: #F3F4F6;
+    background: var(--bg-subtle);
     color: var(--text-muted);
   }
 
@@ -996,73 +744,356 @@ const bestsellers = await getProducts();
     color: #FFFFFF;
   }
 
-  /* Weight Variants Selector */
-  .weight-variants-box {
-    margin-top: 0.5rem;
-    margin-bottom: 1rem;
-    padding: 0.65rem 0.85rem;
-    background: #F9FAFB;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-subtle);
-  }
-
-  .variants-header-line {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-  }
-
-  .weight-variants-label {
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-secondary);
-  }
-
-  .weight-selected-badge {
-    font-size: 0.72rem;
-    font-weight: 800;
-    color: var(--mn-orange);
-    background: #FFF7ED;
-    border: 1px solid rgba(255, 104, 56, 0.25);
-    padding: 0.1rem 0.5rem;
-    border-radius: var(--radius-full);
-  }
-
-  .weight-pill-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-  }
-
-  .weight-pill {
+  /* Pack Size Indicator on Card */
+  .pack-size-selector {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    padding: 0.35rem 0.85rem;
+    gap: 0.35rem;
+    padding: 0.22rem 0.55rem;
+    background: var(--bg-subtle);
+    border: 1.2px solid var(--border-subtle);
     border-radius: var(--radius-sm);
-    font-size: 0.82rem;
+    font-size: 0.74rem;
     font-weight: 700;
-    background: #FFFFFF;
-    border: 1.5px solid var(--border-subtle);
-    color: var(--text-primary);
+    color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.15s ease-in-out;
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+    width: fit-content;
+    user-select: none;
   }
 
-  .weight-pill:hover {
-    border-color: var(--mn-orange);
-    color: var(--mn-orange);
+  .pack-size-selector:hover {
+    border-color: var(--mn-cta);
+    color: var(--mn-cta);
+    background: var(--bg-tint-orange);
     transform: translateY(-1px);
   }
 
-  .weight-pill.active {
-    background: #FFF7ED;
-    border-color: var(--mn-orange);
-    color: var(--mn-orange);
-    box-shadow: 0 0 0 1px var(--mn-orange);
+  .pack-size-val {
+    font-weight: 800;
+    color: inherit;
+  }
+
+  .pack-size-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+
+  .pack-size-selector:hover .pack-size-arrow {
+    color: var(--mn-cta);
+  }
+
+  .btn-chevron {
+    font-size: 0.85rem;
+    line-height: 1;
+    margin-left: 2px;
+    opacity: 0.9;
+    font-weight: 800;
+  }
+
+  /* Weight Selection Modal / Bottom Sheet (Quick-commerce style) */
+  .weight-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.22s ease, visibility 0.22s ease;
+  }
+
+  .weight-modal-overlay.open {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .weight-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+
+  .weight-modal-sheet {
+    position: relative;
+    width: 90%;
+    max-width: 410px;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    overflow: hidden;
+    transform: scale(0.94) translateY(12px);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 1.15rem;
+    max-height: 82vh;
+    display: flex;
+    flex-direction: column;
+    z-index: 1;
+  }
+
+  .weight-modal-overlay.open .weight-modal-sheet {
+    transform: scale(1) translateY(0);
+  }
+
+  .weight-modal-handle {
+    display: none;
+  }
+
+  .weight-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .weight-modal-product-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .weight-modal-thumb-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .weight-modal-thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .weight-modal-thumb-icon {
+    font-size: 1.5rem;
+  }
+
+  .weight-modal-titles {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .weight-modal-cat {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--mn-cta);
+    margin-bottom: 0.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .weight-modal-title {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.25;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .weight-modal-close {
+    background: #f1f5f9;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+
+  .weight-modal-close:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+
+  .weight-modal-subheading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0 0.5rem 0;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .weight-modal-avail-count {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--mn-primary);
+    background: rgba(30, 70, 32, 0.08);
+    padding: 0.12rem 0.45rem;
+    border-radius: 99px;
+  }
+
+  .weight-modal-options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    overflow-y: auto;
+    max-height: 52vh;
+    padding: 0.15rem 0.15rem 0.25rem 0.15rem;
+  }
+
+  .weight-modal-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.7rem 0.85rem;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    user-select: none;
+  }
+
+  .weight-modal-row:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+    transform: translateY(-1px);
+  }
+
+  .weight-modal-row.is-selected {
+    border-color: var(--mn-primary);
+    background: rgba(30, 70, 32, 0.03);
+    box-shadow: 0 3px 10px rgba(30, 70, 32, 0.06);
+  }
+
+  .weight-modal-row-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .weight-modal-weight-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .weight-modal-weight-badge {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #0f172a;
+  }
+
+  .weight-modal-disc-tag {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--mn-cta);
+    background: var(--bg-tint-orange);
+    border: 1px solid var(--border-accent);
+    padding: 0.08rem 0.35rem;
+    border-radius: 4px;
+  }
+
+  .weight-modal-cur-pill {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--mn-primary);
+    background: rgba(30, 70, 32, 0.08);
+    padding: 0.08rem 0.35rem;
+    border-radius: 4px;
+  }
+
+  .weight-modal-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+  }
+
+  .weight-modal-price {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--mn-primary);
+  }
+
+  .weight-modal-orig-price {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    text-decoration: line-through;
+  }
+
+  .weight-modal-stock {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  .weight-modal-stock.low {
+    color: #dc2626;
+    font-weight: 700;
+  }
+
+  .weight-modal-add-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.42rem 1.05rem;
+    border-radius: 10px;
+    font-family: var(--font-heading);
+    font-size: 0.82rem;
+    font-weight: 800;
+    background: #ffffff;
+    border: 1.5px solid var(--mn-primary);
+    color: var(--mn-primary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 4px rgba(30, 70, 32, 0.06);
+  }
+
+  .weight-modal-row:hover .weight-modal-add-btn {
+    background: var(--mn-primary);
+    color: #ffffff;
+  }
+
+  .weight-modal-add-btn.added {
+    background: #10b981 !important;
+    border-color: #10b981 !important;
+    color: #ffffff !important;
+    transform: scale(1.05);
+  }
+
+  /* Fallback legacy weight pill styles */
+  .weight-variants-box {
+    display: none;
   }
 
   .product-card.hidden-category {
@@ -1091,184 +1122,416 @@ const bestsellers = await getProducts();
   .product-card {
     display: flex;
     flex-direction: column;
-    padding: 1.25rem;
+    padding: 0.85rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-smooth);
   }
 
+  .product-card:hover {
+    border-color: rgba(222, 110, 53, 0.35);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+  }
+
+  /* 2X LARGER PRODUCT VISUAL & CAROUSEL (310px vs 190px) */
   .product-visual {
     position: relative;
-    height: 190px;
+    height: 310px;
     border-radius: var(--radius-md);
-    background: linear-gradient(180deg, #FFF7ED 0%, #FEE2E2 100%);
+    background: linear-gradient(180deg, #FBF8F3 0%, #F5EFE6 100%);
+    border: 1px solid var(--border-subtle);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1.25rem;
+    margin-bottom: 0.65rem;
     overflow: hidden;
+    flex-shrink: 0;
   }
 
-  .discount-badge {
+  .product-visual-badges {
     position: absolute;
     top: 10px;
     left: 10px;
-    background: var(--mn-orange);
+    right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    z-index: 2;
+    pointer-events: none;
+    width: calc(100% - 20px);
+  }
+
+  .discount-badge {
+    background: var(--mn-cta);
     color: #FFFFFF;
     font-size: 0.68rem;
     font-weight: 800;
     padding: 0.2rem 0.55rem;
     border-radius: var(--radius-sm);
+    box-shadow: 0 2px 6px rgba(222, 110, 53, 0.25);
+    white-space: nowrap;
+    flex-shrink: 0;
+    line-height: 1.2;
   }
 
   .badge-corner {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: #FFFFFF;
-    color: var(--text-primary);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
     font-size: 0.65rem;
     font-weight: 700;
     padding: 0.2rem 0.55rem;
     border-radius: var(--radius-full);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 62%;
+    flex-shrink: 1;
+    line-height: 1.2;
   }
 
-  .bottle-mockup {
-    width: 64px;
-    height: 90px;
-    background: linear-gradient(135deg, #FF6838 0%, #F59E0B 100%);
-    border-radius: 14px 14px 20px 20px;
+  .product-illustration {
+    width: 100%;
+    height: 100%;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 10px 20px rgba(255, 104, 56, 0.25);
+    overflow: hidden;
+  }
+
+  .product-carousel-track {
+    width: 100%;
+    height: 100%;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .carousel-slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    transform: scale(0.96);
+    pointer-events: none;
+  }
+
+  .carousel-slide.active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+    pointer-events: auto;
+  }
+
+  .product-real-img {
+    width: 100%;
+    height: 100%;
+    max-height: 285px;
+    object-fit: contain;
+    padding: 0.4rem;
     transition: transform var(--transition-bounce);
+    user-select: none;
+    -webkit-user-drag: none;
   }
 
-  .product-card:hover .bottle-mockup {
-    transform: translateY(-4px) scale(1.06);
+  .product-card:hover .carousel-slide.active .product-real-img {
+    transform: translateY(-4px) scale(1.05);
   }
 
-  .mockup-leaf {
-    font-size: 1.6rem;
+  .carousel-dots {
+    position: absolute;
+    bottom: 6px;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    z-index: 3;
+    pointer-events: auto;
+  }
+
+  .carousel-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.22);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .carousel-dot:hover {
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .carousel-dot.active {
+    width: 14px;
+    height: 5px;
+    border-radius: 4px;
+    background: var(--mn-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  html[data-theme="dark"] .carousel-dot {
+    background: rgba(255, 255, 255, 0.28);
+  }
+
+  html[data-theme="dark"] .carousel-dot:hover {
+    background: rgba(255, 255, 255, 0.55);
+  }
+
+  html[data-theme="dark"] .carousel-dot.active {
+    background: #E87A38;
+  }
+
+  .food-pack-emblem {
+    width: 120px;
+    height: 120px;
+    border-radius: var(--radius-full);
+    background: var(--bg-card);
+    border: 1.5px solid var(--border-subtle);
+    box-shadow: 0 6px 18px rgba(30, 70, 32, 0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition-bounce), box-shadow var(--transition-smooth), border-color var(--transition-smooth);
+  }
+
+  .product-card:hover .food-pack-emblem {
+    transform: translateY(-3px) scale(1.05);
+    border-color: var(--mn-cta);
+    box-shadow: 0 8px 22px rgba(217, 107, 39, 0.2);
+  }
+
+  .emblem-icon {
+    font-size: 3rem;
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+
+  .emblem-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: var(--mn-primary);
   }
 
   .flavour-tag {
     position: absolute;
-    bottom: 8px;
-    font-size: 0.72rem;
-    color: #78350F;
-    background: rgba(255, 255, 255, 0.85);
-    padding: 0.15rem 0.6rem;
+    bottom: 22px;
+    font-size: 0.68rem;
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid var(--border-subtle);
+    padding: 0.15rem 0.55rem;
     border-radius: var(--radius-full);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    z-index: 2;
   }
 
+  /* SMALLER, COMPACT DETAILS */
   .product-content {
     display: flex;
     flex-direction: column;
     flex: 1;
+    justify-content: space-between;
   }
 
   .product-header-meta {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 0.4rem;
+    gap: 0.35rem;
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 0.22rem;
+    height: 18px;
   }
 
   .product-cat-name {
-    font-size: 0.75rem;
+    font-size: 0.64rem;
     font-weight: 700;
-    color: var(--mn-green-dark);
+    color: var(--mn-primary);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 1;
+    line-height: 1.2;
   }
 
   .stock-indicator {
-    font-size: 0.72rem;
+    font-size: 0.6rem;
     font-weight: 700;
-    color: var(--mn-green-dark);
-    background: var(--bg-tint-green);
-    padding: 0.2rem 0.55rem;
+    color: #16A34A;
+    background: rgba(22, 163, 74, 0.08);
+    border: 1px solid rgba(22, 163, 74, 0.22);
+    padding: 0.1rem 0.45rem;
     border-radius: var(--radius-full);
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    line-height: 1.2;
   }
 
   .stock-indicator.low-stock {
     color: #DC2626;
-    background: #FEE2E2;
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.25);
   }
 
   .product-rating {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 0.2rem;
-    font-size: 0.82rem;
+    gap: 3px;
+    background: rgba(22, 163, 74, 0.08);
+    border: 1px solid rgba(22, 163, 74, 0.2);
+    padding: 0.1rem 0.38rem;
+    border-radius: var(--radius-full);
+    width: fit-content;
+    margin-bottom: 0.28rem;
+    line-height: 1;
   }
 
-  .stars {
+  .rating-star {
     color: #F59E0B;
+    font-size: 0.68rem;
+    line-height: 1;
   }
 
-  .reviews-count {
+  .rating-score {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+
+  .rating-count {
+    font-size: 0.6rem;
+    font-weight: 500;
     color: var(--text-muted);
-    font-size: 0.75rem;
+    line-height: 1;
   }
 
   .product-name {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-    line-height: 1.35;
+    font-size: 0.92rem;
+    margin-bottom: 0.3rem;
+    line-height: 1.25;
+    min-height: 2.3rem;
+    height: 2.3rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-weight: 700;
   }
 
   .product-desc {
-    font-size: 0.86rem;
+    font-size: 0.76rem;
     color: var(--text-secondary);
-    line-height: 1.5;
-    margin-bottom: 1.25rem;
-    flex: 1;
+    line-height: 1.35;
+    margin-bottom: 0.45rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.05rem;
+  }
+
+  .weight-variants-box {
+    margin-bottom: 0.45rem;
   }
 
   .product-price-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1rem;
-    padding-top: 0.75rem;
+    margin-bottom: 0.55rem;
+    padding-top: 0.45rem;
     border-top: 1px solid var(--border-subtle);
   }
 
   .price-wrap {
     display: flex;
     align-items: baseline;
-    gap: 0.5rem;
+    gap: 0.4rem;
+    flex-wrap: nowrap;
   }
 
   .current-price {
     font-family: var(--font-heading);
-    font-size: 1.25rem;
+    font-size: 1.05rem;
     font-weight: 800;
     color: var(--text-primary);
   }
 
   .original-price {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     text-decoration: line-through;
   }
 
-  .save-tag {
-    font-size: 0.72rem;
+  /* High-contrast, crystal clear discount tag to the right of MRP */
+  .discount-tag {
+    font-size: 0.68rem;
     font-weight: 800;
-    color: #DC2626;
-    background: #FEE2E2;
-    padding: 0.15rem 0.45rem;
+    color: #15803d;
+    background: #ecfdf5;
+    border: 1px solid #bbf7d0;
+    padding: 0.08rem 0.38rem;
     border-radius: 4px;
+    white-space: nowrap;
+    line-height: 1.1;
+    display: inline-flex;
+    align-items: center;
+    letter-spacing: 0.02em;
+  }
+
+  html.dark .discount-tag,
+  [data-theme="dark"] .discount-tag {
+    color: #4ade80;
+    background: rgba(34, 197, 94, 0.14);
+    border: 1px solid rgba(74, 222, 128, 0.28);
+  }
+
+  .save-tag {
+    display: none;
   }
 
   .add-to-cart-btn {
     width: 100%;
-    padding: 0.75rem;
-    font-size: 0.95rem;
+    height: 38px;
+    padding: 0 0.75rem;
+    font-size: 0.82rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: var(--gradient-primary);
+    box-shadow: var(--shadow-cta);
   }
 
   /* Promise Section */
@@ -1330,38 +1593,11 @@ const bestsellers = await getProducts();
     line-height: 1.6;
   }
 
-  /* Quiz Box */
-  .quiz-box {
-    background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
-    border: 2px dashed #059669;
-    border-radius: var(--radius-xl);
-    padding: 3.5rem 2rem;
-    text-align: center;
-  }
-
-  .quiz-content {
-    max-width: 680px;
-    margin: 0 auto;
-  }
-
-  .quiz-title {
-    font-size: clamp(1.8rem, 4vw, 2.6rem);
-    margin-top: 0.75rem;
-    margin-bottom: 1rem;
-    color: #064E3B;
-  }
-
-  .quiz-desc {
-    color: #047857;
-    font-size: 1.05rem;
-    line-height: 1.6;
-    margin-bottom: 2rem;
-  }
 
   /* Promo Box */
   .promo-box {
-    background: linear-gradient(135deg, #FFF7ED 0%, #FED7AA 100%);
-    border: 1px solid #FDBA74;
+    background: linear-gradient(135deg, #FDF7F0 0%, #F8EDE0 100%);
+    border: 1px solid rgba(217, 107, 39, 0.3);
     border-radius: var(--radius-xl);
     padding: 4rem 2rem;
     text-align: center;
@@ -1371,11 +1607,11 @@ const bestsellers = await getProducts();
     font-size: clamp(1.8rem, 4.5vw, 2.8rem);
     margin-top: 1rem;
     margin-bottom: 1rem;
-    color: #7C2D12;
+    color: #5C2708;
   }
 
   .promo-desc {
-    color: #9A3412;
+    color: #7D3710;
     font-size: 1.05rem;
     max-width: 620px;
     margin: 0 auto 2.25rem auto;
@@ -1384,126 +1620,502 @@ const bestsellers = await getProducts();
 
   .promo-code {
     background: #FFFFFF;
-    color: var(--mn-orange);
+    color: var(--mn-cta);
     padding: 0.2rem 0.6rem;
     border-radius: 6px;
-    border: 1px dashed var(--mn-orange);
+    border: 1px dashed var(--mn-cta);
+    font-weight: 800;
   }
 
-  /* Interactive Quiz Styles */
-  .quiz-form-wrap, .quiz-result-wrap {
-    max-width: 600px;
-    margin: 0 auto;
-    text-align: left;
-    background: #FFFFFF;
-    border-radius: var(--radius-lg);
-    padding: 2.25rem 2rem;
-    box-shadow: var(--shadow-md);
-  }
+  /* ========================================================= */
+  /* PLIX-INSPIRED COMPACT MOBILE OPTIMIZATIONS (< 768px) */
+  /* ========================================================= */
+  @media (max-width: 768px) {
+    /* Tighten section padding: reduces dead space by ~60% */
+    .section {
+      padding-top: 1.5rem !important;
+      padding-bottom: 1.5rem !important;
+    }
 
-  .quiz-form-title {
-    font-size: 1.4rem;
-    margin-top: 0.75rem;
-    margin-bottom: 1.5rem;
-    color: var(--text-primary);
-  }
+    /* Hero compacting */
+    .hero-section {
+      padding-top: 1.75rem !important;
+      padding-bottom: 1.25rem !important;
+    }
 
-  .quiz-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-  }
+    .hero-badge {
+      font-size: 0.72rem !important;
+      padding: 0.25rem 0.65rem !important;
+      margin-bottom: 0.75rem !important;
+    }
 
-  .quiz-form-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
+    .hero-title {
+      font-size: 2.15rem !important;
+      line-height: 1.08 !important;
+      margin-bottom: 0.35rem !important;
+    }
 
-  @media (min-width: 600px) {
-    .quiz-form-grid {
-      grid-template-columns: 1fr 1fr;
+    .hero-tagline-sub {
+      font-size: 0.9rem !important;
+      margin-bottom: 0.65rem !important;
+    }
+
+    .hero-description {
+      font-size: 0.88rem !important;
+      line-height: 1.45 !important;
+      margin-bottom: 1.25rem !important;
+      max-width: 100% !important;
+    }
+
+    .hero-actions {
+      margin-bottom: 1rem !important;
+    }
+
+    .hero-btn-main {
+      width: 100% !important;
+      max-width: 320px !important;
+      padding: 0.75rem 1.25rem !important;
+      font-size: 0.95rem !important;
+    }
+
+    /* Catalog Section Header */
+    .section-header-flex {
+      margin-bottom: 1rem !important;
+      gap: 0.5rem !important;
+    }
+
+    .section-title {
+      font-size: 1.45rem !important;
+      margin-top: 0.25rem !important;
+      margin-bottom: 0.35rem !important;
+    }
+
+    .section-subtitle {
+      font-size: 0.82rem !important;
+      line-height: 1.4 !important;
+    }
+
+    .header-action-badge {
+      display: none !important;
+    }
+
+    .category-filters-container {
+      margin-bottom: 1.25rem !important;
+    }
+
+    .catalog-search-box {
+      padding: 0.55rem 0.85rem !important;
+      margin-bottom: 0.75rem !important;
+      font-size: 0.85rem !important;
+    }
+
+    .category-filters-bar {
+      gap: 0.45rem !important;
+      padding-bottom: 0.35rem !important;
+    }
+
+    .cat-filter-btn {
+      padding: 0.4rem 0.75rem !important;
+      font-size: 0.78rem !important;
+    }
+
+    /* 3-COLUMN PRODUCT GRID (BLINKIT QUICK-COMMERCE MOBILE PATTERN - NO HORIZONTAL SCROLL) */
+    .products-section .container {
+      padding-left: 0.45rem !important;
+      padding-right: 0.45rem !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    .products-grid {
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 0.35rem !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    .product-card {
+      padding: 0.38rem 0.32rem !important;
+      border-radius: 10px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+      height: 100% !important;
+      box-sizing: border-box !important;
+      min-width: 0 !important;
+      overflow: hidden !important;
+    }
+
+    .product-visual {
+      height: 160px !important;
+      margin-bottom: 0.25rem !important;
+      border-radius: 8px !important;
+      flex-shrink: 0 !important;
+      position: relative !important;
+    }
+
+    .food-pack-emblem {
+      width: 72px !important;
+      height: 72px !important;
+    }
+
+    .emblem-icon {
+      font-size: 1.85rem !important;
+      line-height: 1 !important;
+    }
+
+    .emblem-label {
+      font-size: 0.48rem !important;
+      letter-spacing: 0.04em !important;
+    }
+
+    .product-real-img {
+      max-height: 150px !important;
+      padding: 0.15rem !important;
+    }
+
+    .carousel-dots {
+      bottom: 3px !important;
+      gap: 2.5px !important;
+    }
+
+    .carousel-dot {
+      width: 3.5px !important;
+      height: 3.5px !important;
+    }
+
+    .carousel-dot.active {
+      width: 9px !important;
+      height: 3.5px !important;
+      border-radius: 3px !important;
+    }
+
+    .product-visual-badges {
+      top: 3px !important;
+      left: 3px !important;
+      right: 3px !important;
+      width: calc(100% - 6px) !important;
+      gap: 2px !important;
+    }
+
+    .discount-badge {
+      font-size: 0.5rem !important;
+      padding: 1px 3.5px !important;
+      border-radius: 3px !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+      line-height: 1.1 !important;
+    }
+
+    .badge-corner {
+      display: none !important; /* Hiding secondary text badge keeps the 3-column visual clean and uncrowded */
+    }
+
+    .flavour-tag {
+      display: none !important;
+    }
+
+    .product-content {
+      display: flex !important;
+      flex-direction: column !important;
+      flex: 1 !important;
+      justify-content: space-between !important;
+      min-width: 0 !important;
+    }
+
+    .product-header-meta {
+      margin-bottom: 0.12rem !important;
+      height: 14px !important;
+      gap: 2px !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+    }
+
+    .product-cat-name {
+      font-size: 0.44rem !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      min-width: 0 !important;
+      flex: 1 1 auto !important;
+      line-height: 1 !important;
+    }
+
+    .stock-indicator {
+      font-size: 0.44rem !important;
+      padding: 0 3px !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      line-height: 1 !important;
+      height: 13px !important;
+      border-radius: 2.5px !important;
+      box-sizing: border-box !important;
+      font-weight: 700 !important;
+    }
+
+    .product-name {
+      font-size: 0.65rem !important;
+      line-height: 1.15 !important;
+      min-height: 1.45rem !important;
+      max-height: 1.45rem !important;
+      height: 1.45rem !important;
+      margin-bottom: 0.12rem !important;
+      display: -webkit-box !important;
+      -webkit-line-clamp: 2 !important;
+      -webkit-box-orient: vertical !important;
+      overflow: hidden !important;
+      font-weight: 700 !important;
+    }
+
+    .product-rating {
+      height: 13px !important;
+      padding: 0 3px !important;
+      margin-bottom: 0.14rem !important;
+      gap: 1.5px !important;
+      border-radius: 2.5px !important;
+      line-height: 1 !important;
+      width: fit-content !important;
+      display: inline-flex !important;
+      align-items: center !important;
+    }
+
+    .rating-star {
+      font-size: 0.5rem !important;
+      line-height: 1 !important;
+    }
+
+    .rating-score {
+      font-size: 0.52rem !important;
+      line-height: 1 !important;
+    }
+
+    .rating-count {
+      font-size: 0.44rem !important;
+      line-height: 1 !important;
+    }
+
+    .product-desc {
+      display: none !important;
+    }
+
+    .pack-size-selector {
+      margin-top: 0 !important;
+      margin-bottom: 0.16rem !important;
+      padding: 0 4px !important;
+      height: 16px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 2px !important;
+      font-size: 0.52rem !important;
+      border-radius: 3px !important;
+      background: var(--bg-subtle) !important;
+      border: 1px solid var(--border-subtle) !important;
+      color: var(--text-secondary) !important;
+      width: fit-content !important;
+      cursor: pointer !important;
+    }
+
+    .pack-size-arrow {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 1px !important;
+    }
+
+    .pack-size-arrow svg {
+      width: 7px !important;
+      height: 7px !important;
+    }
+
+    .pack-size-count {
+      display: inline !important;
+      font-size: 0.48rem !important;
+    }
+
+    .weight-variants-box {
+      display: none !important;
+    }
+
+    .btn-chevron {
+      font-size: 0.62rem !important;
+      margin-left: 1px !important;
+    }
+
+    /* Mobile Bottom Sheet Modal */
+    .weight-modal-overlay {
+      align-items: flex-end !important;
+    }
+
+    .weight-modal-sheet {
+      width: 100% !important;
+      max-width: 100% !important;
+      border-radius: 20px 20px 0 0 !important;
+      transform: translateY(100%) !important;
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      padding: 0.75rem 1rem 1.5rem 1rem !important;
+      max-height: 78vh !important;
+    }
+
+    .weight-modal-overlay.open .weight-modal-sheet {
+      transform: translateY(0) !important;
+    }
+
+    .weight-modal-handle {
+      display: block !important;
+      width: 36px !important;
+      height: 4px !important;
+      background: #cbd5e1 !important;
+      border-radius: 99px !important;
+      margin: 0 auto 0.65rem auto !important;
+    }
+
+    .weight-modal-title {
+      font-size: 0.95rem !important;
+    }
+
+    .weight-modal-row {
+      padding: 0.6rem 0.75rem !important;
+    }
+
+    .product-price-row {
+      margin-bottom: 0.18rem !important;
+      padding-top: 0.08rem !important;
+      height: 16px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+    }
+
+    .price-wrap {
+      display: flex !important;
+      align-items: center !important;
+      gap: 3px !important;
+      flex-wrap: nowrap !important;
+      width: 100% !important;
+    }
+
+    .current-price {
+      font-size: 0.72rem !important;
+      line-height: 1 !important;
+      font-weight: 800 !important;
+    }
+
+    .original-price {
+      font-size: 0.52rem !important;
+      line-height: 1 !important;
+      text-decoration: line-through !important;
+    }
+
+    .discount-tag {
+      font-size: 0.48rem !important;
+      font-weight: 800 !important;
+      padding: 0.5px 3px !important;
+      border-radius: 2.5px !important;
+      line-height: 1 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      white-space: nowrap !important;
+      margin-left: 1px !important;
+    }
+
+    .save-tag {
+      display: none !important;
+    }
+
+    .add-to-cart-btn {
+      height: 24px !important;
+      padding: 0 3px !important;
+      font-size: 0.6rem !important;
+      border-radius: 5px !important;
+      gap: 2px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      margin-top: auto !important;
+      white-space: nowrap !important;
+      width: 100% !important;
+      font-weight: 700 !important;
+    }
+
+    .add-to-cart-btn svg {
+      width: 11px !important;
+      height: 11px !important;
+    }
+
+    /* Promise / Standard Section */
+    .promise-card {
+      padding: 1.5rem 1rem !important;
+      border-radius: 14px !important;
+    }
+
+    .promise-header {
+      margin-bottom: 1.25rem !important;
+    }
+
+    .promise-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 0.75rem !important;
+    }
+
+    .promise-item {
+      padding: 0.75rem 0.5rem !important;
+    }
+
+    .promise-icon-wrap {
+      width: 38px !important;
+      height: 38px !important;
+      font-size: 1.25rem !important;
+      margin-bottom: 0.4rem !important;
+    }
+
+    .promise-item h4 {
+      font-size: 0.82rem !important;
+      margin-bottom: 0.2rem !important;
+    }
+
+    .promise-item p {
+      font-size: 0.7rem !important;
+      line-height: 1.35 !important;
+      display: -webkit-box !important;
+      -webkit-line-clamp: 2 !important;
+      -webkit-box-orient: vertical !important;
+      overflow: hidden !important;
+    }
+
+    /* VIP Promo Box */
+    .promo-box {
+      padding: 1.5rem 1rem !important;
+      border-radius: 14px !important;
+    }
+
+    .promo-title {
+      font-size: 1.35rem !important;
+      margin-top: 0.5rem !important;
+      margin-bottom: 0.5rem !important;
+    }
+
+    .promo-desc {
+      font-size: 0.82rem !important;
+      line-height: 1.4 !important;
+      margin-bottom: 1rem !important;
+    }
+
+    .promo-btn-wrap .btn {
+      width: 100% !important;
+      padding: 0.75rem 1rem !important;
+      font-size: 0.88rem !important;
     }
   }
 
-  .quiz-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-
-  .quiz-field label {
-    font-size: 0.86rem;
-    font-weight: 700;
-    color: var(--text-primary);
-  }
-
-  .quiz-select, .quiz-input {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1.5px solid var(--border-medium);
-    border-radius: var(--radius-md);
-    background: #FFFFFF;
-    font-size: 0.92rem;
-    outline: none;
-    transition: border-color var(--transition-fast);
-  }
-
-  .quiz-select:focus, .quiz-input:focus {
-    border-color: var(--mn-green-dark);
-  }
-
-  .quiz-form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    margin-top: 0.75rem;
-  }
-
-  .quiz-result-card {
-    text-align: center;
-  }
-
-  .quiz-result-card h3 {
-    font-size: 1.5rem;
-    margin-top: 0.75rem;
-    margin-bottom: 0.75rem;
-    color: var(--text-primary);
-  }
-
-  .recommendation-desc {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-  }
-
-  .quiz-coupon-alert {
-    background: var(--bg-tint-orange);
-    border: 1.5px dashed var(--mn-orange);
-    padding: 0.85rem 1.25rem;
-    border-radius: var(--radius-md);
-    font-size: 0.95rem;
-    margin-bottom: 1.5rem;
-    color: #7C2D12;
-  }
-
-  .coupon-highlight {
-    color: var(--mn-orange);
-    font-size: 1.1rem;
-    letter-spacing: 0.05em;
-  }
-
-  .quiz-result-actions {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
 </style>
 
 <script>
-  import { getProducts, saveQuizLead } from '../lib/db';
+  import { getProducts, cleanProductName } from '../lib/db';
   import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
   const productsGrid = document.getElementById('products-grid');
@@ -1519,62 +2131,318 @@ const bestsellers = await getProducts();
     return '🌿';
   }
 
+  // Auto-scrolling Product Image Carousels (Transitions every 2.5 seconds)
+  let carouselTimers: number[] = [];
+  let carouselObserver: IntersectionObserver | null = null;
+
+  function initProductCarousels() {
+    // Clear any existing intervals
+    carouselTimers.forEach((timer) => clearInterval(timer));
+    carouselTimers = [];
+
+    if (carouselObserver) {
+      carouselObserver.disconnect();
+      carouselObserver = null;
+    }
+
+    const visualCarousels = document.querySelectorAll('.product-visual[data-carousel]');
+    if (!visualCarousels || visualCarousels.length === 0) return;
+
+    const isObserverSupported = typeof window !== 'undefined' && 'IntersectionObserver' in window;
+
+    visualCarousels.forEach((visualEl) => {
+      const slides = visualEl.querySelectorAll('.carousel-slide');
+      if (slides.length <= 1) return;
+
+      const dots = visualEl.querySelectorAll('.carousel-dot');
+      let currentIndex = 0;
+      let timerId: number | null = null;
+      let isPaused = false;
+
+      function goToSlide(newIndex: number) {
+        if (newIndex === currentIndex || newIndex < 0 || newIndex >= slides.length) return;
+        slides[currentIndex]?.classList.remove('active');
+        dots[currentIndex]?.classList.remove('active');
+
+        currentIndex = newIndex;
+
+        slides[currentIndex]?.classList.add('active');
+        dots[currentIndex]?.classList.add('active');
+      }
+
+      function nextSlide() {
+        if (isPaused) return;
+        const nextIndex = (currentIndex + 1) % slides.length;
+        goToSlide(nextIndex);
+      }
+
+      function startTimer() {
+        if (timerId !== null) return;
+        timerId = window.setInterval(nextSlide, 2500); // Auto-rotate every 2.5 seconds
+        carouselTimers.push(timerId);
+      }
+
+      function stopTimer() {
+        if (timerId !== null) {
+          clearInterval(timerId);
+          carouselTimers = carouselTimers.filter((t) => t !== timerId);
+          timerId = null;
+        }
+      }
+
+      // Manual dot navigation
+      dots.forEach((dot) => {
+        dot.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const targetIdx = parseInt((dot as HTMLElement).getAttribute('data-dot-index') || '0', 10);
+          goToSlide(targetIdx);
+          stopTimer();
+          startTimer();
+        });
+      });
+
+      // Pause on hover or touch
+      visualEl.addEventListener('mouseenter', () => { isPaused = true; });
+      visualEl.addEventListener('mouseleave', () => { isPaused = false; });
+      visualEl.addEventListener('touchstart', () => { isPaused = true; }, { passive: true });
+      visualEl.addEventListener('touchend', () => {
+        setTimeout(() => { isPaused = false; }, 2000);
+      }, { passive: true });
+
+      // Only run auto-scroll when visible in viewport
+      if (isObserverSupported) {
+        if (!carouselObserver) {
+          carouselObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+              const target = entry.target as HTMLElement;
+              const startFn = (target as any)._startCarousel;
+              const stopFn = (target as any)._stopCarousel;
+              if (entry.isIntersecting) {
+                if (startFn) startFn();
+              } else {
+                if (stopFn) stopFn();
+              }
+            });
+          }, { threshold: 0.1 });
+        }
+        (visualEl as any)._startCarousel = startTimer;
+        (visualEl as any)._stopCarousel = stopTimer;
+        carouselObserver.observe(visualEl);
+      } else {
+        startTimer();
+      }
+    });
+  }
+
+  // --- Weight Picker Modal Logic (Quick-commerce Style) ---
+  const weightModal = document.getElementById('weight-picker-modal');
+  const weightModalList = document.getElementById('weight-modal-list');
+  const weightModalTitle = document.getElementById('weight-modal-title');
+  const weightModalCat = document.getElementById('weight-modal-category');
+  const weightModalThumb = document.getElementById('weight-modal-thumb');
+  const weightModalOptionsCount = document.getElementById('weight-modal-options-count');
+
+  let activeModalCard: HTMLElement | null = null;
+
+  function closeWeightPicker() {
+    if (!weightModal) return;
+    weightModal.classList.remove('open');
+    weightModal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    activeModalCard = null;
+  }
+
+  // Setup modal close listeners once
+  document.querySelectorAll('[data-close-weight-modal]').forEach((el) => {
+    el.addEventListener('click', closeWeightPicker);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && weightModal?.classList.contains('open')) {
+      closeWeightPicker();
+    }
+  });
+
+  function openWeightPicker(card: HTMLElement) {
+    if (!weightModal || !weightModalList) return;
+    activeModalCard = card;
+
+    const id = card.getAttribute('data-product-id') || 'product';
+    const name = card.getAttribute('data-product-name') || 'Product';
+    const category = card.getAttribute('data-category') || '';
+    const selectedWeight = card.getAttribute('data-selected-weight') || '';
+    const discount = card.getAttribute('data-discount') || '20% OFF';
+    const imgUrl = card.getAttribute('data-img') || card.querySelector('.product-real-img')?.getAttribute('src') || '';
+    const icon = card.querySelector('.emblem-icon')?.textContent || '🌿';
+
+    let variants: any[] = [];
+    try {
+      const rawVariants = card.getAttribute('data-variants');
+      if (rawVariants) variants = JSON.parse(rawVariants);
+    } catch {}
+
+    if (!variants || variants.length === 0) {
+      const currentPrice = card.getAttribute('data-selected-price') || '₹149';
+      const origPrice = card.querySelector('[data-orig-price-target]')?.textContent || '';
+      variants = [{ weight: selectedWeight || '100g', price: currentPrice, originalPrice: origPrice }];
+    }
+
+    if (weightModalTitle) weightModalTitle.textContent = name;
+    if (weightModalCat) weightModalCat.textContent = category;
+    if (weightModalOptionsCount) {
+      weightModalOptionsCount.textContent = `${variants.length} ${variants.length === 1 ? 'pack size' : 'pack sizes'} available`;
+    }
+
+    if (weightModalThumb) {
+      if (imgUrl) {
+        weightModalThumb.innerHTML = `<img src="${imgUrl}" alt="${name}" class="weight-modal-thumb-img" />`;
+      } else {
+        weightModalThumb.innerHTML = `<span class="weight-modal-thumb-icon">${icon}</span>`;
+      }
+    }
+
+    // Populate variant rows
+    const cardStock = parseInt(card.querySelector('[data-stock-target]')?.textContent?.replace(/\D/g, '') || '30', 10);
+    weightModalList.innerHTML = variants.map((v: any, vIdx: number) => {
+      const isSelected = v.weight === selectedWeight;
+      const vStock = vIdx === 0 ? cardStock : (v.stock !== undefined && v.stock !== null ? Number(v.stock) : Math.max(1, Math.floor(cardStock / 2)));
+      const vOrigPrice = v.originalPrice || v.original_price || '';
+      
+      return `
+        <div 
+          class="weight-modal-row ${isSelected ? 'is-selected' : ''}" 
+          data-variant-weight="${v.weight}"
+          data-variant-price="${v.price}"
+          data-variant-orig-price="${vOrigPrice}"
+          data-variant-stock="${vStock}"
+          role="button"
+          tabindex="0"
+        >
+          <div class="weight-modal-row-left">
+            <div class="weight-modal-weight-row">
+              <span class="weight-modal-weight-badge">${v.weight}</span>
+              ${discount ? `<span class="weight-modal-disc-tag">${discount}</span>` : ''}
+              ${isSelected ? `<span class="weight-modal-cur-pill">Current</span>` : ''}
+            </div>
+            <div class="weight-modal-price-row">
+              <span class="weight-modal-price">${v.price}</span>
+              ${vOrigPrice ? `<span class="weight-modal-orig-price">${vOrigPrice}</span>` : ''}
+            </div>
+            <div class="weight-modal-stock ${vStock <= 10 ? 'low' : ''}">
+              ${vStock <= 0 ? 'Out of stock' : vStock <= 10 ? `🔥 Only ${vStock} left` : `In Stock (${vStock} units left)`}
+            </div>
+          </div>
+          <div class="weight-modal-row-right">
+            <button 
+              type="button" 
+              class="weight-modal-add-btn" 
+              data-modal-add-variant 
+              aria-label="Add ${name} ${v.weight} to cart"
+            >
+              <span class="btn-label">+ ADD</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Attach click events on the variant rows
+    weightModalList.querySelectorAll('.weight-modal-row').forEach((row) => {
+      const chooseVariant = (targetBtn?: HTMLElement) => {
+        const weight = row.getAttribute('data-variant-weight') || '100g';
+        const price = row.getAttribute('data-variant-price') || '';
+        const origPrice = row.getAttribute('data-variant-orig-price') || '';
+        const stock = parseInt(row.getAttribute('data-variant-stock') || '30', 10);
+
+        const btn = targetBtn || row.querySelector('[data-modal-add-variant]') as HTMLElement;
+        if (btn) {
+          btn.classList.add('added');
+          btn.innerHTML = `<span>✓ Added</span>`;
+        }
+
+        // Add to cart
+        if ((window as any).manneedsCart?.add) {
+          (window as any).manneedsCart.add({
+            id,
+            name,
+            weight,
+            price,
+            originalPrice: origPrice || undefined,
+            category
+          });
+        }
+
+        // Update card in page
+        if (activeModalCard) {
+          activeModalCard.setAttribute('data-selected-weight', weight);
+          activeModalCard.setAttribute('data-selected-price', price);
+
+          const weightDisplay = activeModalCard.querySelector('[data-weight-display]');
+          if (weightDisplay) weightDisplay.textContent = weight;
+
+          const priceEl = activeModalCard.querySelector('[data-price-target]');
+          if (priceEl && price) priceEl.textContent = price;
+
+          const origPriceEl = activeModalCard.querySelector('[data-orig-price-target]');
+          if (origPriceEl) {
+            if (origPrice) {
+              origPriceEl.textContent = origPrice;
+              (origPriceEl as HTMLElement).style.display = '';
+            } else {
+              (origPriceEl as HTMLElement).style.display = 'none';
+            }
+          }
+
+          const stockEl = activeModalCard.querySelector('[data-stock-target]');
+          if (stockEl) {
+            stockEl.className = `stock-indicator ${stock <= 10 ? 'low-stock' : ''}`;
+            stockEl.textContent = stock <= 0 ? 'Out of stock' : stock <= 10 ? `🔥 Only ${stock} left` : `${stock} left`;
+          }
+
+          // Update discount tag right of MRP
+          const discEl = activeModalCard.querySelector('[data-discount-target]');
+          if (discEl) {
+            let discText = activeModalCard.getAttribute('data-discount') || '20% OFF';
+            if (price && origPrice) {
+              const p = parseFloat(price.replace(/[^\d.]/g, ''));
+              const o = parseFloat(origPrice.replace(/[^\d.]/g, ''));
+              if (o > p && o > 0) {
+                const pct = Math.round(((o - p) / o) * 100);
+                if (pct > 0) discText = `${pct}% OFF`;
+              }
+            }
+            discEl.textContent = discText;
+          }
+        }
+
+        setTimeout(() => {
+          closeWeightPicker();
+        }, 320);
+      };
+
+      row.addEventListener('click', (e) => {
+        const targetBtn = (e.target as HTMLElement).closest('[data-modal-add-variant]') as HTMLElement | null;
+        chooseVariant(targetBtn || undefined);
+      });
+    });
+
+    weightModal.classList.add('open');
+    weightModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
   // Bind interactive weight selection and add-to-cart clicks
   function bindProductInteractions() {
     if (!productsGrid) return;
 
-    // Weight variant pill buttons
-    const weightPills = productsGrid.querySelectorAll('.weight-pill');
-    weightPills.forEach((pill) => {
-      // Remove any existing listener by replacing or checking dataset
-      pill.replaceWith(pill.cloneNode(true));
+    // Pack size selector click on cards opens popup
+    productsGrid.querySelectorAll('[data-open-weight-picker]').forEach((trigger) => {
+      trigger.replaceWith(trigger.cloneNode(true));
     });
-
-    productsGrid.querySelectorAll('.weight-pill').forEach((pill) => {
-      pill.addEventListener('click', (e) => {
-        const btn = e.currentTarget as HTMLElement;
-        const card = btn.closest('.product-card') as HTMLElement;
-        if (!card) return;
-
-        // Toggle active pill in this card
-        const group = btn.closest('.weight-pill-group');
-        group?.querySelectorAll('.weight-pill').forEach((p) => p.classList.remove('active'));
-        btn.classList.add('active');
-
-        const weight = btn.getAttribute('data-weight') || '100g';
-        const price = btn.getAttribute('data-price') || '';
-        const origPrice = btn.getAttribute('data-orig-price') || '';
-        const stock = parseInt(btn.getAttribute('data-stock') || '0', 10);
-
-        // Update card data attributes
-        card.setAttribute('data-selected-weight', weight);
-        card.setAttribute('data-selected-price', price);
-
-        // Update weight display badge
-        const weightDisplay = card.querySelector('[data-weight-display]');
-        if (weightDisplay) weightDisplay.textContent = weight;
-
-        // Update price display
-        const priceEl = card.querySelector('[data-price-target]');
-        if (priceEl && price) priceEl.textContent = price;
-
-        // Update original price
-        const origPriceEl = card.querySelector('[data-orig-price-target]');
-        if (origPriceEl) {
-          if (origPrice) {
-            origPriceEl.textContent = origPrice;
-            (origPriceEl as HTMLElement).style.display = '';
-          } else {
-            (origPriceEl as HTMLElement).style.display = 'none';
-          }
-        }
-
-        // Update stock indicator
-        const stockEl = card.querySelector('[data-stock-target]');
-        if (stockEl) {
-          stockEl.className = `stock-indicator ${stock <= 10 ? 'low-stock' : ''}`;
-          stockEl.textContent = stock <= 0 ? '❌ Out of Stock' : stock <= 10 ? `🔥 Only ${stock} Left` : `✓ Stock: ${stock}`;
-        }
+    productsGrid.querySelectorAll('[data-open-weight-picker]').forEach((trigger) => {
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const card = (e.currentTarget as HTMLElement).closest('.product-card') as HTMLElement;
+        if (card) openWeightPicker(card);
       });
     });
 
@@ -1585,8 +2453,22 @@ const bestsellers = await getProducts();
 
     productsGrid.querySelectorAll('[data-cart-action]').forEach((btn) => {
       btn.addEventListener('click', (e) => {
-        const card = (e.currentTarget as HTMLElement).closest('.product-card');
+        const card = (e.currentTarget as HTMLElement).closest('.product-card') as HTMLElement;
         if (!card) return;
+
+        let variants: any[] = [];
+        try {
+          const raw = card.getAttribute('data-variants');
+          if (raw) variants = JSON.parse(raw);
+        } catch {}
+
+        // If product has multiple variants, open weight picker popup!
+        if (variants && variants.length > 1) {
+          openWeightPicker(card);
+          return;
+        }
+
+        // If single variant or none, add directly to cart
         const id = card.getAttribute('data-product-id') || 'product';
         const name = card.getAttribute('data-product-name') || 'Product';
         const weight = card.getAttribute('data-selected-weight') || '100g';
@@ -1693,6 +2575,7 @@ const bestsellers = await getProducts();
     currentActiveCategory = cat;
     applyFilters();
   }
+  (window as any).applyCategoryFilter = applyCategoryFilter;
 
   // Setup category filter tabs
   const filterButtons = document.querySelectorAll('.cat-filter-btn');
@@ -1806,71 +2689,93 @@ const bestsellers = await getProducts();
       const currentStock = masterStock;
       const currentWeight = defaultVariant ? defaultVariant.weight : '100g';
       const icon = getCategoryIcon(item.category || '');
+      const itemImages: string[] = item.images && Array.isArray(item.images) && item.images.length > 0
+        ? item.images
+        : (item.image || item.imageUrl ? [item.image || item.imageUrl] : []);
 
       return `
         <div 
           class="mn-card product-card"
           data-product-id="${item.id}"
           data-category="${item.category}"
-          data-product-name="${item.name.replace(/"/g, '&quot;')}"
+          data-product-name="${cleanProductName(item.name).replace(/"/g, '&quot;')}"
           data-selected-weight="${currentWeight}"
           data-selected-price="${currentPrice}"
+          data-variants="${JSON.stringify(variants).replace(/"/g, '&quot;')}"
+          data-img="${itemImages[0] || ''}"
+          data-discount="${item.discount || '20% OFF'}"
         >
-          <div class="product-visual">
-            <span class="discount-badge">${item.discount || '20% OFF'}</span>
-            <span class="badge-corner">${item.badge || 'Pure Plant'}</span>
+          <div class="product-visual" data-carousel>
+            ${item.badge ? `
+              <div class="product-visual-badges">
+                <span class="badge-corner" title="${item.badge}">${item.badge}</span>
+              </div>
+            ` : ''}
             <div class="product-illustration">
-              <div class="bottle-mockup">
-                <span class="mockup-leaf">${icon}</span>
-                <div class="mockup-bubble b1"></div>
-                <div class="mockup-bubble b2"></div>
+              <div class="product-carousel-track" data-carousel-track>
+                ${itemImages.length > 0 ? itemImages.map((imgUrl: string, imgIdx: number) => `
+                  <div class="carousel-slide ${imgIdx === 0 ? 'active' : ''}" data-slide-index="${imgIdx}">
+                    <img src="${imgUrl}" alt="${cleanProductName(item.name).replace(/"/g, '&quot;')} photo ${imgIdx + 1}" class="product-real-img" loading="${imgIdx === 0 ? 'eager' : 'lazy'}" />
+                  </div>
+                `).join('') : `
+                  <div class="food-pack-emblem">
+                    <span class="emblem-icon">${icon}</span>
+                    <span class="emblem-label">${(item.category || '').includes('Honey') ? 'RAW HONEY' : (item.category || '').includes('Snack') ? 'ROASTED' : (item.category || '').includes('Chip') ? 'CRISP' : (item.category || '').includes('Cand') ? 'REAL FRUIT' : 'BOTANICAL'}</span>
+                  </div>
+                `}
               </div>
             </div>
+            ${itemImages.length > 1 ? `
+              <div class="carousel-dots" data-carousel-dots aria-label="Image indicators">
+                ${itemImages.map((_: any, dotIdx: number) => `
+                  <button type="button" class="carousel-dot ${dotIdx === 0 ? 'active' : ''}" data-dot-index="${dotIdx}" aria-label="Show image ${dotIdx + 1}"></button>
+                `).join('')}
+              </div>
+            ` : ''}
             <div class="flavour-tag">
-              <span>Flavour: <strong>${item.flavour || 'Natural'}</strong></span>
+              <span>Variant: <strong>${item.flavour || 'Natural Harvest'}</strong></span>
             </div>
           </div>
           <div class="product-content">
             <div class="product-header-meta">
-              <span class="product-cat-name">${item.category}</span>
+              <span class="product-cat-name" title="${item.category || ''}">${item.category}</span>
               <span class="stock-indicator ${currentStock <= 10 ? 'low-stock' : ''}" data-stock-target>
-                ${currentStock <= 0 ? '❌ Out of Stock' : currentStock <= 10 ? `🔥 Only ${currentStock} Left` : `✓ Stock: ${currentStock}`}
+                ${currentStock <= 0 ? 'Out of stock' : currentStock <= 10 ? `🔥 Only ${currentStock} left` : `${currentStock} left`}
               </span>
             </div>
-            <h3 class="product-name">${item.name}</h3>
+            <h3 class="product-name" title="${cleanProductName(item.name)}">${cleanProductName(item.name)}</h3>
+            <div class="product-rating" aria-label="Rated ${item.rating || 4.8} out of 5 stars with ${item.reviews || '250+'} reviews">
+              <span class="rating-star">★</span>
+              <span class="rating-score">${item.rating || 4.8}</span>
+              <span class="rating-count">(${item.reviews || '250+'})</span>
+            </div>
             <p class="product-desc">${item.desc || item.description || ''}</p>
 
-            <div class="weight-variants-box">
-              <div class="variants-header-line">
-                <span class="weight-variants-label">Select Pack Size:</span>
-                <span class="weight-selected-badge" data-weight-display>${currentWeight}</span>
+            ${variants && variants.length > 0 ? `
+              <div 
+                class="pack-size-selector" 
+                data-open-weight-picker 
+                role="button" 
+                tabindex="0" 
+                aria-label="Select pack size"
+                title="Click to view all pack sizes"
+              >
+                <span class="pack-size-val" data-weight-display>${currentWeight}</span>
+                ${variants.length > 1 ? `
+                  <span class="pack-size-arrow">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    <span class="pack-size-count">${variants.length} sizes</span>
+                  </span>
+                ` : ''}
               </div>
-              <div class="weight-pill-group">
-                ${variants.map((v: any, vIdx: number) => {
-                  const variantStock = vIdx === 0 ? masterStock : (v.stock !== undefined && v.stock !== null ? Number(v.stock) : Math.max(1, Math.floor(masterStock / 2)));
-                  return `
-                    <button
-                      type="button"
-                      class="weight-pill ${vIdx === 0 ? 'active' : ''}"
-                      data-weight="${v.weight}"
-                      data-price="${v.price}"
-                      data-orig-price="${v.originalPrice || v.original_price || ''}"
-                      data-stock="${variantStock}"
-                      aria-label="Select ${v.weight} pack"
-                    >
-                      <span class="pill-weight">${v.weight}</span>
-                    </button>
-                  `;
-                }).join('')}
-              </div>
-            </div>
+            ` : ''}
 
             <div class="product-price-row">
               <div class="price-wrap">
                 <span class="current-price" data-price-target>${currentPrice}</span>
                 ${originalPrice ? `<span class="original-price" data-orig-price-target>${originalPrice}</span>` : ''}
+                <span class="discount-tag" data-discount-target>${item.discount || '20% OFF'}</span>
               </div>
-              <span class="save-tag">${item.discount || 'SAVE 20%'}</span>
             </div>
 
             <button 
@@ -1884,6 +2789,7 @@ const bestsellers = await getProducts();
                 <path d="M16 10a4 4 0 0 1-8 0"></path>
               </svg>
               <span>Add To Cart</span>
+              ${variants.length > 1 ? `<span class="btn-chevron">▾</span>` : ''}
             </button>
           </div>
         </div>
@@ -1891,11 +2797,13 @@ const bestsellers = await getProducts();
     }).join('');
 
     bindProductInteractions();
+    initProductCarousels();
     applyFilters();
   }
 
   // Initialize interactive handlers on server-rendered cards
   bindProductInteractions();
+  initProductCarousels();
 
   // Live Auto-Sync with Supabase
   if (isSupabaseConfigured) {
@@ -1914,7 +2822,7 @@ const bestsellers = await getProducts();
               const masterStock = p.stockQuantity ?? 0;
               if (stockEl) {
                 stockEl.className = `stock-indicator ${masterStock <= 10 ? 'low-stock' : ''}`;
-                stockEl.textContent = masterStock <= 0 ? '❌ Out of Stock' : masterStock <= 10 ? `🔥 Only ${masterStock} Left` : `✓ Stock: ${masterStock}`;
+                stockEl.textContent = masterStock <= 0 ? 'Out of stock' : masterStock <= 10 ? `🔥 Only ${masterStock} left` : `${masterStock} left`;
               }
             }
           });
@@ -1938,14 +2846,20 @@ const bestsellers = await getProducts();
           const stockEl = card.querySelector('[data-stock-target]');
           if (stockEl) {
             stockEl.className = `stock-indicator ${masterStock <= 10 ? 'low-stock' : ''}`;
-            stockEl.textContent = masterStock <= 0 ? '❌ Out of Stock' : masterStock <= 10 ? `🔥 Only ${masterStock} Left` : `✓ Stock: ${masterStock}`;
+            stockEl.textContent = masterStock <= 0 ? 'Out of stock' : masterStock <= 10 ? `🔥 Only ${masterStock} left` : `${masterStock} left`;
           }
 
-          // Update first pill stock
-          const firstPill = card.querySelector('.weight-pill');
-          if (firstPill) {
-            firstPill.setAttribute('data-stock', String(masterStock));
-          }
+          // Update variants stock data on card
+          try {
+            const rawVars = card.getAttribute('data-variants');
+            if (rawVars) {
+              const vars = JSON.parse(rawVars);
+              if (vars && vars[0]) {
+                vars[0].stock = masterStock;
+                card.setAttribute('data-variants', JSON.stringify(vars));
+              }
+            }
+          } catch {}
         } else {
           getProducts().then((refreshed) => renderProducts(refreshed));
         }
@@ -1960,91 +2874,5 @@ const bestsellers = await getProducts();
       })
       .subscribe();
   }
-
-  const intro = document.getElementById('quiz-intro');
-  const openBtn = document.getElementById('open-quiz-btn');
-  const formWrap = document.getElementById('quiz-form-wrap');
-  const form = document.getElementById('routine-quiz-form') as HTMLFormElement;
-  const cancelBtn = document.getElementById('cancel-quiz-btn');
-  const submitBtn = document.getElementById('submit-quiz-btn') as HTMLButtonElement;
-  const resultWrap = document.getElementById('quiz-result-wrap');
-  const recTitle = document.getElementById('recommendation-title');
-  const recDesc = document.getElementById('recommendation-desc');
-  const retakeBtn = document.getElementById('retake-quiz-btn');
-
-  // Open Quiz
-  if (openBtn && intro && formWrap) {
-    openBtn.addEventListener('click', () => {
-      intro.style.display = 'none';
-      formWrap.style.display = 'block';
-    });
-  }
-
-  // Cancel Quiz
-  if (cancelBtn && intro && formWrap) {
-    cancelBtn.addEventListener('click', () => {
-      formWrap.style.display = 'none';
-      intro.style.display = 'block';
-    });
-  }
-
-  // Submit Quiz to Supabase
-  if (form && submitBtn && recTitle && recDesc && resultWrap && formWrap) {
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const concern = (document.getElementById('quiz-concern') as HTMLSelectElement).value;
-      const format = (document.getElementById('quiz-format') as HTMLSelectElement).value;
-      const email = (document.getElementById('quiz-email') as HTMLInputElement).value.trim();
-
-      const originalBtnText = submitBtn.textContent;
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Generating Routine...';
-
-      let recommendation = 'ManNeeds Daily Multivitamin & Debloat Fizz';
-      let details = 'A synergistic plant-based daily routine designed to optimize your energy and vitality.';
-
-      if (concern.includes('Hair Fall')) {
-        recommendation = 'ManNeeds Rosemary Advanced Hair Growth Serum + Biotin Boost';
-        details = 'Powered by 3% Redensyl and Baicapil to nourish follicles and reduce hair fall in 60-90 days.';
-      } else if (concern.includes('Skin')) {
-        recommendation = 'ManNeeds Glutathione Glow Effervescent + Vitamin C';
-        details = '500mg clinical-grade L-Glutathione to reduce hyperpigmentation and promote a radiant skin tone.';
-      } else if (concern.includes('Gut') || concern.includes('Weight')) {
-        recommendation = 'ManNeeds Apple Cider Vinegar Daily Fizz (With Mother)';
-        details = 'Pure Himalayan ACV with Pomegranate extract for healthy gut biome, digestion, and metabolism.';
-      } else if (concern.includes('Debloat')) {
-        recommendation = 'ManNeeds Super Greens & Debloat Effervescent';
-        details = '35+ alkalising superfoods and digestive enzymes to instantly relieve bloating and acidity.';
-      } else if (concern.includes('Protein')) {
-        recommendation = 'ManNeeds 100% Plant Protein Powder (Rich Belgian Chocolate)';
-        details = '25g complete amino-acid profile pea & brown rice protein with enzymes for easy digestion and zero bloating.';
-      }
-
-      // Save lead directly to Supabase
-      await saveQuizLead({
-        email,
-        concern,
-        preferred_format: format,
-        recommendation
-      });
-
-      recTitle.textContent = recommendation;
-      recDesc.textContent = details;
-
-      formWrap.style.display = 'none';
-      resultWrap.style.display = 'block';
-
-      submitBtn.disabled = false;
-      submitBtn.textContent = originalBtnText || 'Get My Routine';
-    });
-  }
-
-  // Retake Quiz
-  if (retakeBtn && resultWrap && intro) {
-    retakeBtn.addEventListener('click', () => {
-      resultWrap.style.display = 'none';
-      intro.style.display = 'block';
-    });
-  }
 </script>
+

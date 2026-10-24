@@ -1,65 +1,139 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap');
 
 :root {
-  /* ManNeeds Brand Palette - Fresh, Vibrant, Plant-Based & Energetic */
-  --mn-orange: #FF6838;
-  --mn-orange-hover: #E85526;
-  --mn-coral: #FF5A5F;
-  --mn-green: #10B981;
-  --mn-green-dark: #059669;
-  --mn-lime: #84CC16;
-  --mn-yellow: #FBBF24;
-  --mn-berry: #EC4899;
-  --mn-purple: #8B5CF6;
-  --mn-teal: #06B6D4;
+  /* ManNeeds Brand Palette - Premium Indian Food, Kitchen Essentials & Botanicals */
+  --mn-primary: #1E4620;        /* Deep Harvest Forest Green */
+  --mn-primary-hover: #153417;  /* Dark Green */
+  --mn-cta: #D96B27;            /* Warm Terracotta Spiced Orange */
+  --mn-cta-hover: #BF5719;      /* Dark Terracotta */
+  --mn-accent-gold: #E5A93C;     /* Raw Mustard Seed / Honey Amber */
+  --mn-accent-light: #FBF6EE;    /* Warm Cream / Rice Flour Tint */
+  --mn-canvas: #FDFBF7;          /* Soft Organic Ivory */
+
+  /* Legacy color aliases mapped to brand tokens for safety */
+  --mn-orange: #D96B27;
+  --mn-orange-hover: #BF5719;
+  --mn-coral: #C0392B;
+  --mn-green: #1E4620;
+  --mn-green-dark: #153417;
+  --mn-lime: #2E7D32;
+  --mn-yellow: #E5A93C;
+  --mn-berry: #8C4A60;
+  --mn-purple: #4A3E56;
+  --mn-teal: #1F5F5B;
 
   /* Neutrals & Surfaces */
-  --bg-base: #FBFBF9;
+  --bg-base: #FDFBF7;
   --bg-surface: #FFFFFF;
-  --bg-subtle: #F3F4F0;
-  --bg-tint-green: #ECFDF5;
-  --bg-tint-orange: #FFF7ED;
-  --bg-tint-berry: #FDF2F8;
+  --bg-subtle: #F5EFE6;
+  --bg-tint-green: #EDF4ED;
+  --bg-tint-orange: #FDF1EA;
+  --bg-tint-gold: #FEF9EE;
+  --bg-tint-berry: #F7EEF1;
   --bg-card: #FFFFFF;
 
-  --border-subtle: #E5E7EB;
-  --border-medium: #D1D5DB;
-  --border-accent: rgba(255, 104, 56, 0.25);
-  --border-green: rgba(16, 185, 129, 0.3);
+  --border-subtle: #E8E2D8;
+  --border-medium: #D8D0C5;
+  --border-accent: rgba(217, 107, 39, 0.25);
+  --border-green: rgba(30, 70, 32, 0.25);
 
-  --text-primary: #111827;
-  --text-secondary: #4B5563;
-  --text-muted: #6B7280;
-  --text-accent: #FF6838;
-  --text-green: #059669;
+  --text-primary: #212529;
+  --text-secondary: #5A6268;
+  --text-muted: #828A90;
+  --text-accent: #D96B27;
+  --text-green: #1E4620;
+
+  /* Status & Badges */
+  --mn-badge-discount-bg: #FEEAE1;
+  --mn-badge-discount-text: #C0392B;
+  --mn-badge-bestseller-bg: #FEF3D6;
+  --mn-badge-bestseller-text: #8C6207;
 
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #FF6838 0%, #FF8A00 100%);
-  --gradient-primary-hover: linear-gradient(135deg, #FF7B50 0%, #FF9A20 100%);
-  --gradient-green: linear-gradient(135deg, #10B981 0%, #059669 100%);
-  --gradient-berry: linear-gradient(135deg, #EC4899 0%, #A855F7 100%);
-  --gradient-sun: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+  --gradient-primary: linear-gradient(135deg, #D96B27 0%, #E5823C 100%);
+  --gradient-primary-hover: linear-gradient(135deg, #BF5719 0%, #D96B27 100%);
+  --gradient-green: linear-gradient(135deg, #1E4620 0%, #2A5E2D 100%);
+  --gradient-earth: linear-gradient(135deg, #1E4620 0%, #153417 100%);
+  --gradient-gold: linear-gradient(135deg, #E5A93C 0%, #F5BA42 100%);
 
   /* Elevation */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.07);
-  --shadow-lg: 0 12px 30px -8px rgba(0, 0, 0, 0.1);
-  --shadow-orange: 0 10px 25px -5px rgba(255, 104, 56, 0.35);
-  --shadow-green: 0 10px 25px -5px rgba(16, 185, 129, 0.35);
+  --shadow-sm: 0 1px 3px rgba(33, 37, 41, 0.05), 0 1px 2px rgba(33, 37, 41, 0.03);
+  --shadow-md: 0 4px 14px rgba(30, 70, 32, 0.06), 0 2px 6px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 12px 28px rgba(30, 70, 32, 0.09), 0 4px 10px rgba(0, 0, 0, 0.04);
+  --shadow-drawer: -4px 0 24px rgba(0, 0, 0, 0.14);
+  --shadow-cta: 0 8px 20px -4px rgba(217, 107, 39, 0.35);
 
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 22px;
-  --radius-xl: 32px;
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
   --radius-full: 9999px;
 
+  /* Typography */
   --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   --transition-fast: 0.15s ease;
-  --transition-smooth: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-bounce: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-smooth: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-bounce: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   --max-width: 1240px;
+}
+
+/* ==============================================================================
+   DARK THEME DESIGN SYSTEM — Calming Obsidian & Honey Terracotta (Eye-Soothing)
+   ============================================================================== */
+html.dark,
+[data-theme="dark"] {
+  /* Brand Tokens: Warm honey terracotta & restorative sage */
+  --mn-primary: #2C573A;
+  --mn-primary-hover: #386C49;
+  --mn-cta: #DE6E35;
+  --mn-cta-hover: #E87A42;
+  --mn-accent-gold: #E5AC44;
+  --mn-accent-light: #161A20;
+  --mn-canvas: #0E1115;
+
+  /* Neutrals & Surfaces: Velvety soft obsidian, no harsh greens */
+  --bg-base: #0E1115;
+  --bg-surface: #15191F;
+  --bg-subtle: #1C222A;
+  --bg-card: #181D24;
+
+  --bg-tint-green: rgba(104, 201, 142, 0.12);
+  --bg-tint-orange: rgba(222, 110, 53, 0.14);
+  --bg-tint-gold: rgba(229, 172, 68, 0.14);
+  --bg-tint-berry: rgba(190, 85, 115, 0.14);
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.13);
+  --border-accent: rgba(222, 110, 53, 0.35);
+  --border-green: rgba(104, 201, 142, 0.25);
+
+  --text-primary: #EEF2F6;
+  --text-secondary: #98A5B3;
+  --text-muted: #677483;
+  --text-accent: #DE6E35;
+  --text-green: #68C98E;
+
+  /* Badges: Soft translucent pills, zero neon glare */
+  --mn-badge-discount-bg: rgba(222, 110, 53, 0.16);
+  --mn-badge-discount-text: #FFAA7D;
+  --mn-badge-bestseller-bg: rgba(229, 172, 68, 0.15);
+  --mn-badge-bestseller-text: #FFD175;
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #DE6E35 0%, #C75820 100%);
+  --gradient-primary-hover: linear-gradient(135deg, #E87A42 0%, #D46327 100%);
+  --gradient-green: linear-gradient(135deg, #264D33 0%, #356745 100%);
+  --gradient-earth: linear-gradient(135deg, #1A2E20 0%, #111E15 100%);
+
+  /* Shadows: Deep, soft, atmospheric */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 18px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+  --shadow-drawer: -6px 0 32px rgba(0, 0, 0, 0.65);
+  --shadow-cta: 0 6px 18px -2px rgba(222, 110, 53, 0.28);
 }
 
 /* Base Reset */
@@ -76,6 +150,7 @@ html {
   line-height: 1.6;
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 body {
@@ -84,6 +159,7 @@ body {
   flex-direction: column;
   overflow-x: hidden;
   background-color: var(--bg-base);
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 img, svg, picture {
@@ -133,6 +209,13 @@ button {
   padding-right: 1.5rem;
 }
 
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
@@ -145,6 +228,7 @@ h1, h2, h3, h4, h5, h6 {
 .text-gradient-orange {
   background: var(--gradient-primary);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
 }
@@ -152,6 +236,7 @@ h1, h2, h3, h4, h5, h6 {
 .text-gradient-green {
   background: var(--gradient-green);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
 }
@@ -162,7 +247,7 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   gap: 0.45rem;
   padding: 0.35rem 0.85rem;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -171,20 +256,26 @@ h1, h2, h3, h4, h5, h6 {
 
 .badge-orange {
   background: var(--bg-tint-orange);
-  color: var(--mn-orange);
+  color: var(--mn-cta);
   border: 1px solid var(--border-accent);
 }
 
 .badge-green {
   background: var(--bg-tint-green);
-  color: var(--mn-green-dark);
+  color: var(--mn-primary);
   border: 1px solid var(--border-green);
 }
 
 .badge-berry {
   background: var(--bg-tint-berry);
   color: var(--mn-berry);
-  border: 1px solid rgba(236, 72, 153, 0.25);
+  border: 1px solid rgba(140, 74, 96, 0.2);
+}
+
+.badge-gold {
+  background: var(--mn-badge-bestseller-bg);
+  color: var(--mn-badge-bestseller-text);
+  border: 1px solid rgba(229, 169, 60, 0.35);
 }
 
 /* Buttons */
@@ -192,37 +283,53 @@ h1, h2, h3, h4, h5, h6 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
-  padding: 0.85rem 1.6rem;
+  gap: 0.55rem;
+  padding: 0.8rem 1.6rem;
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 0.96rem;
+  font-size: 0.95rem;
   border-radius: var(--radius-full);
-  transition: all var(--transition-bounce);
+  transition: all var(--transition-smooth);
   text-decoration: none;
+  cursor: pointer;
+  border: none;
+}
+
+.btn:focus-visible {
+  outline: 3px solid rgba(217, 107, 39, 0.4);
+  outline-offset: 2px;
 }
 
 .btn-primary {
   background: var(--gradient-primary);
   color: #FFFFFF;
-  box-shadow: var(--shadow-orange);
+  box-shadow: var(--shadow-cta);
 }
 
 .btn-primary:hover {
   background: var(--gradient-primary-hover);
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 14px 28px -5px rgba(255, 104, 56, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px -3px rgba(217, 107, 39, 0.45);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
 }
 
 .btn-green {
   background: var(--gradient-green);
   color: #FFFFFF;
-  box-shadow: var(--shadow-green);
+  box-shadow: 0 6px 18px -3px rgba(30, 70, 32, 0.35);
 }
 
 .btn-green:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 14px 28px -5px rgba(16, 185, 129, 0.45);
+  background: var(--gradient-earth);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px -3px rgba(30, 70, 32, 0.45);
+}
+
+.btn-green:active {
+  transform: translateY(0);
 }
 
 .btn-secondary {
@@ -233,9 +340,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-secondary:hover {
-  background: #FAFAFA;
-  border-color: var(--mn-orange);
-  color: var(--mn-orange);
+  background: var(--bg-subtle);
+  border-color: var(--mn-cta);
+  color: var(--mn-cta);
   transform: translateY(-2px);
 }
 
@@ -250,13 +357,247 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .mn-card:hover {
-  border-color: rgba(255, 104, 56, 0.35);
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-4px);
+  border-color: rgba(217, 107, 39, 0.3);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
 }
 
 /* Category Filter Visibility */
 .hidden-category {
   display: none !important;
+}
+
+/* Dark Mode Overrides for Core UI */
+html.dark .btn-secondary,
+[data-theme="dark"] .btn-secondary {
+  background: #1C222A;
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark .btn-secondary:hover,
+[data-theme="dark"] .btn-secondary:hover {
+  background: #252D37;
+  border-color: var(--mn-cta);
+  color: var(--mn-cta);
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: #0E1115;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #232A33;
+  border-radius: 4px;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--mn-cta);
+}
+
+/* ==============================================================================
+   DARK MODE COMPONENT POLISH (Eye-Soothing, Restful Contrast)
+   ============================================================================== */
+
+/* Instant Search Input */
+html.dark #catalog-search-input,
+[data-theme="dark"] #catalog-search-input {
+  background: #15191F;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+html.dark #catalog-search-input::placeholder,
+[data-theme="dark"] #catalog-search-input::placeholder {
+  color: #727F8E;
+}
+
+html.dark #catalog-search-input:focus,
+[data-theme="dark"] #catalog-search-input:focus {
+  background: #181D24;
+  border-color: var(--mn-cta);
+  box-shadow: 0 0 0 3px rgba(222, 110, 53, 0.18);
+}
+
+/* Category Filter Tabs */
+html.dark .cat-filter-btn,
+[data-theme="dark"] .cat-filter-btn {
+  background: #161A20;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  box-shadow: none;
+}
+
+html.dark .cat-filter-btn:hover,
+[data-theme="dark"] .cat-filter-btn:hover {
+  background: #1F252E;
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+html.dark .cat-filter-btn.active,
+[data-theme="dark"] .cat-filter-btn.active {
+  background: var(--gradient-primary);
+  border-color: var(--mn-cta);
+  color: #FFFFFF;
+  box-shadow: 0 3px 12px rgba(222, 110, 53, 0.3);
+}
+
+html.dark .cat-count-badge,
+[data-theme="dark"] .cat-count-badge {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+}
+
+html.dark .cat-filter-btn.active .cat-count-badge,
+[data-theme="dark"] .cat-filter-btn.active .cat-count-badge {
+  background: rgba(255, 255, 255, 0.22);
+  color: #FFFFFF;
+}
+
+/* Product Card & Visual Area */
+html.dark .product-card,
+[data-theme="dark"] .product-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 3px 16px rgba(0, 0, 0, 0.32);
+}
+
+html.dark .product-card:hover,
+[data-theme="dark"] .product-card:hover {
+  background: #1C222A;
+  border-color: rgba(222, 110, 53, 0.35);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
+}
+
+html.dark .product-visual,
+[data-theme="dark"] .product-visual {
+  background: radial-gradient(circle at 50% 35%, rgba(222, 110, 53, 0.07) 0%, rgba(255, 255, 255, 0.02) 65%, transparent 100%), #13171C;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+html.dark .food-pack-emblem,
+[data-theme="dark"] .food-pack-emblem {
+  background: #191E25;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+html.dark .product-card:hover .food-pack-emblem,
+[data-theme="dark"] .product-card:hover .food-pack-emblem {
+  border-color: rgba(222, 110, 53, 0.45);
+  box-shadow: 0 4px 14px rgba(222, 110, 53, 0.2);
+}
+
+html.dark .badge-corner,
+[data-theme="dark"] .badge-corner {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #98A5B3;
+  box-shadow: none;
+}
+
+html.dark .discount-badge,
+[data-theme="dark"] .discount-badge {
+  background: rgba(222, 110, 53, 0.16);
+  border: 1px solid rgba(222, 110, 53, 0.3);
+  color: #FFAA7D;
+  box-shadow: none;
+}
+
+html.dark .discount-tag,
+[data-theme="dark"] .discount-tag {
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(74, 222, 128, 0.28);
+}
+
+html.dark .product-cat-name,
+[data-theme="dark"] .product-cat-name {
+  color: #8E9BA8;
+}
+
+html.dark .stock-indicator,
+[data-theme="dark"] .stock-indicator {
+  background: rgba(104, 201, 142, 0.12);
+  color: #72CE97;
+  border: 1px solid rgba(104, 201, 142, 0.22);
+}
+
+html.dark .stock-indicator.low-stock,
+[data-theme="dark"] .stock-indicator.low-stock {
+  background: rgba(235, 87, 87, 0.12);
+  color: #F48E85;
+  border: 1px solid rgba(235, 87, 87, 0.22);
+}
+
+html.dark .product-rating,
+[data-theme="dark"] .product-rating {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+html.dark .rating-score,
+[data-theme="dark"] .rating-score {
+  color: #F1F5F9;
+}
+
+html.dark .rating-count,
+[data-theme="dark"] .rating-count {
+  color: #94A3B8;
+}
+
+/* Pack Size Selector (Zero white boxes) */
+html.dark .weight-variants-box,
+[data-theme="dark"] .weight-variants-box {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+html.dark .weight-pill,
+[data-theme="dark"] .weight-pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: var(--text-secondary);
+}
+
+html.dark .weight-pill:hover,
+[data-theme="dark"] .weight-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--mn-cta);
+  color: var(--text-primary);
+}
+
+html.dark .weight-pill.active,
+[data-theme="dark"] .weight-pill.active {
+  background: rgba(222, 110, 53, 0.18);
+  border-color: var(--mn-cta);
+  color: #FFAA7D;
+  box-shadow: none;
+}
+
+/* Informational Cards */
+html.dark .why-card,
+html.dark .review-card,
+html.dark .promise-card,
+[data-theme="dark"] .why-card,
+[data-theme="dark"] .review-card,
+[data-theme="dark"] .promise-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+html.dark .why-icon-box,
+[data-theme="dark"] .why-icon-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+html.dark .no-products-found,
+[data-theme="dark"] .no-products-found {
+  background: var(--bg-card);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
 }
 

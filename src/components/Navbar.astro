@@ -5,14 +5,10 @@ interface Props {
 
 const { cartCount = 0 } = Astro.props;
 
-const navLinks = [
-  { label: 'Herbal Powders', href: '#categories', badge: '11 Actives' },
-  { label: 'Healthy Snacks', href: '#categories', badge: 'Roasted' },
-  { label: 'Fruit Candies', href: '#categories' },
-  { label: 'Fruit Chips', href: '#categories' },
-  { label: 'Raw Honey', href: '#categories', badge: '100% Pure' },
-  { label: 'All Products (23)', href: '#bestsellers' },
-  { label: 'Routine Quiz', href: '#quiz', highlight: true }
+const navLinks: { label: string; href: string; badge?: string }[] = [
+  { label: 'Shop All Bestsellers', href: '#bestsellers' },
+  { label: 'Pantry Categories', href: '#categories' },
+  { label: 'Quality Standards', href: '#why-manneeds' }
 ];
 ---
 
@@ -37,36 +33,36 @@ const navLinks = [
 <header class="navbar-wrapper" id="main-header">
   <div class="container navbar-container">
     <!-- ManNeeds Brand Logo -->
-    <a href="/" class="brand-logo" aria-label="ManNeeds - The Daily Fix">
+    <a href="/" class="brand-logo" aria-label="ManNeeds">
       <div class="brand-logo-wrap">
         <span class="brand-name">MAN<span class="brand-highlight">NEEDS</span></span>
-        <span class="brand-subtext">THE DAILY FIX</span>
-      </div>
-      <div class="brand-leaf-icon" title="100% Clean & Certified">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-        </svg>
       </div>
     </a>
 
-    <!-- Desktop Navigation Links -->
-    <nav class="nav-menu" aria-label="ManNeeds Main Navigation">
-      <ul class="nav-list">
-        {navLinks.map((link) => (
-          <li class="nav-item">
-            <a href={link.href} class={`nav-link ${link.highlight ? 'nav-link-quiz' : ''}`}>
-              <span>{link.label}</span>
-              {link.badge && <span class="nav-badge">{link.badge}</span>}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
-
     <!-- Header Actions -->
     <div class="nav-actions">
+      <!-- Dark Mode Toggle Button -->
+      <button class="action-icon-btn theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle Dark Mode" title="Toggle Dark/Light Mode">
+        <!-- Sun icon (shown in dark mode) -->
+        <svg class="theme-icon sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <!-- Moon icon (shown in light mode) -->
+        <svg class="theme-icon moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+
       <!-- Search Button -->
-      <button class="action-icon-btn" aria-label="Search ManNeeds Products" id="search-btn">
+      <button class="action-icon-btn" aria-label="Search Products" id="search-btn">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -74,7 +70,7 @@ const navLinks = [
       </button>
 
       <!-- Cart Button -->
-      <button class="action-icon-btn cart-btn" aria-label="View ManNeeds Cart" id="cart-btn">
+      <button class="action-icon-btn cart-btn" aria-label="View Shopping Cart" id="cart-btn">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
           <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -133,6 +129,12 @@ const navLinks = [
             </a>
           </li>
         ))}
+        <li class="mobile-nav-item">
+          <button type="button" class="mobile-nav-link mobile-theme-btn" id="mobile-theme-toggle-btn">
+            <span>Appearance</span>
+            <span class="mobile-theme-pill" id="mobile-theme-status">🌙 Dark</span>
+          </button>
+        </li>
       </ul>
       <div class="mobile-cta-wrap">
         <a href="#bestsellers" class="btn btn-primary" style="width: 100%;">
@@ -146,12 +148,13 @@ const navLinks = [
 <style>
   /* Ticker */
   .announcement-bar {
-    background: #0E9F6E;
+    background: var(--mn-primary);
     color: #FFFFFF;
     font-size: 0.8rem;
     font-weight: 600;
-    padding: 0.45rem 0;
+    padding: 0.5rem 0;
     letter-spacing: 0.02em;
+    border-bottom: 1px solid rgba(229, 169, 60, 0.2);
   }
 
   .announcement-content {
@@ -163,19 +166,23 @@ const navLinks = [
   }
 
   .ticker-highlight {
-    color: #FDE047;
+    color: var(--mn-accent-gold);
+    font-weight: 800;
     margin-right: 0.35rem;
   }
 
   .coupon-code {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 0.1rem 0.4rem;
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #FFFFFF;
+    padding: 0.15rem 0.45rem;
+    border-radius: var(--radius-sm);
     letter-spacing: 0.05em;
+    font-weight: 800;
+    border: 1px solid rgba(255, 255, 255, 0.25);
   }
 
   .announcement-divider {
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.3);
   }
 
   .hide-on-mobile {
@@ -195,11 +202,11 @@ const navLinks = [
     left: 0;
     right: 0;
     z-index: 1000;
-    background: rgba(255, 255, 255, 0.94);
+    background: rgba(253, 251, 247, 0.95);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border-subtle);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 2px 12px rgba(30, 70, 32, 0.04);
     transition: all var(--transition-smooth);
   }
 
@@ -227,88 +234,14 @@ const navLinks = [
     font-family: var(--font-heading);
     font-size: 1.75rem;
     font-weight: 900;
-    color: var(--text-primary);
+    color: var(--mn-primary);
     letter-spacing: -0.03em;
   }
 
   .brand-highlight {
-    color: var(--mn-orange);
+    color: var(--mn-cta);
   }
 
-  .brand-subtext {
-    font-size: 0.62rem;
-    font-weight: 800;
-    letter-spacing: 0.15em;
-    color: var(--mn-green-dark);
-  }
-
-  .brand-leaf-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 26px;
-    height: 26px;
-    border-radius: var(--radius-full);
-    background: var(--bg-tint-green);
-    color: var(--mn-green);
-  }
-
-  /* Nav Links */
-  .nav-menu {
-    display: none;
-  }
-
-  @media (min-width: 980px) {
-    .nav-menu {
-      display: block;
-    }
-  }
-
-  .nav-list {
-    display: flex;
-    align-items: center;
-    gap: 1.6rem;
-    list-style: none;
-  }
-
-  .nav-link {
-    font-size: 0.94rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.4rem 0;
-    position: relative;
-    transition: color var(--transition-fast);
-  }
-
-  .nav-link:hover {
-    color: var(--mn-orange);
-  }
-
-  .nav-badge {
-    font-size: 0.65rem;
-    font-weight: 700;
-    padding: 0.15rem 0.45rem;
-    border-radius: var(--radius-full);
-    background: var(--bg-tint-orange);
-    color: var(--mn-orange);
-    border: 1px solid var(--border-accent);
-  }
-
-  .nav-link-quiz {
-    color: var(--mn-green-dark);
-    background: var(--bg-tint-green);
-    padding: 0.35rem 0.85rem;
-    border-radius: var(--radius-full);
-    border: 1px solid var(--border-green);
-  }
-
-  .nav-link-quiz:hover {
-    background: #D1FAE5;
-    color: var(--mn-green-dark);
-  }
 
   /* Actions */
   .nav-actions {
@@ -327,20 +260,22 @@ const navLinks = [
     color: var(--text-secondary);
     background: var(--bg-subtle);
     position: relative;
-    transition: all var(--transition-bounce);
+    transition: all var(--transition-smooth);
+    border: 1px solid transparent;
   }
 
   .action-icon-btn:hover {
-    color: var(--mn-orange);
+    color: var(--mn-cta);
     background: var(--bg-tint-orange);
-    transform: scale(1.06);
+    border-color: var(--border-accent);
+    transform: translateY(-1px);
   }
 
   .cart-badge {
     position: absolute;
     top: -2px;
     right: -2px;
-    background: var(--mn-orange);
+    background: var(--mn-cta);
     color: #FFFFFF;
     font-size: 0.7rem;
     font-weight: 800;
@@ -350,7 +285,7 @@ const navLinks = [
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 6px rgba(255, 104, 56, 0.4);
+    box-shadow: 0 2px 6px rgba(217, 107, 39, 0.4);
   }
 
   .nav-cta {
@@ -541,9 +476,151 @@ const navLinks = [
     background: #F3F4F6;
     color: var(--text-primary);
   }
+
+  /* Theme Toggle Button Styles */
+  .theme-toggle-btn {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .theme-toggle-btn .sun-icon {
+    display: none;
+    color: #F5BA42;
+    transition: transform 0.3s ease;
+  }
+
+  .theme-toggle-btn .moon-icon {
+    display: block;
+    color: var(--text-secondary);
+    transition: transform 0.3s ease;
+  }
+
+  :global(html.dark) .theme-toggle-btn .sun-icon,
+  :global([data-theme="dark"]) .theme-toggle-btn .sun-icon {
+    display: block;
+    transform: rotate(360deg);
+  }
+
+  :global(html.dark) .theme-toggle-btn .moon-icon,
+  :global([data-theme="dark"]) .theme-toggle-btn .moon-icon {
+    display: none;
+  }
+
+  :global(html.dark) .theme-toggle-btn,
+  :global([data-theme="dark"]) .theme-toggle-btn {
+    background: var(--bg-subtle);
+    border-color: var(--border-subtle);
+  }
+
+  /* Mobile Theme Button */
+  .mobile-theme-btn {
+    width: 100%;
+    cursor: pointer;
+    background: none;
+    border: none;
+    text-align: left;
+  }
+
+  .mobile-theme-pill {
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-full);
+    background: var(--bg-subtle);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+  }
+
+  /* Dark mode overrides for navbar components */
+  :global(html.dark) .navbar-wrapper,
+  :global([data-theme="dark"]) .navbar-wrapper {
+    background: rgba(17, 21, 26, 0.94);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  :global(html.dark) .brand-name,
+  :global([data-theme="dark"]) .brand-name {
+    color: #EEF2F6;
+  }
+
+  :global(html.dark) .brand-highlight,
+  :global([data-theme="dark"]) .brand-highlight {
+    color: var(--mn-cta);
+  }
+
+  :global(html.dark) .mobile-menu,
+  :global([data-theme="dark"]) .mobile-menu {
+    background: var(--bg-surface);
+    border-bottom-color: var(--border-subtle);
+  }
+
+  :global(html.dark) .mobile-nav-link,
+  :global([data-theme="dark"]) .mobile-nav-link {
+    color: var(--text-secondary);
+    border-bottom-color: var(--border-subtle);
+  }
+
+  :global(html.dark) .nav-search-bar,
+  :global([data-theme="dark"]) .nav-search-bar {
+    background: var(--bg-surface);
+  }
+
+  :global(html.dark) .nav-search-inner,
+  :global([data-theme="dark"]) .nav-search-inner {
+    background: var(--bg-subtle);
+    border-color: var(--border-subtle);
+  }
+
+  :global(html.dark) #nav-search-input,
+  :global([data-theme="dark"]) #nav-search-input {
+    color: var(--text-primary);
+  }
+
+  :global(html.dark) .search-shortcut-badge,
+  :global([data-theme="dark"]) .search-shortcut-badge {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+  }
 </style>
 
 <script>
+  // Dark Mode Toggle Logic
+  const themeToggleBtn = document.getElementById('theme-toggle-btn');
+  const mobileThemeBtn = document.getElementById('mobile-theme-toggle-btn');
+  const mobileThemeStatus = document.getElementById('mobile-theme-status');
+
+  function updateThemeUI() {
+    const isDark = document.documentElement.classList.contains('dark');
+    if (mobileThemeStatus) {
+      mobileThemeStatus.textContent = isDark ? '☀️ Light' : '🌙 Dark';
+    }
+    if (themeToggleBtn) {
+      themeToggleBtn.setAttribute('title', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+      themeToggleBtn.setAttribute('aria-label', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+    }
+  }
+
+  function toggleTheme() {
+    const isDark = document.documentElement.classList.contains('dark');
+    const newTheme = isDark ? 'light' : 'dark';
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+    try {
+      localStorage.setItem('manneeds_theme', newTheme);
+    } catch {}
+    updateThemeUI();
+    window.dispatchEvent(new CustomEvent('manneeds-theme-changed', { detail: { theme: newTheme } }));
+  }
+
+  themeToggleBtn?.addEventListener('click', toggleTheme);
+  mobileThemeBtn?.addEventListener('click', toggleTheme);
+  updateThemeUI();
+
   // Mobile Hamburger Toggle
   const toggleBtn = document.getElementById('mobile-toggle-btn');
   const mobileMenu = document.getElementById('mobile-nav-menu');
