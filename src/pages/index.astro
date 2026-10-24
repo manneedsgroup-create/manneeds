@@ -48,12 +48,12 @@ const categories = [
   {
     id: 'Raw Honey & Pure Elixirs',
     title: 'Raw Honey & Pure Elixirs',
-    subtitle: 'Unpasteurized 100% pure wild forest floral honey rich in natural live enzymes',
+    subtitle: 'Unpasteurized 100% pure wild forest floral honey & therapeutic Ajwain honey',
     tag: '100% Pure Raw',
     icon: '🍯',
     color: '#D97706',
     bg: '#FEF9C3',
-    itemsCount: '1 Pure Elixir'
+    itemsCount: '2 Pure Elixirs'
   }
 ];
 
@@ -182,7 +182,7 @@ const bestsellers = await getProducts();
         <div class="header-action-badge">
           <span class="live-status-pill">
             <span class="pulse-dot"></span>
-            <span id="product-count-label">22 Products Available</span>
+            <span id="product-count-label">23 Products Available</span>
           </span>
         </div>
       </div>
@@ -199,7 +199,7 @@ const bestsellers = await getProducts();
             type="search" 
             id="catalog-search-input" 
             placeholder="Instant search by name, flavor, active or pack size..." 
-            aria-label="Filter 22 products live"
+            aria-label="Filter 23 products live"
           />
           <button type="button" class="catalog-search-clear" id="catalog-search-clear" style="display: none;" aria-label="Clear Search Input">✕</button>
         </div>
@@ -208,7 +208,7 @@ const bestsellers = await getProducts();
           <button type="button" class="cat-filter-btn active" data-cat="all" role="tab" aria-selected="true">
             <span class="cat-icon">✨</span>
             <span class="cat-name">All Products</span>
-            <span class="cat-count-badge" id="badge-count-all">22</span>
+            <span class="cat-count-badge" id="badge-count-all">23</span>
           </button>
           <button type="button" class="cat-filter-btn" data-cat="Herbal & Superfood Powders" role="tab" aria-selected="false">
             <span class="cat-icon">🌿</span>
@@ -233,7 +233,7 @@ const bestsellers = await getProducts();
           <button type="button" class="cat-filter-btn" data-cat="Raw Honey & Pure Elixirs" role="tab" aria-selected="false">
             <span class="cat-icon">🍯</span>
             <span class="cat-name">Pure Honey</span>
-            <span class="cat-count-badge">1</span>
+            <span class="cat-count-badge">2</span>
           </button>
         </div>
       </div>
@@ -242,8 +242,8 @@ const bestsellers = await getProducts();
       <div class="no-products-found" id="no-products-found" style="display: none;">
         <div class="no-products-icon">🌿</div>
         <h3>No matching products found</h3>
-        <p id="no-products-query-text">Try searching for "Honey", "Okra", "Moringa", or "Snack"</p>
-        <button type="button" class="btn btn-secondary reset-filters-btn" id="reset-filters-btn">Clear Filter & View All 22</button>
+        <p id="no-products-query-text">Try searching for "Ajwain Honey", "Okra", "Moringa", or "Snack"</p>
+        <button type="button" class="btn btn-secondary reset-filters-btn" id="reset-filters-btn">Clear Filter & View All 23</button>
       </div>
 
       <div class="products-grid" id="products-grid">

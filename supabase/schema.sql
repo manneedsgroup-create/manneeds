@@ -464,6 +464,23 @@ VALUES
     40,
     '[{"weight": "250g", "price": "₹399", "original_price": "₹499", "stock": 25}, {"weight": "500g", "price": "₹729", "original_price": "₹949", "stock": 15}]'::jsonb,
     true
+  ),
+  -- 23. PURE AJWAIN HONEY (NEW)
+  (
+    23,
+    'ManNeeds Pure Ajwain Honey',
+    'Raw Honey & Pure Elixirs',
+    'Ajwain Blossom Nectar',
+    '₹449',
+    '₹549',
+    '18% OFF',
+    4.9,
+    '290',
+    'Acidity & Digestion',
+    'Unprocessed, unheated raw monofloral honey harvested from blooming Ajwain (Carom) fields. Powerful natural digestive aid that soothes acidity, cough, and throat irritation.',
+    35,
+    '[{"weight": "250g", "price": "₹449", "original_price": "₹549", "stock": 20}, {"weight": "500g", "price": "₹799", "original_price": "₹999", "stock": 15}]'::jsonb,
+    true
   )
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name,

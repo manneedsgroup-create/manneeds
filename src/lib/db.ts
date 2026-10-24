@@ -428,6 +428,25 @@ export const DEFAULT_PRODUCTS: Product[] = [
       { weight: '250g', price: '₹399', originalPrice: '₹499', stock: 25 },
       { weight: '500g', price: '₹729', originalPrice: '₹949', stock: 15 }
     ]
+  },
+  {
+    id: 23,
+    name: 'ManNeeds Pure Ajwain Honey',
+    category: 'Raw Honey & Pure Elixirs',
+    flavour: 'Ajwain Blossom Nectar',
+    price: '₹449',
+    originalPrice: '₹549',
+    discount: '18% OFF',
+    rating: 4.9,
+    reviews: '290',
+    badge: 'Acidity & Digestion',
+    desc: 'Unprocessed, unheated raw monofloral honey harvested from blooming Ajwain (Carom) fields. Powerful natural digestive aid that soothes acidity, cough, and throat irritation.',
+    stockQuantity: 35,
+    inStock: true,
+    variants: [
+      { weight: '250g', price: '₹449', originalPrice: '₹549', stock: 20 },
+      { weight: '500g', price: '₹799', originalPrice: '₹999', stock: 15 }
+    ]
   }
 ];
 
