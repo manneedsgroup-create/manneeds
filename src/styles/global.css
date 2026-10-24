@@ -254,3 +254,9 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: var(--shadow-lg);
   transform: translateY(-4px);
 }
+
+/* Category Filter Visibility */
+.hidden-category {
+  display: none !important;
+}
+

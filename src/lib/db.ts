@@ -465,18 +465,22 @@ export async function getProducts(): Promise<Product[]> {
         }
       }
 
+      const masterStock = item.stock_quantity !== undefined && item.stock_quantity !== null
+        ? Number(item.stock_quantity)
+        : (item.stock ?? 0);
+
       // If variants exist, normalize fields; if none, generate default variants
       if (variants && variants.length > 0) {
-        variants = variants.map((v: any) => ({
+        variants = variants.map((v: any, idx: number) => ({
           weight: v.weight || '100g',
           price: v.price || item.price,
           originalPrice: v.originalPrice || v.original_price || item.original_price,
-          stock: v.stock !== undefined ? Number(v.stock) : (item.stock_quantity ?? 0)
+          stock: idx === 0 ? masterStock : (v.stock !== undefined && v.stock !== null ? Number(v.stock) : Math.max(1, Math.floor(masterStock / 2)))
         }));
       } else {
         variants = [
-          { weight: '100g', price: item.price, originalPrice: item.original_price, stock: item.stock_quantity ?? 20 },
-          { weight: '200g', price: item.price ? `₹${Math.round(parseInt(item.price.replace(/\D/g, '') || '200') * 1.8)}` : '₹349', stock: 10 }
+          { weight: '100g', price: item.price, originalPrice: item.original_price, stock: masterStock },
+          { weight: '200g', price: item.price ? `₹${Math.round(parseInt(item.price.replace(/\D/g, '') || '200') * 1.8)}` : '₹349', stock: Math.max(1, Math.floor(masterStock / 2)) }
         ];
       }
 
@@ -492,8 +496,8 @@ export async function getProducts(): Promise<Product[]> {
         reviews: item.reviews ? String(item.reviews) : '100+',
         badge: item.badge,
         desc: item.desc || item.description,
-        stockQuantity: item.stock_quantity ?? item.stock ?? 0,
-        inStock: item.in_stock !== false && (item.stock_quantity !== 0),
+        stockQuantity: masterStock,
+        inStock: item.in_stock !== false && (masterStock > 0),
         variants
       };
     });
