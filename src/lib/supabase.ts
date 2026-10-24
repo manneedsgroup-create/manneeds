@@ -1,5 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
+export interface ProductVariant {
+  weight: string; // e.g. '100g', '200g', '250g', '500g', '1kg'
+  price: string;
+  originalPrice?: string;
+  stock?: number;
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -14,6 +21,7 @@ export interface Product {
   desc: string;
   inStock?: boolean;
   stockQuantity?: number;
+  variants?: ProductVariant[];
 }
 
 export interface Subscriber {
