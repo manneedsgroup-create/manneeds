@@ -234,12 +234,14 @@ const navLinks: { label: string; href: string; badge?: string }[] = [
     font-family: var(--font-heading);
     font-size: 1.75rem;
     font-weight: 900;
-    color: var(--mn-primary);
+    color: #000000;
     letter-spacing: -0.03em;
+    transition: color 0.25s ease;
   }
 
   .brand-highlight {
-    color: var(--mn-cta);
+    color: #000000;
+    transition: color 0.25s ease;
   }
 
 
@@ -540,12 +542,12 @@ const navLinks: { label: string; href: string; badge?: string }[] = [
 
   :global(html.dark) .brand-name,
   :global([data-theme="dark"]) .brand-name {
-    color: #EEF2F6;
+    color: #FFFFFF;
   }
 
   :global(html.dark) .brand-highlight,
   :global([data-theme="dark"]) .brand-highlight {
-    color: var(--mn-cta);
+    color: #FFFFFF;
   }
 
   :global(html.dark) .mobile-menu,
