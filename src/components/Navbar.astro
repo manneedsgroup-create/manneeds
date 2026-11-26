@@ -6,9 +6,12 @@ interface Props {
 const { cartCount = 0 } = Astro.props;
 
 const navLinks: { label: string; href: string; badge?: string }[] = [
-  { label: 'Shop All Bestsellers', href: '#bestsellers' },
-  { label: 'Pantry Categories', href: '#categories' },
-  { label: 'Quality Standards', href: '#why-manneeds' }
+  { label: 'Shop', href: '#bestsellers' },
+  { label: 'Combos', href: '#bundles', badge: 'Save' },
+  { label: 'Our Story', href: '#our-story' },
+  { label: 'Quality', href: '#why-manneeds' },
+  { label: 'Reviews', href: '#reviews' },
+  { label: 'FAQ', href: '#faq' }
 ];
 ---
 
@@ -38,6 +41,20 @@ const navLinks: { label: string; href: string; badge?: string }[] = [
         <span class="brand-name">MAN<span class="brand-highlight">NEEDS</span></span>
       </div>
     </a>
+
+    <!-- Desktop Navigation Links -->
+    <nav class="desktop-nav" aria-label="Primary Navigation">
+      <ul class="desktop-nav-list">
+        {navLinks.map((link) => (
+          <li>
+            <a href={link.href} class="desktop-nav-link">
+              <span>{link.label}</span>
+              {link.badge && <span class="desktop-nav-badge">{link.badge}</span>}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
 
     <!-- Header Actions -->
     <div class="nav-actions">
@@ -300,6 +317,75 @@ const navLinks: { label: string; href: string; badge?: string }[] = [
     .nav-cta {
       display: inline-flex;
     }
+  }
+
+  /* Desktop Navigation Links */
+  .desktop-nav {
+    display: none;
+  }
+
+  @media (min-width: 980px) {
+    .desktop-nav {
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  .desktop-nav-list {
+    display: flex;
+    align-items: center;
+    gap: 1.65rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .desktop-nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    padding: 0.35rem 0;
+    position: relative;
+    transition: color var(--transition-fast);
+  }
+
+  .desktop-nav-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--mn-cta);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.2s ease;
+  }
+
+  .desktop-nav-link:hover {
+    color: var(--text-primary);
+  }
+
+  .desktop-nav-link:hover::after {
+    transform: scaleX(1);
+  }
+
+  .desktop-nav-badge {
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: var(--bg-tint-orange);
+    color: var(--mn-cta);
+    border: 1px solid var(--border-accent);
+    padding: 0.1rem 0.4rem;
+    border-radius: var(--radius-full);
+    line-height: 1.2;
   }
 
   /* Mobile Toggle */

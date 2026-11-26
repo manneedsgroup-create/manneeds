@@ -97,44 +97,37 @@ const bestsellers = rawBestsellers.map((item) => {
   </section>
 
   <!-- No Nasties / Clean Label Certification Strip -->
-  <div class="no-nasties-strip">
+  <div class="no-nasties-strip" aria-label="Purity Guarantees">
     <div class="container">
       <div class="no-nasties-scroll">
         <div class="no-nasties-badge check">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
           FSSAI Licensed
         </div>
-        <span class="nn-sep">•</span>
         <div class="no-nasties-badge cross">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           No Palm Oil
         </div>
-        <span class="nn-sep">•</span>
         <div class="no-nasties-badge cross">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           No Preservatives
         </div>
-        <span class="nn-sep">•</span>
         <div class="no-nasties-badge cross">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           No Artificial Colors
         </div>
-        <span class="nn-sep">•</span>
         <div class="no-nasties-badge check">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
           NABL Lab Tested
         </div>
-        <span class="nn-sep">•</span>
         <div class="no-nasties-badge check">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
           100% Vegan
         </div>
-        <span class="nn-sep">•</span>
         <div class="no-nasties-badge cross">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           No Added Sugars
         </div>
-        <span class="nn-sep">•</span>
         <div class="no-nasties-badge cross">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           No Refined Oils
@@ -486,11 +479,8 @@ const bestsellers = rawBestsellers.map((item) => {
               </div>
               <div class="story-process-steps">
                 <div class="process-step"><span class="step-dot">1</span><span>Farm Harvested</span></div>
-                <div class="process-arrow">→</div>
                 <div class="process-step"><span class="step-dot">2</span><span>Lab Tested</span></div>
-                <div class="process-arrow">→</div>
                 <div class="process-step"><span class="step-dot">3</span><span>Cold Milled</span></div>
-                <div class="process-arrow">→</div>
                 <div class="process-step"><span class="step-dot">4</span><span>Your Kitchen</span></div>
               </div>
             </div>
@@ -501,7 +491,7 @@ const bestsellers = rawBestsellers.map((item) => {
   </section>
 
   <!-- Why The Food Standard Works -->
-  <section class="section promise-section">
+  <section class="section promise-section" id="why-manneeds">
     <div class="container">
       <div class="promise-card">
         <div class="promise-header">
@@ -548,6 +538,11 @@ const bestsellers = rawBestsellers.map((item) => {
         <span class="badge badge-green">Real Reviews</span>
         <h2 class="section-title">What Our Customers Say</h2>
         <p class="section-subtitle">Verified purchases from real households across India.</p>
+        <div class="reviews-summary-pill">
+          <span class="reviews-summary-stars">★★★★★</span>
+          <strong>4.9 / 5</strong>
+          <span>Based on 1,200+ verified orders</span>
+        </div>
       </div>
       <div class="testimonials-grid">
         <div class="testimonial-card">
@@ -724,8 +719,8 @@ const bestsellers = rawBestsellers.map((item) => {
 <style is:global>
   /* Hero */
   .hero-section {
-    padding-top: 4.5rem;
-    padding-bottom: 4rem;
+    padding-top: 3.75rem;
+    padding-bottom: 2.75rem;
     background: radial-gradient(circle at 50% 10%, rgba(217, 107, 39, 0.06) 0%, transparent 60%),
                 radial-gradient(circle at 80% 40%, rgba(30, 70, 32, 0.06) 0%, transparent 50%),
                 var(--bg-base);
@@ -787,7 +782,7 @@ const bestsellers = rawBestsellers.map((item) => {
     flex-wrap: wrap;
     justify-content: center;
     gap: 1rem;
-    margin-bottom: 3.5rem;
+    margin-bottom: 0.5rem;
   }
 
   .hero-btn-main {
@@ -1934,6 +1929,41 @@ const bestsellers = rawBestsellers.map((item) => {
     border-radius: 6px;
     border: 1px dashed var(--mn-cta);
     font-weight: 800;
+  }
+
+  /* Dark mode contrast fixes for Hero, Status Pill, Promo Box */
+  html.dark .hero-title,
+  [data-theme="dark"] .hero-title {
+    color: var(--text-primary);
+  }
+
+  html.dark .live-status-pill,
+  [data-theme="dark"] .live-status-pill {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #6EE7B7;
+  }
+
+  html.dark .promo-box,
+  [data-theme="dark"] .promo-box {
+    background: linear-gradient(135deg, #1E1612 0%, #171310 100%);
+    border-color: rgba(222, 110, 53, 0.35);
+  }
+
+  html.dark .promo-title,
+  [data-theme="dark"] .promo-title {
+    color: #F8FAFC;
+  }
+
+  html.dark .promo-desc,
+  [data-theme="dark"] .promo-desc {
+    color: #CBD5E1;
+  }
+
+  html.dark .promo-code,
+  [data-theme="dark"] .promo-code {
+    background: rgba(222, 110, 53, 0.18);
+    color: #FFAA7D;
   }
 
   /* ========================================================= */
