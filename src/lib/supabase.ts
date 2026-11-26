@@ -98,6 +98,20 @@ export interface QuizLead {
   created_at?: string;
 }
 
+export interface Review {
+  id?: string;
+  order_id?: string;
+  customer_name: string;
+  city?: string;
+  product_name: string;
+  rating: number;
+  review_text: string;
+  source?: 'link' | 'whatsapp';
+  is_verified?: boolean;
+  is_published?: boolean;
+  created_at?: string;
+}
+
 export interface OrderItem {
   id: number | string;
   name: string;

@@ -2,7 +2,7 @@
 import MainLayout from '../layouts/MainLayout.astro';
 import fs from 'node:fs';
 import path from 'node:path';
-import { getProducts, cleanProductName } from '../lib/db';
+import { getProducts, cleanProductName, getReviews, type Review } from '../lib/db';
 
 // Helper to scan each product folder for user-uploaded images and videos
 function getLocalMedia(folder?: string): { images: string[]; videos: string[] } {
@@ -56,6 +56,12 @@ const bestsellers = rawBestsellers.map((item) => {
     videos: resolvedVideos
   };
 });
+// Fetch verified customer reviews from Supabase (never fake/hardcoded)
+const initialReviews: Review[] = await getReviews(12);
+const reviewCount = initialReviews.length;
+const avgRating = reviewCount > 0
+  ? (initialReviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / reviewCount).toFixed(1)
+  : null;
 ---
 
 <MainLayout title="Pure Indian Kitchen Essentials, Spices, Honey & Healthy Foods">
@@ -531,86 +537,70 @@ const bestsellers = rawBestsellers.map((item) => {
     </div>
   </section>
 
-  <!-- Customer Testimonials Section -->
+  <!-- Verified Post-Delivery Customer Reviews (Pulled Live from Supabase) -->
   <section class="section testimonials-section" id="reviews">
     <div class="container">
       <div class="section-header" style="text-align:center;margin-bottom:2.5rem;">
-        <span class="badge badge-green">Real Reviews</span>
-        <h2 class="section-title">What Our Customers Say</h2>
-        <p class="section-subtitle">Verified purchases from real households across India.</p>
-        <div class="reviews-summary-pill">
+        <span class="badge badge-green">Verified Post-Delivery Feedback</span>
+        <h2 class="section-title">Real Customer Reviews</h2>
+        <p class="section-subtitle">
+          Every review is collected 3–4 days after delivery via WhatsApp or our verified feedback link — never fabricated.
+        </p>
+        <div class="reviews-summary-pill" id="reviews-summary-pill" style={reviewCount > 0 ? '' : 'display: none;'}>
           <span class="reviews-summary-stars">★★★★★</span>
-          <strong>4.9 / 5</strong>
-          <span>Based on 1,200+ verified orders</span>
+          <strong id="reviews-avg-score">{avgRating || '5.0'} / 5</strong>
+          <span id="reviews-total-count">Based on {reviewCount} verified {reviewCount === 1 ? 'review' : 'reviews'}</span>
         </div>
       </div>
-      <div class="testimonials-grid">
-        <div class="testimonial-card">
-          <div class="testimonial-stars">★★★★★</div>
-          <p class="testimonial-text">"Finally found moringa powder that actually smells fresh and earthy. No mystery fillers. My morning smoothie has never been better!"</p>
-          <div class="testimonial-author">
-            <div class="author-avatar">P</div>
-            <div>
-              <strong>Priya Sharma</strong>
-              <span>Mumbai, Maharashtra · Moringa Powder</span>
+
+      <div id="reviews-container">
+        {reviewCount > 0 ? (
+          <div class="testimonials-grid" id="reviews-grid">
+            {initialReviews.map((rev) => {
+              const stars = '★'.repeat(Math.min(5, Math.max(1, Number(rev.rating) || 5))) +
+                '☆'.repeat(Math.max(0, 5 - Math.min(5, Math.max(1, Number(rev.rating) || 5))));
+              const initial = (rev.customer_name || 'C').trim().charAt(0).toUpperCase();
+              const sourceLabel = rev.source === 'whatsapp' ? 'WhatsApp Verified' : 'Verified Buyer';
+              const metaParts = [rev.city, rev.product_name].filter(Boolean).join(' · ');
+              return (
+                <div class="testimonial-card">
+                  <div class="review-card-top">
+                    <div class="testimonial-stars" aria-label={`${rev.rating} out of 5 stars`}>{stars}</div>
+                    <span class="review-source-tag">✓ {sourceLabel}</span>
+                  </div>
+                  <p class="testimonial-text">"{rev.review_text}"</p>
+                  <div class="testimonial-author">
+                    <div class="author-avatar">{initial}</div>
+                    <div>
+                      <strong>{rev.customer_name}</strong>
+                      <span>{metaParts}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div class="reviews-empty-card" id="reviews-empty-state">
+            <div class="reviews-empty-icon">💬</div>
+            <h3>Verified Reviews Appear Here Automatically</h3>
+            <p>
+              We never publish fake testimonials. 3–4 days after your order is delivered, you can rate your food via WhatsApp or our feedback link and it syncs directly from Supabase.
+            </p>
+            <div class="reviews-empty-actions">
+              <a href="/review" class="btn btn-primary">Leave a Verified Review</a>
+              <a
+                href="https://wa.me/919748973335?text=Hi%20ManNeeds!%20I%20received%20my%20order%20and%20want%20to%20share%20my%20rating%3A%20"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn whatsapp-support-btn"
+                style="margin-top: 0;"
+              >
+                Rate on WhatsApp
+              </a>
             </div>
           </div>
-        </div>
-        <div class="testimonial-card">
-          <div class="testimonial-stars">★★★★★</div>
-          <p class="testimonial-text">"The ajwain honey is phenomenal. Pure, thick, and has that raw crystallization that proves it's real. My kids love it on their rotis!"</p>
-          <div class="testimonial-author">
-            <div class="author-avatar">R</div>
-            <div>
-              <strong>Rajan Nair</strong>
-              <span>Kochi, Kerala · Ajwain Honey</span>
-            </div>
-          </div>
-        </div>
-        <div class="testimonial-card">
-          <div class="testimonial-stars">★★★★★</div>
-          <p class="testimonial-text">"I ordered the Wellness Pack and was blown away. The thankuni powder has a genuine leafy aroma. This is the real deal — not the market powder."</p>
-          <div class="testimonial-author">
-            <div class="author-avatar">A</div>
-            <div>
-              <strong>Ananya Bose</strong>
-              <span>Kolkata, West Bengal · Wellness Pack</span>
-            </div>
-          </div>
-        </div>
-        <div class="testimonial-card">
-          <div class="testimonial-stars">★★★★★</div>
-          <p class="testimonial-text">"Those peri peri snacks are addictive but clean. Gave some to my doctor friends and they were impressed by the actual ingredients list. Reordering!"</p>
-          <div class="testimonial-author">
-            <div class="author-avatar">S</div>
-            <div>
-              <strong>Suresh Reddy</strong>
-              <span>Hyderabad, Telangana · Peri Peri Snack</span>
-            </div>
-          </div>
-        </div>
-        <div class="testimonial-card">
-          <div class="testimonial-stars">★★★★★</div>
-          <p class="testimonial-text">"My mother was amazed by the kulekhara powder — she said it smells exactly like fresh kulekhara from her village garden. Delivery was fast too!"</p>
-          <div class="testimonial-author">
-            <div class="author-avatar">D</div>
-            <div>
-              <strong>Debashree Paul</strong>
-              <span>Siliguri, West Bengal · Kulekhara Powder</span>
-            </div>
-          </div>
-        </div>
-        <div class="testimonial-card">
-          <div class="testimonial-stars">★★★★★</div>
-          <p class="testimonial-text">"Ordered for my health-conscious parents. Packaging is minimal but premium, and the products are genuinely pure. Worth every rupee!"</p>
-          <div class="testimonial-author">
-            <div class="author-avatar">V</div>
-            <div>
-              <strong>Vikram Choudhary</strong>
-              <span>Jaipur, Rajasthan · Starter Kitchen Box</span>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   </section>
@@ -2454,7 +2444,7 @@ const bestsellers = rawBestsellers.map((item) => {
 </style>
 
 <script>
-  import { getProducts, cleanProductName } from '../lib/db';
+  import { getProducts, cleanProductName, getReviews, type Review } from '../lib/db';
   import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
   const productsGrid = document.getElementById('products-grid');
@@ -3210,6 +3200,71 @@ const bestsellers = rawBestsellers.map((item) => {
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'products' }, async () => {
         const refreshed = await getProducts();
         renderProducts(refreshed);
+      })
+      .subscribe();
+
+    // Live Sync & Realtime for Verified Customer Reviews
+    function escHtml(str: string): string {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function renderLiveReviews(reviews: Review[]) {
+      const container = document.getElementById('reviews-container');
+      const pill = document.getElementById('reviews-summary-pill');
+      const avgEl = document.getElementById('reviews-avg-score');
+      const countEl = document.getElementById('reviews-total-count');
+      if (!container) return;
+
+      if (!reviews || reviews.length === 0) {
+        if (pill) pill.style.display = 'none';
+        return;
+      }
+
+      const avg = (reviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0) / reviews.length).toFixed(1);
+      if (pill) pill.style.display = 'inline-flex';
+      if (avgEl) avgEl.textContent = `${avg} / 5`;
+      if (countEl) countEl.textContent = `Based on ${reviews.length} verified ${reviews.length === 1 ? 'review' : 'reviews'}`;
+
+      const cardsHtml = reviews.map((rev) => {
+        const rating = Math.min(5, Math.max(1, Number(rev.rating) || 5));
+        const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+        const initial = escHtml((rev.customer_name || 'C').trim().charAt(0).toUpperCase());
+        const sourceLabel = rev.source === 'whatsapp' ? 'WhatsApp Verified' : 'Verified Buyer';
+        const metaParts = [rev.city, rev.product_name].filter(Boolean).map(escHtml).join(' · ');
+        return `
+          <div class="testimonial-card">
+            <div class="review-card-top">
+              <div class="testimonial-stars" aria-label="${rating} out of 5 stars">${stars}</div>
+              <span class="review-source-tag">✓ ${sourceLabel}</span>
+            </div>
+            <p class="testimonial-text">"${escHtml(rev.review_text)}"</p>
+            <div class="testimonial-author">
+              <div class="author-avatar">${initial}</div>
+              <div>
+                <strong>${escHtml(rev.customer_name)}</strong>
+                <span>${metaParts}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = `<div class="testimonials-grid" id="reviews-grid">${cardsHtml}</div>`;
+    }
+
+    getReviews(12).then((liveReviews) => {
+      if (liveReviews.length > 0) renderLiveReviews(liveReviews);
+    });
+
+    supabase
+      .channel('realtime:reviews')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reviews' }, async () => {
+        const liveReviews = await getReviews(12);
+        renderLiveReviews(liveReviews);
       })
       .subscribe();
   }

@@ -9,10 +9,11 @@ import {
   type SoldItem,
   type InventorySummary,
   type Order,
-  type OrderItem
+  type OrderItem,
+  type Review
 } from './supabase';
 
-export type { Order, OrderItem, InventorySummary };
+export type { Order, OrderItem, InventorySummary, Review };
 
 // Helper function to strip any redundant "ManNeeds " prefix from product names
 export function cleanProductName(name: string): string {
@@ -1094,6 +1095,74 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
     return data as Order;
   } catch {
     return null;
+  }
+}
+
+// ==========================================
+// VERIFIED CUSTOMER REVIEWS (SUPABASE)
+// ==========================================
+
+/**
+ * Fetch published verified reviews from Supabase (never returns fake reviews)
+ */
+export async function getReviews(limit = 12): Promise<Review[]> {
+  if (!isSupabaseConfigured) return [];
+  try {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('is_published', true)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error || !data) {
+      return [];
+    }
+    return data as Review[];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Submit a real post-delivery customer review into Supabase
+ */
+export async function submitReview(review: Omit<Review, 'id' | 'created_at'>): Promise<{ success: boolean; message: string }> {
+  const cleanName = review.customer_name?.trim();
+  const cleanText = review.review_text?.trim();
+  const cleanProduct = review.product_name?.trim();
+  const rating = Math.min(5, Math.max(1, Math.round(Number(review.rating) || 5)));
+
+  if (!cleanName || !cleanText || !cleanProduct) {
+    return { success: false, message: 'Please fill in your name, product, and review.' };
+  }
+
+  if (!isSupabaseConfigured) {
+    return { success: false, message: 'Database is not configured yet.' };
+  }
+
+  try {
+    const { error } = await supabase.from('reviews').insert([
+      {
+        order_id: review.order_id?.trim() || null,
+        customer_name: cleanName,
+        city: review.city?.trim() || null,
+        product_name: cleanProduct,
+        rating,
+        review_text: cleanText,
+        source: review.source || 'link',
+        is_verified: true,
+        is_published: true
+      }
+    ]);
+
+    if (error) {
+      return { success: false, message: `Could not save review: ${error.message}` };
+    }
+
+    return { success: true, message: 'Thank you! Your verified review is now live.' };
+  } catch (err: any) {
+    return { success: false, message: err?.message || 'Error submitting review.' };
   }
 }
 
