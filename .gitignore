@@ -21,3 +21,5 @@ pnpm-debug.log*
 
 # Local editor settings
 .vscode/
+.vercel
+.env*
