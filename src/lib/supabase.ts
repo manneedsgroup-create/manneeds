@@ -100,6 +100,7 @@ export interface QuizLead {
 
 export interface Review {
   id?: string;
+  user_id?: string;
   order_id?: string;
   customer_name: string;
   city?: string;
@@ -110,6 +111,23 @@ export interface Review {
   is_verified?: boolean;
   is_published?: boolean;
   created_at?: string;
+}
+
+export interface CustomerProfile {
+  id: string;
+  full_name?: string;
+  email?: string;
+  phone?: string;
+  avatar_url?: string;
+  provider?: 'google' | 'apple' | 'phone' | string;
+  shipping_address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  total_orders?: number;
+  total_spent?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface OrderItem {
@@ -123,6 +141,7 @@ export interface OrderItem {
 
 export interface Order {
   id?: string;
+  user_id?: string;
   customer_name: string;
   customer_phone: string;
   customer_email?: string;

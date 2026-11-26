@@ -1903,4 +1903,37 @@
   // Initialize
   updateNavbarBadges();
   renderCart();
+
+  // Auto-fill checkout fields when customer is signed in
+  import { getCustomerProfile } from '../lib/db';
+  import { supabase as cartSupabase, isSupabaseConfigured as cartSbReady } from '../lib/supabase';
+
+  async function autofillCheckoutFromAccount() {
+    if (!cartSbReady) return;
+    const { data: { session } } = await cartSupabase.auth.getSession();
+    if (!session?.user) return;
+    const profile = await getCustomerProfile();
+
+    const nameEl = document.getElementById('checkout-name') as HTMLInputElement | null;
+    const phoneEl = document.getElementById('checkout-phone') as HTMLInputElement | null;
+    const emailEl = document.getElementById('checkout-email') as HTMLInputElement | null;
+    const addrEl = document.getElementById('checkout-address') as HTMLTextAreaElement | null;
+    const pinEl = document.getElementById('checkout-pincode') as HTMLInputElement | null;
+    const cityEl = document.getElementById('checkout-city') as HTMLInputElement | null;
+    const stateEl = document.getElementById('checkout-state') as HTMLInputElement | null;
+
+    const fullName = profile?.full_name || session.user.user_metadata?.full_name || '';
+    const phoneRaw = (profile?.phone || session.user.phone || '').replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
+    const email = profile?.email || session.user.email || '';
+
+    if (nameEl && !nameEl.value && fullName) nameEl.value = fullName;
+    if (phoneEl && !phoneEl.value && phoneRaw) phoneEl.value = phoneRaw;
+    if (emailEl && !emailEl.value && email) emailEl.value = email;
+    if (addrEl && !addrEl.value && profile?.shipping_address) addrEl.value = profile.shipping_address;
+    if (pinEl && !pinEl.value && profile?.pincode) pinEl.value = profile.pincode;
+    if (cityEl && !cityEl.value && profile?.city) cityEl.value = profile.city;
+    if (stateEl && !stateEl.value && profile?.state) stateEl.value = profile.state;
+  }
+
+  autofillCheckoutFromAccount();
 </script>

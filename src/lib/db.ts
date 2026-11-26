@@ -10,10 +10,11 @@ import {
   type InventorySummary,
   type Order,
   type OrderItem,
-  type Review
+  type Review,
+  type CustomerProfile
 } from './supabase';
 
-export type { Order, OrderItem, InventorySummary, Review };
+export type { Order, OrderItem, InventorySummary, Review, CustomerProfile };
 
 // Helper function to strip any redundant "ManNeeds " prefix from product names
 export function cleanProductName(name: string): string {
@@ -971,10 +972,14 @@ export async function createOrder(orderData: Order): Promise<{
 
   if (isSupabaseConfigured) {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const activeUserId = orderData.user_id || session?.user?.id || null;
+
       // 1. Insert order record into public.orders
       const { data: orderRecord, error: orderError } = await supabase
         .from('orders')
         .insert([{
+          user_id: activeUserId,
           customer_name: orderData.customer_name,
           customer_phone: orderData.customer_phone,
           customer_email: orderData.customer_email || `${orderData.customer_phone}@guest.manneeds.in`,
@@ -1142,8 +1147,10 @@ export async function submitReview(review: Omit<Review, 'id' | 'created_at'>): P
   }
 
   try {
+    const { data: { session } } = await supabase.auth.getSession();
     const { error } = await supabase.from('reviews').insert([
       {
+        user_id: review.user_id || session?.user?.id || null,
         order_id: review.order_id?.trim() || null,
         customer_name: cleanName,
         city: review.city?.trim() || null,
@@ -1163,6 +1170,81 @@ export async function submitReview(review: Omit<Review, 'id' | 'created_at'>): P
     return { success: true, message: 'Thank you! Your verified review is now live.' };
   } catch (err: any) {
     return { success: false, message: err?.message || 'Error submitting review.' };
+  }
+}
+
+// ==========================================
+// CUSTOMER ACCOUNT PROFILE & ORDER HISTORY
+// ==========================================
+
+export async function getCustomerProfile(): Promise<CustomerProfile | null> {
+  if (!isSupabaseConfigured) return null;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return null;
+
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    if (error || !data) return null;
+    return data as CustomerProfile;
+  } catch {
+    return null;
+  }
+}
+
+export async function updateCustomerProfile(updates: Partial<CustomerProfile>): Promise<{ success: boolean; message: string }> {
+  if (!isSupabaseConfigured) {
+    return { success: false, message: 'Database not configured.' };
+  }
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      return { success: false, message: 'Please sign in first.' };
+    }
+
+    const { error } = await supabase
+      .from('customers')
+      .upsert({
+        id: session.user.id,
+        full_name: updates.full_name?.trim() || null,
+        phone: updates.phone?.trim() || null,
+        shipping_address: updates.shipping_address?.trim() || null,
+        city: updates.city?.trim() || null,
+        state: updates.state?.trim() || null,
+        pincode: updates.pincode?.trim() || null,
+        updated_at: new Date().toISOString()
+      });
+
+    if (error) {
+      return { success: false, message: error.message };
+    }
+    return { success: true, message: 'Delivery details saved to your account.' };
+  } catch (err: any) {
+    return { success: false, message: err?.message || 'Could not save profile.' };
+  }
+}
+
+export async function getCustomerOrders(): Promise<Order[]> {
+  if (!isSupabaseConfigured) return [];
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return [];
+
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (error || !data) return [];
+    return data as Order[];
+  } catch {
+    return [];
   }
 }
 

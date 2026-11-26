@@ -1,0 +1,691 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+---
+
+<MainLayout
+  title="My Account | ManNeeds Pure Indian Kitchen Essentials"
+  description="Sign in or verify your ManNeeds account using Google, Apple, or Mobile OTP to view your orders and saved delivery address."
+>
+  <section class="section account-section">
+    <div class="container">
+      <!-- AUTH / SIGN-IN CARD (Shown when logged out) -->
+      <div id="auth-view" class="account-auth-card">
+        <div class="account-auth-header">
+          <span class="badge badge-green">Verified Customer Account</span>
+          <h1 class="section-title">Sign In to ManNeeds</h1>
+          <p class="section-subtitle">
+            Verify with Google, Apple, or your Mobile Number (OTP) to track orders, save delivery details, and post verified reviews.
+          </p>
+        </div>
+
+        <div class="oauth-buttons-stack">
+          <button type="button" id="btn-google-login" class="oauth-btn oauth-google">
+            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/>
+              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"/>
+              <path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"/>
+              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"/>
+            </svg>
+            <span>Continue with Google</span>
+          </button>
+
+          <button type="button" id="btn-apple-login" class="oauth-btn oauth-apple">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M16.365 1.43c0 1.14-.493 2.27-1.177 3.08-.744.9-1.99 1.57-2.987 1.57-.12 0-.23-.02-.3-.03-.01-.06-.04-.22-.04-.39 0-1.15.572-2.27 1.206-2.98.804-.94 2.142-1.64 3.248-1.68.03.13.05.28.05.43zm4.565 15.71c-.03.07-.463 1.58-1.518 3.12-.945 1.34-1.94 2.71-3.43 2.71-1.517 0-1.9-.88-3.63-.88-1.698 0-2.302.91-3.67.91-1.377 0-2.332-1.26-3.428-2.8-1.287-1.82-2.323-4.63-2.323-7.28 0-4.28 2.797-6.55 5.552-6.55 1.448 0 2.675.95 3.6.95.865 0 2.222-1.01 3.902-1.01.613 0 2.886.06 4.374 2.19-.13.09-2.383 1.37-2.383 4.19 0 3.26 2.854 4.42 2.955 4.45z"/>
+            </svg>
+            <span>Continue with Apple</span>
+          </button>
+        </div>
+
+        <div class="auth-divider"><span>OR VERIFY WITH MOBILE NUMBER</span></div>
+
+        <!-- Mobile Number OTP Form -->
+        <form id="phone-otp-form" class="phone-otp-form">
+          <div id="phone-step">
+            <label for="auth-phone-input">Indian Mobile Number</label>
+            <div class="phone-input-group">
+              <span class="phone-prefix">+91</span>
+              <input
+                type="tel"
+                id="auth-phone-input"
+                maxlength="10"
+                pattern="[6-9][0-9]{9}"
+                placeholder="Enter 10-digit mobile number"
+                inputmode="numeric"
+                required
+              />
+            </div>
+            <button type="submit" id="btn-send-otp" class="btn btn-primary auth-submit-btn">
+              Send Verification OTP
+            </button>
+          </div>
+
+          <div id="otp-verify-step" style="display: none;">
+            <label for="auth-otp-input">Enter 6-Digit SMS OTP</label>
+            <input
+              type="text"
+              id="auth-otp-input"
+              maxlength="6"
+              pattern="[0-9]{6}"
+              placeholder="6-digit OTP"
+              inputmode="numeric"
+              class="otp-code-input"
+            />
+            <div class="otp-actions-row">
+              <button type="button" id="btn-verify-otp" class="btn btn-primary auth-submit-btn">
+                Verify &amp; Sign In
+              </button>
+              <button type="button" id="btn-change-phone" class="btn btn-secondary">
+                Change Number
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <div id="auth-status-box" class="auth-status-box" style="display: none;"></div>
+      </div>
+
+      <!-- LOGGED-IN ACCOUNT DASHBOARD (Shown when authenticated) -->
+      <div id="dashboard-view" class="account-dashboard" style="display: none;">
+        <div class="account-profile-banner">
+          <div class="profile-identity">
+            <div class="profile-avatar" id="dash-avatar">M</div>
+            <div>
+              <div class="profile-name-row">
+                <h1 id="dash-name">ManNeeds Customer</h1>
+                <span class="verified-pill" id="dash-provider-badge">✓ Verified</span>
+              </div>
+              <p class="profile-contact" id="dash-contact">—</p>
+            </div>
+          </div>
+          <button type="button" id="btn-signout" class="btn btn-secondary">Sign Out</button>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Saved Address & Profile -->
+          <div class="dashboard-card">
+            <h2>Saved Delivery Details</h2>
+            <p class="dash-card-sub">Auto-filled at checkout for faster ordering.</p>
+            <form id="profile-save-form" class="dash-form">
+              <div class="dash-field">
+                <label for="prof-name">Full Name</label>
+                <input type="text" id="prof-name" required placeholder="Your full name" />
+              </div>
+              <div class="dash-field">
+                <label for="prof-phone">Mobile Number</label>
+                <input type="tel" id="prof-phone" placeholder="10-digit mobile number" />
+              </div>
+              <div class="dash-field">
+                <label for="prof-address">Shipping Address</label>
+                <textarea id="prof-address" rows="2" placeholder="House/Flat, Street, Area"></textarea>
+              </div>
+              <div class="dash-form-row">
+                <div class="dash-field">
+                  <label for="prof-pincode">Pincode</label>
+                  <input type="text" id="prof-pincode" maxlength="6" placeholder="Pincode" />
+                </div>
+                <div class="dash-field">
+                  <label for="prof-city">City</label>
+                  <input type="text" id="prof-city" placeholder="City" />
+                </div>
+                <div class="dash-field">
+                  <label for="prof-state">State</label>
+                  <input type="text" id="prof-state" placeholder="State" />
+                </div>
+              </div>
+              <button type="submit" id="btn-save-profile" class="btn btn-primary">Save Details</button>
+              <div id="prof-status-msg" class="auth-status-box" style="display: none;"></div>
+            </form>
+          </div>
+
+          <!-- Order History -->
+          <div class="dashboard-card">
+            <div class="orders-card-header">
+              <div>
+                <h2>My Orders</h2>
+                <p class="dash-card-sub">Track orders and leave verified post-delivery reviews.</p>
+              </div>
+              <a href="/#bestsellers" class="btn btn-secondary" style="padding: 0.45rem 0.9rem; font-size: 0.8rem;">Shop More</a>
+            </div>
+            <div id="orders-list" class="orders-list">
+              <p class="orders-empty">Loading your orders...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</MainLayout>
+
+<style>
+  .account-section {
+    padding: 3.5rem 0 4.5rem;
+    background: var(--bg-base);
+    min-height: 70vh;
+  }
+  .account-auth-card {
+    max-width: 480px;
+    margin: 0 auto;
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 2.25rem;
+    box-shadow: var(--shadow-md);
+  }
+  .account-auth-header {
+    text-align: center;
+    margin-bottom: 1.75rem;
+  }
+  .oauth-buttons-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .oauth-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  .oauth-google {
+    background: #FFFFFF;
+    color: #1F2937;
+    border: 1.5px solid var(--border-medium);
+  }
+  .oauth-google:hover {
+    background: #F9FAFB;
+    border-color: #9CA3AF;
+    transform: translateY(-1px);
+  }
+  .oauth-apple {
+    background: #111827;
+    color: #FFFFFF;
+    border: 1.5px solid #111827;
+  }
+  .oauth-apple:hover {
+    background: #000000;
+    transform: translateY(-1px);
+  }
+  .auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+  .auth-divider::before,
+  .auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-subtle);
+  }
+  .phone-otp-form label,
+  .dash-field label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.4rem;
+  }
+  .phone-input-group {
+    display: flex;
+    align-items: center;
+    border: 1.5px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    background: var(--bg-base);
+    overflow: hidden;
+    margin-bottom: 0.9rem;
+  }
+  .phone-prefix {
+    padding: 0.75rem 0.9rem;
+    background: var(--bg-subtle);
+    color: var(--text-primary);
+    font-weight: 800;
+    font-size: 0.9rem;
+    border-right: 1px solid var(--border-subtle);
+  }
+  .phone-input-group input,
+  .otp-code-input,
+  .dash-field input,
+  .dash-field textarea {
+    width: 100%;
+    padding: 0.75rem 0.95rem;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 0.92rem;
+    outline: none;
+  }
+  .otp-code-input,
+  .dash-field input,
+  .dash-field textarea {
+    border: 1.5px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    background: var(--bg-base);
+  }
+  .otp-code-input {
+    margin-bottom: 0.9rem;
+    letter-spacing: 0.25em;
+    font-weight: 800;
+    text-align: center;
+  }
+  .auth-submit-btn {
+    width: 100%;
+  }
+  .otp-actions-row {
+    display: flex;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+  }
+  .auth-status-box {
+    margin-top: 1rem;
+    padding: 0.8rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.86rem;
+    font-weight: 600;
+    text-align: center;
+  }
+  .auth-status-box.success {
+    background: #ECFDF5;
+    color: #065F46;
+    border: 1px solid #A7F3D0;
+  }
+  .auth-status-box.error {
+    background: #FEF2F2;
+    color: #991B1B;
+    border: 1px solid #FECACA;
+  }
+
+  /* Dashboard */
+  .account-profile-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.75rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .profile-identity {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .profile-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--gradient-green);
+    color: #FFFFFF;
+    font-size: 1.35rem;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .profile-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .profile-name-row h1 {
+    font-size: 1.35rem;
+    margin: 0;
+  }
+  .verified-pill {
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-full);
+    background: var(--bg-tint-green);
+    color: var(--mn-primary);
+    border: 1px solid var(--border-green);
+  }
+  .profile-contact {
+    font-size: 0.86rem;
+    color: var(--text-secondary);
+    margin: 0.2rem 0 0;
+  }
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  @media (min-width: 900px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr 1.15fr;
+    }
+  }
+  .dashboard-card {
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 1.75rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .dashboard-card h2 {
+    font-size: 1.2rem;
+    margin: 0 0 0.25rem;
+  }
+  .dash-card-sub {
+    font-size: 0.84rem;
+    color: var(--text-secondary);
+    margin: 0 0 1.25rem;
+  }
+  .dash-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.95rem;
+  }
+  .dash-form-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.65rem;
+  }
+  @media (max-width: 520px) {
+    .dash-form-row {
+      grid-template-columns: 1fr;
+    }
+    .account-auth-card,
+    .dashboard-card {
+      padding: 1.35rem 1.1rem;
+    }
+  }
+  .orders-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+  .orders-empty {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    padding: 1.5rem 0;
+    text-align: center;
+  }
+  :global(.order-history-item) {
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.15rem;
+    background: var(--bg-base);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  :global(.order-history-top) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  :global(.order-history-id) {
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+  }
+  :global(.order-history-status) {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 0.18rem 0.55rem;
+    border-radius: var(--radius-full);
+    background: var(--bg-tint-green);
+    color: var(--mn-primary);
+  }
+  :global(.order-history-meta) {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+  }
+  :global(.order-history-actions) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.25rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+  :global(.order-review-link) {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--mn-cta);
+  }
+</style>
+
+<script>
+  import { supabase, isSupabaseConfigured } from '../lib/supabase';
+  import { getCustomerProfile, updateCustomerProfile, getCustomerOrders } from '../lib/db';
+
+  const authView = document.getElementById('auth-view');
+  const dashboardView = document.getElementById('dashboard-view');
+  const authStatusBox = document.getElementById('auth-status-box');
+
+  const btnGoogle = document.getElementById('btn-google-login') as HTMLButtonElement | null;
+  const btnApple = document.getElementById('btn-apple-login') as HTMLButtonElement | null;
+  const phoneForm = document.getElementById('phone-otp-form') as HTMLFormElement | null;
+  const phoneStep = document.getElementById('phone-step');
+  const otpStep = document.getElementById('otp-verify-step');
+  const phoneInput = document.getElementById('auth-phone-input') as HTMLInputElement | null;
+  const otpInput = document.getElementById('auth-otp-input') as HTMLInputElement | null;
+  const btnSendOtp = document.getElementById('btn-send-otp') as HTMLButtonElement | null;
+  const btnVerifyOtp = document.getElementById('btn-verify-otp') as HTMLButtonElement | null;
+  const btnChangePhone = document.getElementById('btn-change-phone') as HTMLButtonElement | null;
+
+  const dashAvatar = document.getElementById('dash-avatar');
+  const dashName = document.getElementById('dash-name');
+  const dashProvider = document.getElementById('dash-provider-badge');
+  const dashContact = document.getElementById('dash-contact');
+  const btnSignOut = document.getElementById('btn-signout');
+
+  const profileForm = document.getElementById('profile-save-form') as HTMLFormElement | null;
+  const profName = document.getElementById('prof-name') as HTMLInputElement | null;
+  const profPhone = document.getElementById('prof-phone') as HTMLInputElement | null;
+  const profAddress = document.getElementById('prof-address') as HTMLTextAreaElement | null;
+  const profPincode = document.getElementById('prof-pincode') as HTMLInputElement | null;
+  const profCity = document.getElementById('prof-city') as HTMLInputElement | null;
+  const profState = document.getElementById('prof-state') as HTMLInputElement | null;
+  const profStatusMsg = document.getElementById('prof-status-msg');
+  const ordersList = document.getElementById('orders-list');
+
+  let pendingPhoneE164 = '';
+
+  function showAuthStatus(msg: string, isError = false) {
+    if (!authStatusBox) return;
+    authStatusBox.style.display = 'block';
+    authStatusBox.className = `auth-status-box ${isError ? 'error' : 'success'}`;
+    authStatusBox.textContent = msg;
+  }
+
+  // Google OAuth
+  btnGoogle?.addEventListener('click', async () => {
+    if (!isSupabaseConfigured) return showAuthStatus('Supabase is not configured.', true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/account` }
+    });
+    if (error) showAuthStatus(error.message, true);
+  });
+
+  // Apple OAuth
+  btnApple?.addEventListener('click', async () => {
+    if (!isSupabaseConfigured) return showAuthStatus('Supabase is not configured.', true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: { redirectTo: `${window.location.origin}/account` }
+    });
+    if (error) showAuthStatus(error.message, true);
+  });
+
+  // Mobile OTP Send
+  phoneForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const digits = (phoneInput?.value || '').replace(/\D/g, '');
+    if (!/^[6-9]\d{9}$/.test(digits)) {
+      return showAuthStatus('Please enter a valid 10-digit Indian mobile number.', true);
+    }
+    pendingPhoneE164 = `+91${digits}`;
+    if (btnSendOtp) {
+      btnSendOtp.disabled = true;
+      btnSendOtp.textContent = 'Sending OTP...';
+    }
+    const { error } = await supabase.auth.signInWithOtp({ phone: pendingPhoneE164 });
+    if (btnSendOtp) {
+      btnSendOtp.disabled = false;
+      btnSendOtp.textContent = 'Send Verification OTP';
+    }
+    if (error) {
+      return showAuthStatus(`Could not send OTP: ${error.message}`, true);
+    }
+    if (phoneStep) phoneStep.style.display = 'none';
+    if (otpStep) otpStep.style.display = 'block';
+    showAuthStatus(`OTP sent to ${pendingPhoneE164}`);
+    otpInput?.focus();
+  });
+
+  // Verify OTP
+  btnVerifyOtp?.addEventListener('click', async () => {
+    const token = (otpInput?.value || '').trim();
+    if (token.length < 6) return showAuthStatus('Enter the 6-digit OTP from SMS.', true);
+    if (btnVerifyOtp) {
+      btnVerifyOtp.disabled = true;
+      btnVerifyOtp.textContent = 'Verifying...';
+    }
+    const { error } = await supabase.auth.verifyOtp({
+      phone: pendingPhoneE164,
+      token,
+      type: 'sms'
+    });
+    if (btnVerifyOtp) {
+      btnVerifyOtp.disabled = false;
+      btnVerifyOtp.textContent = 'Verify & Sign In';
+    }
+    if (error) showAuthStatus(`Invalid OTP: ${error.message}`, true);
+  });
+
+  btnChangePhone?.addEventListener('click', () => {
+    if (otpStep) otpStep.style.display = 'none';
+    if (phoneStep) phoneStep.style.display = 'block';
+    if (authStatusBox) authStatusBox.style.display = 'none';
+  });
+
+  btnSignOut?.addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    window.location.reload();
+  });
+
+  profileForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const res = await updateCustomerProfile({
+      full_name: profName?.value || '',
+      phone: profPhone?.value || '',
+      shipping_address: profAddress?.value || '',
+      pincode: profPincode?.value || '',
+      city: profCity?.value || '',
+      state: profState?.value || ''
+    });
+    if (profStatusMsg) {
+      profStatusMsg.style.display = 'block';
+      profStatusMsg.className = `auth-status-box ${res.success ? 'success' : 'error'}`;
+      profStatusMsg.textContent = res.message;
+    }
+  });
+
+  async function loadAccountSession() {
+    if (!isSupabaseConfigured) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
+
+    if (!user) {
+      if (authView) authView.style.display = 'block';
+      if (dashboardView) dashboardView.style.display = 'none';
+      return;
+    }
+
+    if (authView) authView.style.display = 'none';
+    if (dashboardView) dashboardView.style.display = 'block';
+
+    const profile = await getCustomerProfile();
+    const displayName = profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || 'ManNeeds Customer';
+    const provider = profile?.provider || user.app_metadata?.provider || (user.phone ? 'phone' : 'verified');
+    const providerLabel = provider === 'google' ? '✓ Google Verified' : provider === 'apple' ? '✓ Apple Verified' : '✓ Mobile Verified';
+
+    if (dashName) dashName.textContent = displayName;
+    if (dashProvider) dashProvider.textContent = providerLabel;
+    if (dashContact) dashContact.textContent = user.email || user.phone || profile?.phone || 'Verified Account';
+    if (dashAvatar) {
+      const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url;
+      if (avatarUrl) {
+        dashAvatar.innerHTML = `<img src="${avatarUrl}" alt="${displayName}" />`;
+      } else {
+        dashAvatar.textContent = displayName.charAt(0).toUpperCase();
+      }
+    }
+
+    if (profName) profName.value = profile?.full_name || user.user_metadata?.full_name || '';
+    if (profPhone) profPhone.value = (profile?.phone || user.phone || '').replace(/^\+91/, '');
+    if (profAddress) profAddress.value = profile?.shipping_address || '';
+    if (profPincode) profPincode.value = profile?.pincode || '';
+    if (profCity) profCity.value = profile?.city || '';
+    if (profState) profState.value = profile?.state || '';
+
+    const orders = await getCustomerOrders();
+    if (ordersList) {
+      if (!orders.length) {
+        ordersList.innerHTML = `<p class="orders-empty">No orders placed yet. <a href="/#bestsellers" style="color:var(--mn-cta);font-weight:700;">Explore Pure Kitchen Essentials →</a></p>`;
+      } else {
+        ordersList.innerHTML = orders.map((o) => {
+          const dateStr = o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+          const firstItem = Array.isArray(o.items) && o.items[0]?.name ? o.items[0].name : '';
+          const reviewUrl = `/review?order=${encodeURIComponent(o.id || '')}&name=${encodeURIComponent(displayName)}&product=${encodeURIComponent(firstItem)}`;
+          return `
+            <div class="order-history-item">
+              <div class="order-history-top">
+                <span class="order-history-id">Order #${String(o.id || '').slice(0, 8).toUpperCase()}</span>
+                <span class="order-history-status">${o.status || 'confirmed'}</span>
+              </div>
+              <div class="order-history-meta">${dateStr} · ${Array.isArray(o.items) ? o.items.length : 0} item(s) · <strong>₹${o.total_amount}</strong></div>
+              <div class="order-history-actions">
+                <span class="order-history-meta">${o.city || ''} ${o.pincode || ''}</span>
+                <a href="${reviewUrl}" class="order-review-link">Rate &amp; Review →</a>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+  }
+
+  loadAccountSession();
+  supabase.auth.onAuthStateChange(() => {
+    loadAccountSession();
+  });
+</script>
