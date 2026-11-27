@@ -270,7 +270,7 @@ const navLinks: { label: string; href: string; badge?: string }[] = [
   }
 
   .brand-highlight {
-    color: #000000;
+    color: var(--mn-cta);
     transition: color 0.25s ease;
   }
 
@@ -646,7 +646,7 @@ const navLinks: { label: string; href: string; badge?: string }[] = [
 
   :global(html.dark) .brand-highlight,
   :global([data-theme="dark"]) .brand-highlight {
-    color: #FFFFFF;
+    color: var(--mn-cta);
   }
 
   :global(html.dark) .mobile-menu,
