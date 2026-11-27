@@ -1226,7 +1226,7 @@ export async function getCustomerProfile(): Promise<CustomerProfile | null> {
       return profile;
     }
 
-    // Firebase Auth verified user (Google or Phone OTP)
+    // Firebase Auth verified user (Google or Phone OTP) — synced across all devices via Supabase customer_profiles
     const fbUser = typeof window !== 'undefined' ? firebaseAuth.currentUser : null;
     if (fbUser) {
       const digits10 = fbUser.phoneNumber
@@ -1239,19 +1239,37 @@ export async function getCustomerProfile(): Promise<CustomerProfile | null> {
         if (raw) saved = JSON.parse(raw);
       } catch {}
 
+      // 1. Fetch cross-device profile from Supabase customer_profiles
+      let remoteProfile: any = null;
+      try {
+        let profQuery = supabase.from('customer_profiles').select('*').limit(1);
+        if (fbUser.email && digits10) {
+          profQuery = profQuery.or(`firebase_uid.eq.${fbUser.uid},email.eq.${fbUser.email},phone.eq.${digits10}`);
+        } else if (fbUser.email) {
+          profQuery = profQuery.or(`firebase_uid.eq.${fbUser.uid},email.eq.${fbUser.email}`);
+        } else if (digits10) {
+          profQuery = profQuery.or(`firebase_uid.eq.${fbUser.uid},phone.eq.${digits10}`);
+        } else {
+          profQuery = profQuery.eq('firebase_uid', fbUser.uid);
+        }
+        const { data: profRows } = await profQuery;
+        remoteProfile = profRows?.[0] || null;
+      } catch {}
+
       const profile: CustomerProfile = {
         id: fbUser.uid,
-        full_name: saved.full_name || fbUser.displayName || '',
-        email: fbUser.email || saved.email || '',
-        phone: saved.phone || digits10 || '',
-        avatar_url: fbUser.photoURL || '',
+        full_name: remoteProfile?.full_name || saved.full_name || fbUser.displayName || '',
+        email: fbUser.email || remoteProfile?.email || saved.email || '',
+        phone: remoteProfile?.phone || saved.phone || digits10 || '',
+        avatar_url: fbUser.photoURL || remoteProfile?.avatar_url || '',
         provider: fbUser.phoneNumber ? 'phone' : 'google',
-        shipping_address: saved.shipping_address || '',
-        city: saved.city || '',
-        state: saved.state || '',
-        pincode: saved.pincode || ''
+        shipping_address: remoteProfile?.shipping_address || saved.shipping_address || '',
+        city: remoteProfile?.city || saved.city || '',
+        state: remoteProfile?.state || saved.state || '',
+        pincode: remoteProfile?.pincode || saved.pincode || ''
       };
 
+      // 2. If still missing address/phone, auto-fetch from latest order in Supabase
       if (!profile.shipping_address || !profile.phone) {
         let query = supabase
           .from('orders')
@@ -1318,19 +1336,32 @@ export async function updateCustomerProfile(updates: Partial<CustomerProfile>): 
     const fbUser = typeof window !== 'undefined' ? firebaseAuth.currentUser : null;
     if (fbUser) {
       const digits10 = (updates.phone || fbUser.phoneNumber || '').replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
-      localStorage.setItem(
-        `manneeds_fb_profile_${fbUser.uid}`,
-        JSON.stringify({
-          full_name: updates.full_name?.trim() || fbUser.displayName || '',
-          email: fbUser.email || '',
-          phone: digits10,
-          shipping_address: updates.shipping_address?.trim() || '',
-          city: updates.city?.trim() || '',
-          state: updates.state?.trim() || '',
-          pincode: updates.pincode?.trim() || ''
-        })
-      );
-      return { success: true, message: 'Delivery details saved to your account.' };
+      const payload = {
+        firebase_uid: fbUser.uid,
+        full_name: updates.full_name?.trim() || fbUser.displayName || '',
+        email: fbUser.email || null,
+        phone: digits10 || null,
+        avatar_url: fbUser.photoURL || null,
+        provider: fbUser.phoneNumber ? 'phone' : 'google',
+        shipping_address: updates.shipping_address?.trim() || null,
+        city: updates.city?.trim() || null,
+        state: updates.state?.trim() || null,
+        pincode: updates.pincode?.trim() || null,
+        updated_at: new Date().toISOString()
+      };
+
+      try {
+        localStorage.setItem(`manneeds_fb_profile_${fbUser.uid}`, JSON.stringify(payload));
+      } catch {}
+
+      const { error } = await supabase
+        .from('customer_profiles')
+        .upsert(payload, { onConflict: 'firebase_uid' });
+
+      if (error) {
+        return { success: false, message: `Could not sync to cloud: ${error.message}` };
+      }
+      return { success: true, message: 'Delivery details saved & synced across all your devices!' };
     }
 
     return { success: false, message: 'Please sign in first.' };
