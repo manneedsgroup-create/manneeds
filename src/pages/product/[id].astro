@@ -1,0 +1,879 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+import { DEFAULT_PRODUCTS, getProducts, cleanProductName } from '../../lib/db';
+
+function getLocalMedia(folder?: string): { images: string[]; videos: string[] } {
+  if (!folder) return { images: [], videos: [] };
+  const baseDir = path.resolve('./public/images/products', folder);
+  const images: string[] = [];
+  const videos: string[] = [];
+  const imageExts = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif', '.gif', '.svg']);
+  const videoExts = new Set(['.mp4', '.webm', '.ogg', '.mov']);
+
+  function scan(dir: string, urlPrefix: string) {
+    if (!fs.existsSync(dir)) return;
+    try {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isFile() && !entry.name.startsWith('.')) {
+          const ext = path.extname(entry.name).toLowerCase();
+          if (imageExts.has(ext)) images.push(`${urlPrefix}/${entry.name}`);
+          else if (videoExts.has(ext)) videos.push(`${urlPrefix}/${entry.name}`);
+        }
+      }
+    } catch {}
+  }
+
+  scan(baseDir, `/images/products/${folder}`);
+  scan(path.join(baseDir, 'images'), `/images/products/${folder}/images`);
+  scan(path.join(baseDir, 'videos'), `/images/products/${folder}/videos`);
+  return { images, videos };
+}
+
+export async function getStaticPaths() {
+  const products = await getProducts();
+  const list = products && products.length > 0 ? products : DEFAULT_PRODUCTS;
+  return list.map((item) => ({
+    params: { id: String(item.id) },
+    props: { product: item, allProducts: list }
+  }));
+}
+
+const { product, allProducts } = Astro.props;
+const cleanName = cleanProductName(product.name);
+const localMedia = getLocalMedia(product.folder);
+const images = product.images && product.images.length > 0
+  ? product.images
+  : localMedia.images.length > 0
+    ? localMedia.images
+    : (product.image || product.imageUrl ? [product.image || product.imageUrl || ''] : []);
+
+const variants = product.variants && product.variants.length > 0
+  ? product.variants
+  : [{ weight: '100g', price: product.price, originalPrice: product.originalPrice, stock: product.stockQuantity ?? 20 }];
+
+const defaultVar = variants[0];
+const masterStock = product.stockQuantity !== undefined && product.stockQuantity !== null ? Number(product.stockQuantity) : 0;
+const icon = product.category.includes('Honey') ? '🍯' : product.category.includes('Snack') ? '🍿' : product.category.includes('Chip') ? '🥭' : product.category.includes('Cand') ? '🍬' : '🌿';
+
+const relatedProducts = allProducts
+  .filter((p: any) => p.id !== product.id && p.category === product.category)
+  .slice(0, 4)
+  .map((p: any) => {
+    const m = getLocalMedia(p.folder);
+    const img = (p.images && p.images[0]) || m.images[0] || p.image || p.imageUrl || '';
+    return { ...p, resolvedImg: img };
+  });
+---
+
+<MainLayout
+  title={`${cleanName} (${defaultVar.weight}) | ManNeeds`}
+  description={product.desc}
+>
+  <!-- Instamart-Style Breadcrumb -->
+  <div class="pdp-breadcrumb-bar">
+    <div class="container pdp-breadcrumb-inner">
+      <a href="/" class="pdp-back-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        <span>Back</span>
+      </a>
+      <nav class="pdp-crumbs" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span>/</span>
+        <a href="/#bestsellers">{product.category}</a>
+        <span>/</span>
+        <span class="crumb-current">{cleanName}</span>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Instamart-Style Product Detail Layout -->
+  <section class="pdp-main-section">
+    <div class="container">
+      <div class="pdp-grid">
+        <!-- Left Column: Visual Gallery -->
+        <div class="pdp-gallery-col">
+          <div class="pdp-gallery-card">
+            <div class="pdp-badges-top">
+              <span class="pdp-discount-pill" id="pdp-discount-badge">{product.discount || '20% OFF'}</span>
+              {product.badge && <span class="pdp-tag-pill">{product.badge}</span>}
+            </div>
+
+            <div class="pdp-main-img-wrap">
+              {images.length > 0 ? (
+                <img
+                  id="pdp-main-image"
+                  src={images[0]}
+                  alt={cleanName}
+                  class="pdp-main-img"
+                />
+              ) : (
+                <div class="pdp-emblem-fallback">
+                  <span class="pdp-emblem-icon">{icon}</span>
+                  <span class="pdp-emblem-text">100% PURE HARVEST</span>
+                </div>
+              )}
+            </div>
+
+            {images.length > 1 && (
+              <div class="pdp-thumbs-row" id="pdp-thumbs-row">
+                {images.map((imgUrl: string, idx: number) => (
+                  <button
+                    type="button"
+                    class={`pdp-thumb-btn ${idx === 0 ? 'active' : ''}`}
+                    data-thumb-src={imgUrl}
+                    aria-label={`View image ${idx + 1}`}
+                  >
+                    <img src={imgUrl} alt={`${cleanName} thumbnail ${idx + 1}`} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <!-- Right Column: Sticky Purchase Panel -->
+        <div class="pdp-info-col">
+          <div class="pdp-brand-row">
+            <span class="pdp-brand-chip">MANNEEDS</span>
+            <span class="pdp-cat-label">{product.category}</span>
+            <span class={`pdp-stock-pill ${masterStock <= 10 ? 'low' : ''}`} id="pdp-stock-pill">
+              {masterStock <= 0 ? 'Out of stock' : masterStock <= 10 ? `🔥 Only ${masterStock} left` : `${masterStock} in stock`}
+            </span>
+          </div>
+
+          <h1 class="pdp-title">{cleanName}</h1>
+
+          <div class="pdp-rating-row">
+            <div class="pdp-rating-badge">
+              <span>★</span>
+              <strong>{product.rating || 4.8}</strong>
+            </div>
+            <span class="pdp-review-count">({product.reviews || '250+'} ratings)</span>
+            {product.flavour && <span class="pdp-flavour-chip">Variant: <strong>{product.flavour}</strong></span>}
+          </div>
+
+          <!-- Instamart-Style Unit / Pack Size Selector -->
+          <div class="pdp-unit-section">
+            <div class="pdp-unit-header">
+              <span>Select Unit</span>
+              <span class="pdp-unit-count">{variants.length} pack {variants.length === 1 ? 'size' : 'sizes'}</span>
+            </div>
+            <div class="pdp-variants-grid" id="pdp-variants-grid">
+              {variants.map((v: any, idx: number) => {
+                const pNum = parseFloat(String(v.price).replace(/[^\d.]/g, '')) || 0;
+                const oNum = parseFloat(String(v.originalPrice || '').replace(/[^\d.]/g, '')) || 0;
+                const saveAmt = oNum > pNum ? Math.round(oNum - pNum) : 0;
+                return (
+                  <button
+                    type="button"
+                    class={`pdp-variant-card ${idx === 0 ? 'active' : ''}`}
+                    data-var-weight={v.weight}
+                    data-var-price={v.price}
+                    data-var-orig={v.originalPrice || ''}
+                  >
+                    {saveAmt > 0 && <span class="pdp-var-save">SAVE ₹{saveAmt}</span>}
+                    <span class="pdp-var-weight">{v.weight}</span>
+                    <div class="pdp-var-prices">
+                      <strong>{v.price}</strong>
+                      {v.originalPrice && <span>{v.originalPrice}</span>}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <!-- Active Price Box -->
+          <div class="pdp-price-card">
+            <div class="pdp-price-left">
+              <div class="pdp-price-main-row">
+                <span class="pdp-current-price" id="pdp-current-price">{defaultVar.price}</span>
+                {defaultVar.originalPrice && (
+                  <span class="pdp-orig-price" id="pdp-orig-price">{defaultVar.originalPrice}</span>
+                )}
+                <span class="pdp-off-tag" id="pdp-off-tag">{product.discount || '20% OFF'}</span>
+              </div>
+              <span class="pdp-tax-note">Inclusive of all taxes · Use code <strong>MANNEEDS15</strong> for extra 15% OFF</span>
+            </div>
+          </div>
+
+          <!-- Primary CTA Buttons -->
+          <div class="pdp-cta-row">
+            <button type="button" class="btn btn-primary pdp-add-btn" id="pdp-add-to-cart-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <path d="M16 10a4 4 0 0 1-8 0"></path>
+              </svg>
+              <span>Add to Cart</span>
+            </button>
+            <a
+              id="pdp-wa-btn"
+              href={`https://wa.me/919748973335?text=${encodeURIComponent(`Hi ManNeeds! I want to order ${cleanName} (${defaultVar.weight}).`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn pdp-wa-btn"
+            >
+              Order via WhatsApp
+            </a>
+          </div>
+
+          <!-- Instamart Express Delivery & Pincode Checker -->
+          <div class="pdp-delivery-box">
+            <div class="pdp-delivery-top">
+              <span class="pdp-del-icon">⚡</span>
+              <div>
+                <strong>Express Dispatch in 24–48 Hours</strong>
+                <span>Free delivery on orders ₹499+ · Pan-India shipping</span>
+              </div>
+            </div>
+            <div class="pdp-pin-check">
+              <input type="text" id="pdp-pin-input" maxlength="6" inputmode="numeric" placeholder="Check delivery pincode (e.g. 700001)" />
+              <button type="button" id="pdp-pin-btn">Check</button>
+            </div>
+            <p class="pdp-pin-result" id="pdp-pin-result" style="display:none;"></p>
+          </div>
+
+          <!-- Instamart Clean-Label Highlights -->
+          <div class="pdp-highlights-grid">
+            <div class="pdp-hl-item"><span>🌾</span><small>100% Farm Harvest</small></div>
+            <div class="pdp-hl-item"><span>🚫</span><small>Zero Palm Oil</small></div>
+            <div class="pdp-hl-item"><span>🔬</span><small>NABL Lab Tested</small></div>
+            <div class="pdp-hl-item"><span>🛡️</span><small>No Preservatives</small></div>
+          </div>
+
+          <!-- Product Information Accordion -->
+          <div class="pdp-details-accordion">
+            <details open class="pdp-acc-item">
+              <summary>Product Details</summary>
+              <p>{product.desc}</p>
+            </details>
+            <details class="pdp-acc-item">
+              <summary>Purity &amp; Processing</summary>
+              <p>Cold-milled and slow-processed below 40°C in small batches to lock in natural aroma, essential oils, and nutrition. Zero synthetic colors, fillers, or preservatives.</p>
+            </details>
+            <details class="pdp-acc-item">
+              <summary>Storage &amp; Shelf Life</summary>
+              <p>Store in a cool, dry place away from direct sunlight. Reseal pouch tightly or transfer to an airtight glass jar after opening. Best before 9–12 months from packaging.</p>
+            </details>
+            <details class="pdp-acc-item">
+              <summary>Customer Support &amp; Replacement</summary>
+              <p>7-day hassle-free replacement guarantee for any damaged or incorrect item. Contact us anytime on WhatsApp (+91 97489 73335).</p>
+            </details>
+          </div>
+        </div>
+      </div>
+
+      <!-- Related Products -->
+      {relatedProducts.length > 0 && (
+        <div class="pdp-related-section">
+          <h2 class="pdp-related-title">More in {product.category}</h2>
+          <div class="pdp-related-grid">
+            {relatedProducts.map((rel: any) => (
+              <a href={`/product/${rel.id}`} class="pdp-rel-card">
+                <div class="pdp-rel-img-wrap">
+                  {rel.resolvedImg ? (
+                    <img src={rel.resolvedImg} alt={cleanProductName(rel.name)} loading="lazy" />
+                  ) : (
+                    <span>{icon}</span>
+                  )}
+                </div>
+                <div class="pdp-rel-body">
+                  <strong>{cleanProductName(rel.name)}</strong>
+                  <div class="pdp-rel-price">
+                    <span>{rel.price}</span>
+                    {rel.originalPrice && <small>{rel.originalPrice}</small>}
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <!-- Mobile Sticky Bottom Bar (Swiggy Instamart Style) -->
+  <div class="pdp-mobile-sticky-bar">
+    <div class="pdp-sticky-price">
+      <strong id="pdp-sticky-price">{defaultVar.price}</strong>
+      <span id="pdp-sticky-weight">{defaultVar.weight}</span>
+    </div>
+    <button type="button" class="btn btn-primary pdp-sticky-add" id="pdp-sticky-add-btn">
+      Add to Cart
+    </button>
+  </div>
+</MainLayout>
+
+<style>
+  .pdp-breadcrumb-bar {
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 0.75rem 0;
+  }
+  .pdp-breadcrumb-inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .pdp-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-full);
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-subtle);
+  }
+  .pdp-crumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .pdp-crumbs a:hover { color: var(--mn-cta); }
+  .crumb-current {
+    color: var(--text-primary);
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pdp-main-section {
+    padding: 2rem 0 4.5rem;
+    background: var(--bg-base);
+  }
+  .pdp-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+  @media (min-width: 960px) {
+    .pdp-grid {
+      grid-template-columns: 1fr 1.08fr;
+      gap: 3rem;
+    }
+    .pdp-gallery-col {
+      position: sticky;
+      top: 90px;
+    }
+  }
+  .pdp-gallery-card {
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    position: relative;
+  }
+  .pdp-badges-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .pdp-discount-pill {
+    background: #15803D;
+    color: #FFFFFF;
+    font-size: 0.74rem;
+    font-weight: 800;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-sm);
+  }
+  .pdp-tag-pill {
+    background: var(--bg-tint-orange);
+    color: var(--mn-cta);
+    border: 1px solid var(--border-accent);
+    font-size: 0.74rem;
+    font-weight: 700;
+    padding: 0.22rem 0.65rem;
+    border-radius: var(--radius-full);
+  }
+  .pdp-main-img-wrap {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-height: 440px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-base);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .pdp-main-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 1rem;
+  }
+  .pdp-emblem-fallback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .pdp-emblem-icon { font-size: 4.5rem; }
+  .pdp-emblem-text { font-size: 0.8rem; font-weight: 800; letter-spacing: 0.12em; color: var(--mn-primary); }
+  .pdp-thumbs-row {
+    display: flex;
+    gap: 0.65rem;
+    margin-top: 1rem;
+    overflow-x: auto;
+  }
+  .pdp-thumb-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border-subtle);
+    background: var(--bg-base);
+    padding: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .pdp-thumb-btn.active { border-color: var(--mn-cta); }
+  .pdp-thumb-btn img { width: 100%; height: 100%; object-fit: contain; }
+
+  .pdp-brand-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+  }
+  .pdp-brand-chip {
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    color: var(--mn-cta);
+    background: var(--bg-tint-orange);
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-sm);
+  }
+  .pdp-cat-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .pdp-stock-pill {
+    margin-left: auto;
+    font-size: 0.74rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-full);
+    background: var(--bg-tint-green);
+    color: #15803D;
+  }
+  .pdp-stock-pill.low { background: #FEF2F2; color: #DC2626; }
+  html.dark .pdp-stock-pill { background: rgba(21,128,61,0.2); color: #4ADE80; }
+  .pdp-title {
+    font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+    font-weight: 900;
+    margin: 0 0 0.65rem;
+    color: var(--text-primary);
+  }
+  .pdp-rating-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .pdp-rating-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #15803D;
+    color: #FFFFFF;
+    font-size: 0.8rem;
+    padding: 0.18rem 0.5rem;
+    border-radius: var(--radius-sm);
+  }
+  .pdp-review-count { font-size: 0.84rem; color: var(--text-secondary); }
+  .pdp-flavour-chip {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    background: var(--bg-subtle);
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-full);
+  }
+
+  .pdp-unit-section { margin-bottom: 1.35rem; }
+  .pdp-unit-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.86rem;
+    font-weight: 700;
+    margin-bottom: 0.65rem;
+    color: var(--text-primary);
+  }
+  .pdp-unit-count { color: var(--text-muted); font-weight: 600; }
+  .pdp-variants-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
+    gap: 0.65rem;
+  }
+  .pdp-variant-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    padding: 0.75rem 0.85rem;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--border-medium);
+    background: var(--bg-surface);
+    text-align: left;
+    transition: all var(--transition-fast);
+  }
+  .pdp-variant-card.active {
+    border-color: var(--mn-cta);
+    background: var(--bg-tint-orange);
+    box-shadow: 0 0 0 1px var(--mn-cta);
+  }
+  .pdp-var-save {
+    font-size: 0.64rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    background: #15803D;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+  }
+  .pdp-var-weight { font-weight: 800; font-size: 0.92rem; color: var(--text-primary); }
+  .pdp-var-prices { display: flex; align-items: baseline; gap: 0.4rem; }
+  .pdp-var-prices strong { font-size: 0.95rem; color: var(--text-primary); }
+  .pdp-var-prices span { font-size: 0.76rem; color: var(--text-muted); text-decoration: line-through; }
+
+  .pdp-price-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.15rem;
+    margin-bottom: 1.15rem;
+  }
+  .pdp-price-main-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+  }
+  .pdp-current-price {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--text-primary);
+  }
+  .pdp-orig-price {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    text-decoration: line-through;
+  }
+  .pdp-off-tag {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #15803D;
+    background: #DCFCE7;
+    padding: 0.2rem 0.55rem;
+    border-radius: 5px;
+  }
+  html.dark .pdp-off-tag { background: rgba(21,128,61,0.2); color: #4ADE80; }
+  .pdp-tax-note { font-size: 0.8rem; color: var(--text-secondary); }
+
+  .pdp-cta-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.35rem;
+  }
+  @media (min-width: 520px) {
+    .pdp-cta-row { grid-template-columns: 1.2fr 1fr; }
+  }
+  .pdp-add-btn { width: 100%; padding: 0.95rem 1.25rem; font-size: 1rem; }
+  .pdp-wa-btn {
+    width: 100%;
+    padding: 0.95rem 1.25rem;
+    font-size: 0.95rem;
+    background: #1FAF54;
+    color: #FFFFFF !important;
+  }
+  .pdp-wa-btn:hover { background: #189646; }
+
+  .pdp-delivery-box {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.15rem;
+    margin-bottom: 1.25rem;
+  }
+  .pdp-delivery-top {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .pdp-del-icon { font-size: 1.4rem; }
+  .pdp-delivery-top strong { display: block; font-size: 0.9rem; color: var(--text-primary); }
+  .pdp-delivery-top span { font-size: 0.78rem; color: var(--text-secondary); }
+  .pdp-pin-check {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .pdp-pin-check input {
+    flex: 1;
+    padding: 0.55rem 0.85rem;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--border-medium);
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    outline: none;
+  }
+  .pdp-pin-check button {
+    padding: 0.55rem 1rem;
+    border-radius: var(--radius-md);
+    background: var(--mn-cta);
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 0.84rem;
+  }
+  .pdp-pin-result {
+    margin: 0.5rem 0 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #15803D;
+  }
+  html.dark .pdp-pin-result { color: #4ADE80; }
+
+  .pdp-highlights-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.55rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 520px) {
+    .pdp-highlights-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  .pdp-hl-item {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 0.7rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    text-align: center;
+  }
+  .pdp-hl-item span { font-size: 1.25rem; }
+  .pdp-hl-item small { font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); }
+
+  .pdp-details-accordion {
+    border-top: 1px solid var(--border-subtle);
+  }
+  .pdp-acc-item {
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 0.9rem 0;
+  }
+  .pdp-acc-item summary {
+    font-weight: 700;
+    font-size: 0.94rem;
+    cursor: pointer;
+    color: var(--text-primary);
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+  }
+  .pdp-acc-item summary::after { content: '+'; color: var(--mn-cta); font-size: 1.2rem; }
+  .pdp-acc-item[open] summary::after { content: '−'; }
+  .pdp-acc-item p {
+    margin: 0.65rem 0 0;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+
+  .pdp-related-section {
+    margin-top: 3.5rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .pdp-related-title {
+    font-size: 1.35rem;
+    margin-bottom: 1.25rem;
+  }
+  .pdp-related-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+  }
+  @media (min-width: 768px) {
+    .pdp-related-grid { grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+  }
+  .pdp-rel-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  }
+  .pdp-rel-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .pdp-rel-img-wrap {
+    height: 140px;
+    background: var(--bg-base);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .pdp-rel-img-wrap img { width: 100%; height: 100%; object-fit: contain; padding: 0.35rem; }
+  .pdp-rel-body strong { display: block; font-size: 0.88rem; color: var(--text-primary); margin-bottom: 0.2rem; }
+  .pdp-rel-price { display: flex; align-items: baseline; gap: 0.4rem; }
+  .pdp-rel-price span { font-weight: 800; color: var(--text-primary); font-size: 0.92rem; }
+  .pdp-rel-price small { color: var(--text-muted); text-decoration: line-through; font-size: 0.75rem; }
+
+  .pdp-mobile-sticky-bar {
+    display: none;
+  }
+  @media (max-width: 767px) {
+    .pdp-main-section { padding: 1.25rem 0 5.5rem; }
+    .pdp-gallery-card { padding: 1rem; }
+    .pdp-mobile-sticky-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 950;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-subtle);
+      padding: 0.7rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+    }
+    .pdp-sticky-price { display: flex; flex-direction: column; }
+    .pdp-sticky-price strong { font-size: 1.15rem; font-weight: 900; color: var(--text-primary); line-height: 1.1; }
+    .pdp-sticky-price span { font-size: 0.75rem; color: var(--text-secondary); }
+    .pdp-sticky-add { flex: 1; max-width: 210px; padding: 0.75rem 1rem; }
+  }
+</style>
+
+<script define:vars={{ productId: product.id, productName: cleanName, productCat: product.category, defaultWeight: defaultVar.weight, defaultPrice: defaultVar.price, defaultOrig: defaultVar.originalPrice || '' }}>
+  let selectedWeight = defaultWeight;
+  let selectedPrice = defaultPrice;
+  let selectedOrig = defaultOrig;
+
+  // Thumbnail switcher
+  const mainImg = document.getElementById('pdp-main-image');
+  document.querySelectorAll('.pdp-thumb-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const src = btn.getAttribute('data-thumb-src');
+      if (mainImg && src) mainImg.setAttribute('src', src);
+      document.querySelectorAll('.pdp-thumb-btn').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Pack size selector
+  const curPriceEl = document.getElementById('pdp-current-price');
+  const origPriceEl = document.getElementById('pdp-orig-price');
+  const offTagEl = document.getElementById('pdp-off-tag');
+  const stickyPriceEl = document.getElementById('pdp-sticky-price');
+  const stickyWeightEl = document.getElementById('pdp-sticky-weight');
+  const waBtn = document.getElementById('pdp-wa-btn');
+
+  document.querySelectorAll('.pdp-variant-card').forEach((card) => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.pdp-variant-card').forEach((c) => c.classList.remove('active'));
+      card.classList.add('active');
+      selectedWeight = card.getAttribute('data-var-weight') || defaultWeight;
+      selectedPrice = card.getAttribute('data-var-price') || defaultPrice;
+      selectedOrig = card.getAttribute('data-var-orig') || '';
+
+      if (curPriceEl) curPriceEl.textContent = selectedPrice;
+      if (origPriceEl) {
+        origPriceEl.textContent = selectedOrig;
+        origPriceEl.style.display = selectedOrig ? '' : 'none';
+      }
+      if (stickyPriceEl) stickyPriceEl.textContent = selectedPrice;
+      if (stickyWeightEl) stickyWeightEl.textContent = selectedWeight;
+
+      if (offTagEl && selectedPrice && selectedOrig) {
+        const p = parseFloat(selectedPrice.replace(/[^\d.]/g, ''));
+        const o = parseFloat(selectedOrig.replace(/[^\d.]/g, ''));
+        if (o > p && o > 0) offTagEl.textContent = `${Math.round(((o - p) / o) * 100)}% OFF`;
+      }
+      if (waBtn) {
+        waBtn.setAttribute('href', `https://wa.me/919748973335?text=${encodeURIComponent(`Hi ManNeeds! I want to order ${productName} (${selectedWeight}).`)}`);
+      }
+    });
+  });
+
+  function handleAddToCart(btnEl) {
+    if (window.manneedsCart?.add) {
+      window.manneedsCart.add({
+        id: String(productId),
+        name: productName,
+        weight: selectedWeight,
+        price: selectedPrice,
+        originalPrice: selectedOrig || undefined,
+        category: productCat
+      });
+      if (btnEl) {
+        const prev = btnEl.innerHTML;
+        btnEl.innerHTML = '<span>✓ Added to Cart</span>';
+        setTimeout(() => { btnEl.innerHTML = prev; }, 1200);
+      }
+    }
+  }
+
+  document.getElementById('pdp-add-to-cart-btn')?.addEventListener('click', (e) => handleAddToCart(e.currentTarget));
+  document.getElementById('pdp-sticky-add-btn')?.addEventListener('click', (e) => handleAddToCart(e.currentTarget));
+
+  // Pincode check
+  const pinBtn = document.getElementById('pdp-pin-btn');
+  const pinInput = document.getElementById('pdp-pin-input');
+  const pinResult = document.getElementById('pdp-pin-result');
+  pinBtn?.addEventListener('click', async () => {
+    const pin = (pinInput?.value || '').replace(/\D/g, '');
+    if (pin.length !== 6) {
+      if (pinResult) {
+        pinResult.style.display = 'block';
+        pinResult.style.color = '#DC2626';
+        pinResult.textContent = 'Please enter a valid 6-digit Indian pincode.';
+      }
+      return;
+    }
+    try {
+      const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+      const json = await res.json();
+      const po = json?.[0]?.PostOffice?.[0];
+      if (pinResult) {
+        pinResult.style.display = 'block';
+        pinResult.style.color = '#15803D';
+        pinResult.textContent = po
+          ? `✓ Deliverable to ${po.District}, ${po.State} (${pin}) · Estimated 3–5 days`
+          : `✓ Deliverable to ${pin} · Estimated 3–6 days`;
+      }
+    } catch {
+      if (pinResult) {
+        pinResult.style.display = 'block';
+        pinResult.textContent = `✓ Deliverable to ${pin} · Estimated 3–6 days`;
+      }
+    }
+  });
+</script>

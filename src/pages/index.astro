@@ -734,6 +734,50 @@ const initialReels: ProductReel[] = await getReels(8);
       </div>
     </div>
   </div>
+
+  <!-- Product Quick-View Popup (Swiggy Instamart Style) -->
+  <div id="product-detail-modal" class="pd-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="pd-modal-title">
+    <div class="pd-modal-backdrop" data-close-pd-modal></div>
+    <div class="pd-modal-card">
+      <button type="button" class="pd-modal-close" data-close-pd-modal aria-label="Close product details">✕</button>
+      <div class="pd-modal-body">
+        <a id="pd-modal-img-link" href="/product/1" target="_blank" rel="noopener noreferrer" class="pd-modal-img-wrap" title="Open full product page">
+          <img id="pd-modal-img" src="" alt="" />
+        </a>
+        <div class="pd-modal-info">
+          <div class="pd-modal-meta-row">
+            <span class="pd-modal-cat" id="pd-modal-cat">Category</span>
+            <span class="pd-modal-stock" id="pd-modal-stock">In stock</span>
+          </div>
+          <a id="pd-modal-title-link" href="/product/1" target="_blank" rel="noopener noreferrer" class="pd-modal-title-link">
+            <h3 id="pd-modal-title">Product Name</h3>
+          </a>
+          <div class="pd-modal-rating" id="pd-modal-rating">★ 4.8 (250+)</div>
+          <p class="pd-modal-desc" id="pd-modal-desc"></p>
+
+          <div class="pd-modal-variants-wrap">
+            <span class="pd-modal-var-label">Select Pack Size</span>
+            <div class="pd-modal-variants" id="pd-modal-variants"></div>
+          </div>
+
+          <div class="pd-modal-price-row">
+            <strong id="pd-modal-price">₹149</strong>
+            <span class="pd-modal-orig" id="pd-modal-orig"></span>
+            <span class="pd-modal-off" id="pd-modal-off">20% OFF</span>
+          </div>
+
+          <div class="pd-modal-actions">
+            <button type="button" class="btn btn-primary pd-modal-add-btn" id="pd-modal-add-btn">
+              Add to Cart
+            </button>
+            <a id="pd-modal-full-link" href="/product/1" target="_blank" rel="noopener noreferrer" class="btn btn-secondary pdp-open-full-btn">
+              View Full Page ↗
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </MainLayout>
 
 <style is:global>
@@ -2804,9 +2848,157 @@ const initialReels: ProductReel[] = await getReels(8);
     document.body.style.overflow = 'hidden';
   }
 
+  // --- Product Quick-View Popup Logic ---
+  const pdModal = document.getElementById('product-detail-modal');
+  const pdImg = document.getElementById('pd-modal-img') as HTMLImageElement | null;
+  const pdImgLink = document.getElementById('pd-modal-img-link') as HTMLAnchorElement | null;
+  const pdTitleLink = document.getElementById('pd-modal-title-link') as HTMLAnchorElement | null;
+  const pdFullLink = document.getElementById('pd-modal-full-link') as HTMLAnchorElement | null;
+  const pdCat = document.getElementById('pd-modal-cat');
+  const pdStock = document.getElementById('pd-modal-stock');
+  const pdTitle = document.getElementById('pd-modal-title');
+  const pdRating = document.getElementById('pd-modal-rating');
+  const pdDesc = document.getElementById('pd-modal-desc');
+  const pdVariantsEl = document.getElementById('pd-modal-variants');
+  const pdPrice = document.getElementById('pd-modal-price');
+  const pdOrig = document.getElementById('pd-modal-orig');
+  const pdOff = document.getElementById('pd-modal-off');
+  const pdAddBtn = document.getElementById('pd-modal-add-btn') as HTMLButtonElement | null;
+
+  let activeQuickViewItem: { id: string; name: string; weight: string; price: string; originalPrice?: string; category: string } | null = null;
+
+  function closeProductQuickView() {
+    if (!pdModal) return;
+    pdModal.classList.remove('open');
+    pdModal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('[data-close-pd-modal]').forEach((el) => {
+    el.addEventListener('click', closeProductQuickView);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && pdModal?.classList.contains('open')) {
+      closeProductQuickView();
+    }
+  });
+
+  function openProductQuickView(card: HTMLElement) {
+    if (!pdModal) return;
+    const id = card.getAttribute('data-product-id') || '1';
+    const name = card.getAttribute('data-product-name') || 'Product';
+    const category = card.getAttribute('data-category') || '';
+    const imgUrl = card.getAttribute('data-img') || card.querySelector('.product-real-img')?.getAttribute('src') || '';
+    const stockText = card.querySelector('[data-stock-target]')?.textContent?.trim() || 'In stock';
+    const ratingScore = card.querySelector('.rating-score')?.textContent?.trim() || '4.8';
+    const ratingCount = card.querySelector('.rating-count')?.textContent?.trim() || '(250+)';
+    const desc = card.querySelector('.product-desc')?.textContent?.trim() || '';
+    const selectedWeight = card.getAttribute('data-selected-weight') || '100g';
+    const selectedPrice = card.getAttribute('data-selected-price') || '₹149';
+    const origPrice = card.querySelector('[data-orig-price-target]')?.textContent?.trim() || '';
+    const discount = card.getAttribute('data-discount') || '20% OFF';
+
+    let variants: any[] = [];
+    try {
+      const raw = card.getAttribute('data-variants');
+      if (raw) variants = JSON.parse(raw);
+    } catch {}
+    if (!variants.length) {
+      variants = [{ weight: selectedWeight, price: selectedPrice, originalPrice: origPrice }];
+    }
+
+    const pageUrl = `/product/${id}`;
+    if (pdImgLink) pdImgLink.href = pageUrl;
+    if (pdTitleLink) pdTitleLink.href = pageUrl;
+    if (pdFullLink) pdFullLink.href = pageUrl;
+    if (pdImg) {
+      pdImg.src = imgUrl;
+      pdImg.alt = name;
+      pdImg.style.display = imgUrl ? 'block' : 'none';
+    }
+    if (pdCat) pdCat.textContent = category;
+    if (pdStock) {
+      pdStock.textContent = stockText;
+      pdStock.className = `pd-modal-stock ${stockText.includes('Only') || stockText.includes('Out') ? 'low' : ''}`;
+    }
+    if (pdTitle) pdTitle.textContent = name;
+    if (pdRating) pdRating.textContent = `★ ${ratingScore} ${ratingCount}`;
+    if (pdDesc) pdDesc.textContent = desc;
+
+    function selectQuickVariant(v: any) {
+      activeQuickViewItem = {
+        id,
+        name,
+        weight: v.weight || selectedWeight,
+        price: v.price || selectedPrice,
+        originalPrice: v.originalPrice || undefined,
+        category
+      };
+      if (pdPrice) pdPrice.textContent = activeQuickViewItem.price;
+      if (pdOrig) {
+        pdOrig.textContent = activeQuickViewItem.originalPrice || '';
+        pdOrig.style.display = activeQuickViewItem.originalPrice ? '' : 'none';
+      }
+      if (pdOff) {
+        let pctText = discount;
+        if (activeQuickViewItem.price && activeQuickViewItem.originalPrice) {
+          const p = parseFloat(activeQuickViewItem.price.replace(/[^\d.]/g, ''));
+          const o = parseFloat(activeQuickViewItem.originalPrice.replace(/[^\d.]/g, ''));
+          if (o > p && o > 0) pctText = `${Math.round(((o - p) / o) * 100)}% OFF`;
+        }
+        pdOff.textContent = pctText;
+      }
+    }
+
+    if (pdVariantsEl) {
+      pdVariantsEl.innerHTML = variants.map((v, idx) => `
+        <button type="button" class="pd-var-pill ${v.weight === selectedWeight || (idx === 0 && !variants.some(x => x.weight === selectedWeight)) ? 'active' : ''}" data-pd-var-idx="${idx}">
+          <span>${v.weight}</span> · <strong>${v.price}</strong>
+        </button>
+      `).join('');
+      const initialV = variants.find((v) => v.weight === selectedWeight) || variants[0];
+      selectQuickVariant(initialV);
+      pdVariantsEl.querySelectorAll('.pd-var-pill').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          pdVariantsEl.querySelectorAll('.pd-var-pill').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          const idx = Number((btn as HTMLElement).getAttribute('data-pd-var-idx') || 0);
+          selectQuickVariant(variants[idx]);
+        });
+      });
+    }
+
+    pdModal.classList.add('open');
+    pdModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  pdAddBtn?.addEventListener('click', () => {
+    if (activeQuickViewItem && (window as any).manneedsCart?.add) {
+      (window as any).manneedsCart.add(activeQuickViewItem);
+      const prev = pdAddBtn.textContent;
+      pdAddBtn.textContent = '✓ Added to Cart';
+      setTimeout(() => {
+        pdAddBtn.textContent = prev || 'Add to Cart';
+        closeProductQuickView();
+      }, 450);
+    }
+  });
+
   // Bind interactive weight selection and add-to-cart clicks
   function bindProductInteractions() {
     if (!productsGrid) return;
+
+    // Clicking card opens Product Quick-View Popup
+    productsGrid.querySelectorAll('.product-card').forEach((card) => {
+      if ((card as any)._pdBound) return;
+      (card as any)._pdBound = true;
+      card.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('[data-cart-action], [data-open-weight-picker], [data-carousel-dots]')) return;
+        openProductQuickView(card as HTMLElement);
+      });
+    });
 
     // Pack size selector click on cards opens popup
     productsGrid.querySelectorAll('[data-open-weight-picker]').forEach((trigger) => {
@@ -2827,6 +3019,7 @@ const initialReels: ProductReel[] = await getReels(8);
 
     productsGrid.querySelectorAll('[data-cart-action]').forEach((btn) => {
       btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const card = (e.currentTarget as HTMLElement).closest('.product-card') as HTMLElement;
         if (!card) return;
 
