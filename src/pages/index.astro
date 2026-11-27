@@ -616,10 +616,20 @@ const initialReels: ProductReel[] = await getReels(8);
         ) : (
           <div class="reviews-empty-card" id="reels-empty-state">
             <div class="reviews-empty-icon">🎬</div>
-            <h3>Instagram &amp; Facebook Reels Sync Here Automatically</h3>
+            <h3>Follow ManNeeds on Instagram</h3>
             <p>
-              Paste any Instagram Reel, Facebook Reel, or product video URL into your Supabase <code>reels</code> table and it will appear right here as a swipeable reel carousel.
+              Our latest farm-to-kitchen reels and product stories sync here automatically from Instagram.
             </p>
+            <div class="reviews-empty-actions">
+              <a
+                href="https://www.instagram.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-primary"
+              >
+                Watch Reels on Instagram ↗
+              </a>
+            </div>
           </div>
         )}
       </div>
@@ -3338,22 +3348,57 @@ const initialReels: ProductReel[] = await getReels(8);
       container.innerHTML = `<div class="reels-carousel" id="reels-grid">${cardsHtml}</div>`;
     }
 
-    // 1. Try automatic Instagram page feed (/api/instagram-reels) first, then fallback to Supabase reels
+    // 1. Try automatic Instagram page feed (/api/instagram-reels), then Behold direct, then Supabase reels
+    function mapBeholdPosts(json: any): any[] {
+      const posts = Array.isArray(json?.posts) ? json.posts : Array.isArray(json) ? json : [];
+      const videoPosts = posts.filter((p: any) => p.mediaType === 'VIDEO' || p.isReel || p.permalink?.includes('/reel/'));
+      const chosen = videoPosts.length > 0 ? videoPosts : posts;
+      return chosen.slice(0, 8).map((p: any) => ({
+        id: p.id,
+        title: (p.caption || 'ManNeeds Pure Harvest').split('\n')[0].slice(0, 72),
+        platform: 'instagram',
+        media_type: p.mediaType === 'VIDEO' || p.isReel || p.permalink?.includes('/reel/') ? 'VIDEO' : 'IMAGE',
+        reel_url: p.permalink,
+        media_url: p.mediaUrl || p.sizes?.large?.mediaUrl || p.sizes?.medium?.mediaUrl || '',
+        thumbnail_url: p.thumbnailUrl || p.sizes?.medium?.mediaUrl || '',
+        created_at: p.timestamp
+      }));
+    }
+
     fetch('/api/instagram-reels')
       .then((r) => r.ok ? r.json() : null)
-      .then((data) => {
+      .then(async (data) => {
         if (data?.reels && data.reels.length > 0) {
           renderLiveReels(data.reels);
           return;
         }
-        return getReels(8).then((liveReels) => {
-          if (liveReels.length > 0) renderLiveReels(liveReels);
-        });
+        try {
+          const directRes = await fetch('https://feeds.behold.so/2OBN1aB0Fb3QMdLs2bGG');
+          if (directRes.ok) {
+            const directJson = await directRes.json();
+            const directReels = mapBeholdPosts(directJson);
+            if (directReels.length > 0) {
+              renderLiveReels(directReels);
+              return;
+            }
+          }
+        } catch {}
+        const liveReels = await getReels(8);
+        if (liveReels.length > 0) renderLiveReels(liveReels);
       })
-      .catch(() => {
-        getReels(8).then((liveReels) => {
-          if (liveReels.length > 0) renderLiveReels(liveReels);
-        });
+      .catch(async () => {
+        try {
+          const directRes = await fetch('https://feeds.behold.so/2OBN1aB0Fb3QMdLs2bGG');
+          if (directRes.ok) {
+            const directReels = mapBeholdPosts(await directRes.json());
+            if (directReels.length > 0) {
+              renderLiveReels(directReels);
+              return;
+            }
+          }
+        } catch {}
+        const liveReels = await getReels(8);
+        if (liveReels.length > 0) renderLiveReels(liveReels);
       });
 
     supabase
