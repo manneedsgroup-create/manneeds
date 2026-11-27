@@ -1640,6 +1640,16 @@ const avgRating = reviewCount > 0
     z-index: 2;
   }
 
+  html.dark .flavour-tag,
+  [data-theme="dark"] .flavour-tag {
+    background: rgba(21, 25, 31, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: #EEF2F6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  }
+
   /* SMALLER, COMPACT DETAILS */
   .product-content {
     display: flex;
