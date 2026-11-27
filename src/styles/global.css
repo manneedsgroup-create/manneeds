@@ -607,57 +607,6 @@ html.dark .no-products-found,
    NEW SECTIONS — No Nasties Strip, Bundles, Story, Testimonials, FAQ, WhatsApp FAB
    ============================================================================== */
 
-/* --- No Nasties Strip --- */
-.no-nasties-strip {
-  background: var(--bg-surface);
-  border-top: 1px solid var(--border-subtle);
-  border-bottom: 1px solid var(--border-subtle);
-  padding: 0.85rem 0;
-  overflow: hidden;
-}
-.no-nasties-scroll {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-@media (max-width: 767px) {
-  .no-nasties-scroll {
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    padding-bottom: 2px;
-  }
-}
-.no-nasties-scroll::-webkit-scrollbar { display: none; }
-.no-nasties-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.38rem;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  padding: 0.32rem 0.75rem;
-  border-radius: var(--radius-full);
-  flex-shrink: 0;
-  border: 1px solid transparent;
-}
-.no-nasties-badge.check {
-  background: var(--bg-tint-green);
-  color: var(--mn-primary);
-  border-color: var(--border-green);
-}
-.no-nasties-badge.cross {
-  background: #FEF2F2;
-  color: #B91C1C;
-  border-color: rgba(185, 28, 28, 0.16);
-}
-html.dark .no-nasties-badge.check { background: rgba(44,87,58,0.28); color: #6EE7A0; border-color: rgba(110,231,160,0.22); }
-html.dark .no-nasties-badge.cross { background: rgba(185,28,28,0.16); color: #FCA5A5; border-color: rgba(252,165,165,0.2); }
-
 /* --- Bundle Deals Section --- */
 .bundle-section { background: var(--bg-subtle); }
 .bundle-grid {
@@ -1063,4 +1012,3 @@ html.dark .faq-section { background: #0E1115; }
 html.dark .bundle-card,
 html.dark .testimonial-card { background: var(--bg-surface); border-color: var(--border-subtle); }
 html.dark .story-icon-box { background: var(--bg-subtle); }
-html.dark .no-nasties-strip { background: var(--bg-surface); border-color: var(--border-subtle); }
