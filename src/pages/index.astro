@@ -2,7 +2,7 @@
 import MainLayout from '../layouts/MainLayout.astro';
 import fs from 'node:fs';
 import path from 'node:path';
-import { getProducts, cleanProductName, getReviews, type Review } from '../lib/db';
+import { getProducts, cleanProductName, getReviews, getReels, getReelEmbedInfo, type Review, type ProductReel } from '../lib/db';
 
 // Helper to scan each product folder for user-uploaded images and videos
 function getLocalMedia(folder?: string): { images: string[]; videos: string[] } {
@@ -62,6 +62,9 @@ const reviewCount = initialReviews.length;
 const avgRating = reviewCount > 0
   ? (initialReviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / reviewCount).toFixed(1)
   : null;
+
+// Fetch promotional & product reels from Supabase
+const initialReels: ProductReel[] = await getReels(8);
 ---
 
 <MainLayout title="Pure Indian Kitchen Essentials, Spices, Honey & Healthy Foods">
@@ -565,6 +568,63 @@ const avgRating = reviewCount > 0
     </div>
   </section>
 
+
+  <!-- Product Reels & Promotional Videos (Instagram / Facebook / MP4 from Supabase) -->
+  <section class="section reels-section" id="reels">
+    <div class="container">
+      <div class="section-header" style="text-align:center;margin-bottom:2.25rem;">
+        <span class="badge badge-orange">Watch In Action</span>
+        <h2 class="section-title">Farm Harvest &amp; Kitchen Reels</h2>
+        <p class="section-subtitle">
+          See how our cold-milled botanicals, raw honey, and roasted snacks are prepared and enjoyed in real Indian kitchens.
+        </p>
+      </div>
+
+      <div id="reels-container">
+        {initialReels.length > 0 ? (
+          <div class="reels-carousel" id="reels-grid">
+            {initialReels.map((reel) => {
+              const embed = getReelEmbedInfo(reel);
+              const platformLabel = reel.platform === 'facebook' ? 'Facebook' : reel.platform === 'youtube' ? 'YouTube' : reel.platform === 'mp4' ? 'Video' : 'Instagram';
+              return (
+                <div class="reel-card">
+                  <div class="reel-media-frame">
+                    {embed.type === 'video' ? (
+                      <video src={embed.src} controls playsinline preload="metadata" />
+                    ) : (
+                      <iframe
+                        src={embed.src}
+                        title={reel.title}
+                        loading="lazy"
+                        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                        allowfullscreen
+                      ></iframe>
+                    )}
+                  </div>
+                  <div class="reel-card-footer">
+                    <div class="reel-platform-row">
+                      <span class="reel-platform-pill">{platformLabel}</span>
+                      <a href={reel.reel_url} target="_blank" rel="noopener noreferrer" class="reel-ext-link">Open Reel ↗</a>
+                    </div>
+                    <h3 class="reel-title">{reel.title}</h3>
+                    {reel.product_name && <span class="reel-product-tag">🛍 {reel.product_name}</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div class="reviews-empty-card" id="reels-empty-state">
+            <div class="reviews-empty-icon">🎬</div>
+            <h3>Instagram &amp; Facebook Reels Sync Here Automatically</h3>
+            <p>
+              Paste any Instagram Reel, Facebook Reel, or product video URL into your Supabase <code>reels</code> table and it will appear right here as a swipeable reel carousel.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  </section>
 
   <!-- VIP Promo CTA -->
   <section class="section promo-cta-section">
@@ -2419,7 +2479,7 @@ const avgRating = reviewCount > 0
 </style>
 
 <script>
-  import { getProducts, cleanProductName, getReviews, type Review } from '../lib/db';
+  import { getProducts, cleanProductName, getReviews, getReels, getReelEmbedInfo, type Review, type ProductReel } from '../lib/db';
   import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
   const productsGrid = document.getElementById('products-grid');
@@ -3240,6 +3300,47 @@ const avgRating = reviewCount > 0
       .on('postgres_changes', { event: '*', schema: 'public', table: 'reviews' }, async () => {
         const liveReviews = await getReviews(12);
         renderLiveReviews(liveReviews);
+      })
+      .subscribe();
+
+    // Live Sync & Realtime for Instagram / Facebook Product Reels
+    function renderLiveReels(reels: ProductReel[]) {
+      const container = document.getElementById('reels-container');
+      if (!container || !reels || reels.length === 0) return;
+
+      const cardsHtml = reels.map((reel) => {
+        const embed = getReelEmbedInfo(reel);
+        const platformLabel = reel.platform === 'facebook' ? 'Facebook' : reel.platform === 'youtube' ? 'YouTube' : reel.platform === 'mp4' ? 'Video' : 'Instagram';
+        const mediaHtml = embed.type === 'video'
+          ? `<video src="${escHtml(embed.src)}" controls playsinline preload="metadata"></video>`
+          : `<iframe src="${escHtml(embed.src)}" title="${escHtml(reel.title)}" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" allowfullscreen></iframe>`;
+        return `
+          <div class="reel-card">
+            <div class="reel-media-frame">${mediaHtml}</div>
+            <div class="reel-card-footer">
+              <div class="reel-platform-row">
+                <span class="reel-platform-pill">${platformLabel}</span>
+                <a href="${escHtml(reel.reel_url)}" target="_blank" rel="noopener noreferrer" class="reel-ext-link">Open Reel ↗</a>
+              </div>
+              <h3 class="reel-title">${escHtml(reel.title)}</h3>
+              ${reel.product_name ? `<span class="reel-product-tag">🛍 ${escHtml(reel.product_name)}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = `<div class="reels-carousel" id="reels-grid">${cardsHtml}</div>`;
+    }
+
+    getReels(8).then((liveReels) => {
+      if (liveReels.length > 0) renderLiveReels(liveReels);
+    });
+
+    supabase
+      .channel('realtime:reels')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reels' }, async () => {
+        const liveReels = await getReels(8);
+        renderLiveReels(liveReels);
       })
       .subscribe();
   }

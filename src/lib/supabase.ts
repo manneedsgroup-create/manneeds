@@ -130,6 +130,17 @@ export interface CustomerProfile {
   updated_at?: string;
 }
 
+export interface ProductReel {
+  id?: string;
+  title: string;
+  platform: 'instagram' | 'facebook' | 'youtube' | 'mp4';
+  reel_url: string;
+  product_name?: string;
+  is_published?: boolean;
+  sort_order?: number;
+  created_at?: string;
+}
+
 export interface OrderItem {
   id: number | string;
   name: string;

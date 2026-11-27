@@ -11,11 +11,12 @@ import {
   type Order,
   type OrderItem,
   type Review,
-  type CustomerProfile
+  type CustomerProfile,
+  type ProductReel
 } from './supabase';
 import { firebaseAuth } from './firebase';
 
-export type { Order, OrderItem, InventorySummary, Review, CustomerProfile };
+export type { Order, OrderItem, InventorySummary, Review, CustomerProfile, ProductReel };
 
 // Helper function to strip any redundant "ManNeeds " prefix from product names
 export function cleanProductName(name: string): string {
@@ -1413,6 +1414,63 @@ export async function getCustomerOrders(): Promise<Order[]> {
     }
 
     return [];
+  } catch {
+    return [];
+  }
+}
+
+// ==========================================
+// PRODUCT REELS (INSTAGRAM / FACEBOOK / MP4)
+// ==========================================
+
+/**
+ * Convert an Instagram, Facebook, or YouTube Shorts URL into an official embeddable URL
+ */
+export function getReelEmbedInfo(reel: ProductReel): { type: 'iframe' | 'video'; src: string } {
+  const url = (reel.reel_url || '').trim();
+  if (reel.platform === 'mp4' || /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(url)) {
+    return { type: 'video', src: url };
+  }
+
+  // Instagram Reel / Post -> https://www.instagram.com/reel/CODE/embed
+  const igMatch = url.match(/instagram\.com\/(?:reel|p|tv)\/([A-Za-z0-9_-]+)/i);
+  if (igMatch?.[1]) {
+    return { type: 'iframe', src: `https://www.instagram.com/reel/${igMatch[1]}/embed` };
+  }
+
+  // YouTube Shorts / Watch -> https://www.youtube.com/embed/CODE
+  const ytMatch = url.match(/(?:youtube\.com\/(?:shorts\/|watch\?v=)|youtu\.be\/)([A-Za-z0-9_-]+)/i);
+  if (ytMatch?.[1]) {
+    return { type: 'iframe', src: `https://www.youtube.com/embed/${ytMatch[1]}?rel=0` };
+  }
+
+  // Facebook Reel / Video -> official plugins/video.php embed
+  if (/facebook\.com|fb\.watch/i.test(url)) {
+    return {
+      type: 'iframe',
+      src: `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&width=360`
+    };
+  }
+
+  return { type: 'iframe', src: url };
+}
+
+/**
+ * Fetch published promotional & product reels from Supabase
+ */
+export async function getReels(limit = 8): Promise<ProductReel[]> {
+  if (!isSupabaseConfigured) return [];
+  try {
+    const { data, error } = await supabase
+      .from('reels')
+      .select('*')
+      .eq('is_published', true)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error || !data) return [];
+    return data as ProductReel[];
   } catch {
     return [];
   }
