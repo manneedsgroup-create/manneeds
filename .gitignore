@@ -23,3 +23,7 @@ pnpm-debug.log*
 .vscode/
 .vercel
 .env*
+
+# Private local documents (never commit or upload)
+important documents/
+important-documents/
