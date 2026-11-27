@@ -1904,14 +1904,16 @@
   updateNavbarBadges();
   renderCart();
 
-  // Auto-fill checkout fields when customer is signed in
+  // Auto-fill checkout fields when customer is signed in (Google or Mobile OTP)
   import { getCustomerProfile } from '../lib/db';
   import { supabase as cartSupabase, isSupabaseConfigured as cartSbReady } from '../lib/supabase';
+  import { firebaseAuth as cartFbAuth, onAuthStateChanged as onCartFbAuth } from '../lib/firebase';
 
   async function autofillCheckoutFromAccount() {
     if (!cartSbReady) return;
     const { data: { session } } = await cartSupabase.auth.getSession();
-    if (!session?.user) return;
+    const fbUser = cartFbAuth.currentUser;
+    if (!session?.user && !fbUser) return;
     const profile = await getCustomerProfile();
 
     const nameEl = document.getElementById('checkout-name') as HTMLInputElement | null;
@@ -1922,9 +1924,9 @@
     const cityEl = document.getElementById('checkout-city') as HTMLInputElement | null;
     const stateEl = document.getElementById('checkout-state') as HTMLInputElement | null;
 
-    const fullName = profile?.full_name || session.user.user_metadata?.full_name || '';
-    const phoneRaw = (profile?.phone || session.user.phone || '').replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
-    const email = profile?.email || session.user.email || '';
+    const fullName = profile?.full_name || session?.user?.user_metadata?.full_name || '';
+    const phoneRaw = (profile?.phone || fbUser?.phoneNumber || session?.user?.phone || '').replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
+    const email = profile?.email || session?.user?.email || '';
 
     if (nameEl && !nameEl.value && fullName) nameEl.value = fullName;
     if (phoneEl && !phoneEl.value && phoneRaw) phoneEl.value = phoneRaw;
@@ -1937,6 +1939,7 @@
 
   autofillCheckoutFromAccount();
   cartSupabase.auth.onAuthStateChange(() => autofillCheckoutFromAccount());
+  onCartFbAuth(cartFbAuth, () => autofillCheckoutFromAccount());
 
   // Re-run autofill when entering checkout view
   checkoutBtn?.addEventListener('click', () => {

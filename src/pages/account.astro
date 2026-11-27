@@ -76,6 +76,7 @@ import MainLayout from '../layouts/MainLayout.astro';
         </form>
 
         <div id="auth-status-box" class="auth-status-box" style="display: none;"></div>
+        <div id="recaptcha-container"></div>
       </div>
 
       <!-- LOGGED-IN ACCOUNT DASHBOARD (Shown when authenticated) -->
@@ -477,6 +478,14 @@ import MainLayout from '../layouts/MainLayout.astro';
 <script>
   import { supabase, isSupabaseConfigured } from '../lib/supabase';
   import { getCustomerProfile, updateCustomerProfile, getCustomerOrders } from '../lib/db';
+  import {
+    firebaseAuth,
+    RecaptchaVerifier,
+    signInWithPhoneNumber,
+    fbSignOut,
+    onAuthStateChanged,
+    type ConfirmationResult
+  } from '../lib/firebase';
 
   const authView = document.getElementById('auth-view');
   const dashboardView = document.getElementById('dashboard-view');
@@ -510,6 +519,8 @@ import MainLayout from '../layouts/MainLayout.astro';
   const ordersList = document.getElementById('orders-list');
 
   let pendingPhoneE164 = '';
+  let confirmationResult: ConfirmationResult | null = null;
+  let recaptchaVerifier: RecaptchaVerifier | null = null;
 
   function showAuthStatus(msg: string, isError = false) {
     if (!authStatusBox) return;
@@ -518,7 +529,7 @@ import MainLayout from '../layouts/MainLayout.astro';
     authStatusBox.textContent = msg;
   }
 
-  // Google OAuth
+  // Google OAuth (Supabase)
   btnGoogle?.addEventListener('click', async () => {
     if (!isSupabaseConfigured) return showAuthStatus('Supabase is not configured.', true);
     const { error } = await supabase.auth.signInWithOAuth({
@@ -528,7 +539,7 @@ import MainLayout from '../layouts/MainLayout.astro';
     if (error) showAuthStatus(error.message, true);
   });
 
-  // Mobile OTP Send
+  // Mobile OTP Send (Firebase Phone Auth — Free 10k/month)
   phoneForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const digits = (phoneInput?.value || '').replace(/\D/g, '');
@@ -540,38 +551,51 @@ import MainLayout from '../layouts/MainLayout.astro';
       btnSendOtp.disabled = true;
       btnSendOtp.textContent = 'Sending OTP...';
     }
-    const { error } = await supabase.auth.signInWithOtp({ phone: pendingPhoneE164 });
-    if (btnSendOtp) {
-      btnSendOtp.disabled = false;
-      btnSendOtp.textContent = 'Send Verification OTP';
+    try {
+      if (!recaptchaVerifier) {
+        recaptchaVerifier = new RecaptchaVerifier(firebaseAuth, 'recaptcha-container', {
+          size: 'invisible'
+        });
+      }
+      confirmationResult = await signInWithPhoneNumber(firebaseAuth, pendingPhoneE164, recaptchaVerifier);
+      if (phoneStep) phoneStep.style.display = 'none';
+      if (otpStep) otpStep.style.display = 'block';
+      showAuthStatus(`OTP sent to ${pendingPhoneE164}`);
+      otpInput?.focus();
+    } catch (err: any) {
+      showAuthStatus(`Could not send OTP: ${err?.message || 'Check Firebase Phone Auth settings'}`, true);
+      if (recaptchaVerifier) {
+        try { recaptchaVerifier.clear(); } catch {}
+        recaptchaVerifier = null;
+      }
+    } finally {
+      if (btnSendOtp) {
+        btnSendOtp.disabled = false;
+        btnSendOtp.textContent = 'Send Verification OTP';
+      }
     }
-    if (error) {
-      return showAuthStatus(`Could not send OTP: ${error.message}`, true);
-    }
-    if (phoneStep) phoneStep.style.display = 'none';
-    if (otpStep) otpStep.style.display = 'block';
-    showAuthStatus(`OTP sent to ${pendingPhoneE164}`);
-    otpInput?.focus();
   });
 
-  // Verify OTP
+  // Verify OTP (Firebase)
   btnVerifyOtp?.addEventListener('click', async () => {
     const token = (otpInput?.value || '').trim();
     if (token.length < 6) return showAuthStatus('Enter the 6-digit OTP from SMS.', true);
+    if (!confirmationResult) return showAuthStatus('Please request a new OTP.', true);
     if (btnVerifyOtp) {
       btnVerifyOtp.disabled = true;
       btnVerifyOtp.textContent = 'Verifying...';
     }
-    const { error } = await supabase.auth.verifyOtp({
-      phone: pendingPhoneE164,
-      token,
-      type: 'sms'
-    });
-    if (btnVerifyOtp) {
-      btnVerifyOtp.disabled = false;
-      btnVerifyOtp.textContent = 'Verify & Sign In';
+    try {
+      await confirmationResult.confirm(token);
+      await loadAccountSession();
+    } catch (err: any) {
+      showAuthStatus(`Invalid OTP: ${err?.message || 'Please check the code'}`, true);
+    } finally {
+      if (btnVerifyOtp) {
+        btnVerifyOtp.disabled = false;
+        btnVerifyOtp.textContent = 'Verify & Sign In';
+      }
     }
-    if (error) showAuthStatus(`Invalid OTP: ${error.message}`, true);
   });
 
   btnChangePhone?.addEventListener('click', () => {
@@ -581,7 +605,7 @@ import MainLayout from '../layouts/MainLayout.astro';
   });
 
   btnSignOut?.addEventListener('click', async () => {
-    await supabase.auth.signOut();
+    await Promise.allSettled([supabase.auth.signOut(), fbSignOut(firebaseAuth)]);
     window.location.reload();
   });
 
@@ -606,8 +630,9 @@ import MainLayout from '../layouts/MainLayout.astro';
     if (!isSupabaseConfigured) return;
     const { data: { session } } = await supabase.auth.getSession();
     const user = session?.user;
+    const fbUser = firebaseAuth.currentUser;
 
-    if (!user) {
+    if (!user && !fbUser) {
       if (authView) authView.style.display = 'block';
       if (dashboardView) dashboardView.style.display = 'none';
       return;
@@ -617,15 +642,15 @@ import MainLayout from '../layouts/MainLayout.astro';
     if (dashboardView) dashboardView.style.display = 'block';
 
     const profile = await getCustomerProfile();
-    const displayName = profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || 'ManNeeds Customer';
-    const provider = profile?.provider || user.app_metadata?.provider || (user.phone ? 'phone' : 'verified');
-    const providerLabel = provider === 'google' ? '✓ Google Verified' : provider === 'apple' ? '✓ Apple Verified' : '✓ Mobile Verified';
+    const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || (fbUser?.phoneNumber ? `Customer (${fbUser.phoneNumber})` : 'ManNeeds Customer');
+    const provider = profile?.provider || user?.app_metadata?.provider || (fbUser || user?.phone ? 'phone' : 'verified');
+    const providerLabel = provider === 'google' ? '✓ Google Verified' : '✓ Mobile Verified';
 
     if (dashName) dashName.textContent = displayName;
     if (dashProvider) dashProvider.textContent = providerLabel;
-    if (dashContact) dashContact.textContent = user.email || user.phone || profile?.phone || 'Verified Account';
+    if (dashContact) dashContact.textContent = user?.email || fbUser?.phoneNumber || user?.phone || profile?.phone || 'Verified Account';
     if (dashAvatar) {
-      const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url;
+      const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url;
       if (avatarUrl) {
         dashAvatar.innerHTML = `<img src="${avatarUrl}" alt="${displayName}" />`;
       } else {
@@ -633,8 +658,8 @@ import MainLayout from '../layouts/MainLayout.astro';
       }
     }
 
-    if (profName) profName.value = profile?.full_name || user.user_metadata?.full_name || '';
-    if (profPhone) profPhone.value = (profile?.phone || user.phone || '').replace(/^\+91/, '');
+    if (profName) profName.value = profile?.full_name || user?.user_metadata?.full_name || '';
+    if (profPhone) profPhone.value = (profile?.phone || fbUser?.phoneNumber || user?.phone || '').replace(/^\+91/, '');
     if (profAddress) profAddress.value = profile?.shipping_address || '';
     if (profPincode) profPincode.value = profile?.pincode || '';
     if (profCity) profCity.value = profile?.city || '';
@@ -669,6 +694,9 @@ import MainLayout from '../layouts/MainLayout.astro';
 
   loadAccountSession();
   supabase.auth.onAuthStateChange(() => {
+    loadAccountSession();
+  });
+  onAuthStateChanged(firebaseAuth, () => {
     loadAccountSession();
   });
 

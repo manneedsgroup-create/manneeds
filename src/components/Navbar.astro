@@ -789,18 +789,24 @@ const navLinks: { label: string; href: string; badge?: string }[] = [
     }
   });
 
-  // Sync Account button state with Supabase Auth
+  // Sync Account button state with Supabase Auth & Firebase Phone Auth
   import { supabase as sbAuth, isSupabaseConfigured as sbReady } from '../lib/supabase';
+  import { firebaseAuth, onAuthStateChanged } from '../lib/firebase';
   async function syncNavAuth() {
     if (!sbReady) return;
     const { data: { session } } = await sbAuth.auth.getSession();
+    const fbUser = firebaseAuth.currentUser;
     const navAccBtn = document.getElementById('nav-account-btn');
     const mobAccLink = document.getElementById('mobile-account-link');
-    if (session?.user) {
-      const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.phone || 'Account';
-      const first = String(name).split(' ')[0];
+    const activeName = session?.user
+      ? (session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.phone || 'Account')
+      : fbUser?.phoneNumber
+        ? fbUser.phoneNumber
+        : null;
+    if (activeName) {
+      const first = String(activeName).split(' ')[0];
       if (navAccBtn) {
-        navAccBtn.title = `Signed in as ${name}`;
+        navAccBtn.title = `Signed in as ${activeName}`;
         navAccBtn.style.borderColor = 'var(--mn-primary)';
         navAccBtn.style.color = 'var(--mn-primary)';
       }
@@ -811,4 +817,5 @@ const navLinks: { label: string; href: string; badge?: string }[] = [
   }
   syncNavAuth();
   sbAuth.auth.onAuthStateChange(() => syncNavAuth());
+  onAuthStateChanged(firebaseAuth, () => syncNavAuth());
 </script>
