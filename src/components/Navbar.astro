@@ -682,6 +682,41 @@ const navLinks: { label: string; href: string; badge?: string }[] = [
     background: rgba(255, 255, 255, 0.08);
     color: var(--text-muted);
   }
+
+  /* Compact Mobile Header (< 640px) */
+  @media (max-width: 639px) {
+    .announcement-bar {
+      font-size: 0.72rem;
+      padding: 0.38rem 0;
+    }
+    .navbar-container {
+      height: 60px;
+    }
+    .brand-name {
+      font-size: 1.35rem;
+    }
+    .nav-actions {
+      gap: 0.42rem;
+    }
+    .action-icon-btn {
+      width: 36px;
+      height: 36px;
+    }
+    .action-icon-btn svg {
+      width: 17px;
+      height: 17px;
+    }
+    .mobile-toggle {
+      width: 36px;
+      height: 36px;
+      padding: 9px 8px;
+    }
+    .cart-badge {
+      width: 17px;
+      height: 17px;
+      font-size: 0.62rem;
+    }
+  }
 </style>
 
 <script>

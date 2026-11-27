@@ -899,7 +899,11 @@ const avgRating = reviewCount > 0
     overflow-x: auto;
     padding-bottom: 0.4rem;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
     min-width: 0;
+  }
+  .category-filters-bar::-webkit-scrollbar {
+    display: none;
   }
 
   /* No Products Empty State */
@@ -954,6 +958,8 @@ const avgRating = reviewCount > 0
     font-size: 0.88rem;
     color: var(--text-secondary);
     cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
@@ -2018,24 +2024,24 @@ const avgRating = reviewCount > 0
       font-size: 0.78rem !important;
     }
 
-    /* 3-COLUMN PRODUCT GRID (BLINKIT QUICK-COMMERCE MOBILE PATTERN - NO HORIZONTAL SCROLL) */
+    /* 2-COLUMN MOBILE PRODUCT GRID (Readable, Tap-Friendly D2C Layout) */
     .products-section .container {
-      padding-left: 0.45rem !important;
-      padding-right: 0.45rem !important;
+      padding-left: 0.75rem !important;
+      padding-right: 0.75rem !important;
       max-width: 100% !important;
       box-sizing: border-box !important;
     }
 
     .products-grid {
-      grid-template-columns: repeat(3, 1fr) !important;
-      gap: 0.35rem !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 0.65rem !important;
       width: 100% !important;
       box-sizing: border-box !important;
     }
 
     .product-card {
-      padding: 0.38rem 0.32rem !important;
-      border-radius: 10px !important;
+      padding: 0.6rem !important;
+      border-radius: 12px !important;
       display: flex !important;
       flex-direction: column !important;
       justify-content: space-between !important;
@@ -2046,68 +2052,68 @@ const avgRating = reviewCount > 0
     }
 
     .product-visual {
-      height: 160px !important;
-      margin-bottom: 0.25rem !important;
-      border-radius: 8px !important;
+      height: 150px !important;
+      margin-bottom: 0.5rem !important;
+      border-radius: 9px !important;
       flex-shrink: 0 !important;
       position: relative !important;
     }
 
     .food-pack-emblem {
-      width: 72px !important;
-      height: 72px !important;
+      width: 78px !important;
+      height: 78px !important;
     }
 
     .emblem-icon {
-      font-size: 1.85rem !important;
+      font-size: 2rem !important;
       line-height: 1 !important;
     }
 
     .emblem-label {
-      font-size: 0.48rem !important;
+      font-size: 0.54rem !important;
       letter-spacing: 0.04em !important;
     }
 
     .product-real-img {
-      max-height: 150px !important;
-      padding: 0.15rem !important;
+      max-height: 142px !important;
+      padding: 0.2rem !important;
     }
 
     .carousel-dots {
-      bottom: 3px !important;
-      gap: 2.5px !important;
+      bottom: 5px !important;
+      gap: 3px !important;
     }
 
     .carousel-dot {
-      width: 3.5px !important;
-      height: 3.5px !important;
+      width: 4px !important;
+      height: 4px !important;
     }
 
     .carousel-dot.active {
-      width: 9px !important;
-      height: 3.5px !important;
+      width: 11px !important;
+      height: 4px !important;
       border-radius: 3px !important;
     }
 
     .product-visual-badges {
-      top: 3px !important;
-      left: 3px !important;
-      right: 3px !important;
-      width: calc(100% - 6px) !important;
-      gap: 2px !important;
+      top: 5px !important;
+      left: 5px !important;
+      right: 5px !important;
+      width: calc(100% - 10px) !important;
+      gap: 3px !important;
     }
 
     .discount-badge {
-      font-size: 0.5rem !important;
-      padding: 1px 3.5px !important;
-      border-radius: 3px !important;
+      font-size: 0.6rem !important;
+      padding: 2px 5px !important;
+      border-radius: 4px !important;
       white-space: nowrap !important;
       flex-shrink: 0 !important;
       line-height: 1.1 !important;
     }
 
     .badge-corner {
-      display: none !important; /* Hiding secondary text badge keeps the 3-column visual clean and uncrowded */
+      display: none !important;
     }
 
     .flavour-tag {
@@ -2123,9 +2129,9 @@ const avgRating = reviewCount > 0
     }
 
     .product-header-meta {
-      margin-bottom: 0.12rem !important;
-      height: 14px !important;
-      gap: 2px !important;
+      margin-bottom: 0.25rem !important;
+      height: 16px !important;
+      gap: 4px !important;
       width: 100% !important;
       min-width: 0 !important;
       display: flex !important;
@@ -2134,7 +2140,7 @@ const avgRating = reviewCount > 0
     }
 
     .product-cat-name {
-      font-size: 0.44rem !important;
+      font-size: 0.58rem !important;
       white-space: nowrap !important;
       overflow: hidden !important;
       text-overflow: ellipsis !important;
@@ -2144,27 +2150,27 @@ const avgRating = reviewCount > 0
     }
 
     .stock-indicator {
-      font-size: 0.44rem !important;
-      padding: 0 3px !important;
+      font-size: 0.58rem !important;
+      padding: 0 5px !important;
       white-space: nowrap !important;
       flex-shrink: 0 !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
       line-height: 1 !important;
-      height: 13px !important;
-      border-radius: 2.5px !important;
+      height: 16px !important;
+      border-radius: 4px !important;
       box-sizing: border-box !important;
       font-weight: 700 !important;
     }
 
     .product-name {
-      font-size: 0.65rem !important;
-      line-height: 1.15 !important;
-      min-height: 1.45rem !important;
-      max-height: 1.45rem !important;
-      height: 1.45rem !important;
-      margin-bottom: 0.12rem !important;
+      font-size: 0.84rem !important;
+      line-height: 1.25 !important;
+      min-height: 2.1rem !important;
+      max-height: 2.1rem !important;
+      height: 2.1rem !important;
+      margin-bottom: 0.25rem !important;
       display: -webkit-box !important;
       -webkit-line-clamp: 2 !important;
       -webkit-box-orient: vertical !important;
@@ -2173,11 +2179,11 @@ const avgRating = reviewCount > 0
     }
 
     .product-rating {
-      height: 13px !important;
-      padding: 0 3px !important;
-      margin-bottom: 0.14rem !important;
-      gap: 1.5px !important;
-      border-radius: 2.5px !important;
+      height: 17px !important;
+      padding: 0 5px !important;
+      margin-bottom: 0.3rem !important;
+      gap: 2.5px !important;
+      border-radius: 4px !important;
       line-height: 1 !important;
       width: fit-content !important;
       display: inline-flex !important;
@@ -2185,17 +2191,17 @@ const avgRating = reviewCount > 0
     }
 
     .rating-star {
-      font-size: 0.5rem !important;
+      font-size: 0.62rem !important;
       line-height: 1 !important;
     }
 
     .rating-score {
-      font-size: 0.52rem !important;
+      font-size: 0.64rem !important;
       line-height: 1 !important;
     }
 
     .rating-count {
-      font-size: 0.44rem !important;
+      font-size: 0.58rem !important;
       line-height: 1 !important;
     }
 
@@ -2205,14 +2211,14 @@ const avgRating = reviewCount > 0
 
     .pack-size-selector {
       margin-top: 0 !important;
-      margin-bottom: 0.16rem !important;
-      padding: 0 4px !important;
-      height: 16px !important;
+      margin-bottom: 0.35rem !important;
+      padding: 0 7px !important;
+      height: 22px !important;
       display: inline-flex !important;
       align-items: center !important;
-      gap: 2px !important;
-      font-size: 0.52rem !important;
-      border-radius: 3px !important;
+      gap: 4px !important;
+      font-size: 0.68rem !important;
+      border-radius: 5px !important;
       background: var(--bg-subtle) !important;
       border: 1px solid var(--border-subtle) !important;
       color: var(--text-secondary) !important;
@@ -2223,17 +2229,17 @@ const avgRating = reviewCount > 0
     .pack-size-arrow {
       display: inline-flex !important;
       align-items: center !important;
-      gap: 1px !important;
+      gap: 2px !important;
     }
 
     .pack-size-arrow svg {
-      width: 7px !important;
-      height: 7px !important;
+      width: 9px !important;
+      height: 9px !important;
     }
 
     .pack-size-count {
       display: inline !important;
-      font-size: 0.48rem !important;
+      font-size: 0.62rem !important;
     }
 
     .weight-variants-box {
@@ -2282,9 +2288,9 @@ const avgRating = reviewCount > 0
     }
 
     .product-price-row {
-      margin-bottom: 0.18rem !important;
-      padding-top: 0.08rem !important;
-      height: 16px !important;
+      margin-bottom: 0.4rem !important;
+      padding-top: 0.25rem !important;
+      height: auto !important;
       display: flex !important;
       align-items: center !important;
       justify-content: flex-start !important;
@@ -2292,34 +2298,33 @@ const avgRating = reviewCount > 0
 
     .price-wrap {
       display: flex !important;
-      align-items: center !important;
-      gap: 3px !important;
-      flex-wrap: nowrap !important;
+      align-items: baseline !important;
+      gap: 5px !important;
+      flex-wrap: wrap !important;
       width: 100% !important;
     }
 
     .current-price {
-      font-size: 0.72rem !important;
-      line-height: 1 !important;
+      font-size: 0.95rem !important;
+      line-height: 1.1 !important;
       font-weight: 800 !important;
     }
 
     .original-price {
-      font-size: 0.52rem !important;
+      font-size: 0.68rem !important;
       line-height: 1 !important;
       text-decoration: line-through !important;
     }
 
     .discount-tag {
-      font-size: 0.48rem !important;
+      font-size: 0.58rem !important;
       font-weight: 800 !important;
-      padding: 0.5px 3px !important;
-      border-radius: 2.5px !important;
-      line-height: 1 !important;
+      padding: 1.5px 4px !important;
+      border-radius: 3px !important;
+      line-height: 1.1 !important;
       display: inline-flex !important;
       align-items: center !important;
       white-space: nowrap !important;
-      margin-left: 1px !important;
     }
 
     .save-tag {
@@ -2327,11 +2332,11 @@ const avgRating = reviewCount > 0
     }
 
     .add-to-cart-btn {
-      height: 24px !important;
-      padding: 0 3px !important;
-      font-size: 0.6rem !important;
-      border-radius: 5px !important;
-      gap: 2px !important;
+      height: 34px !important;
+      padding: 0 8px !important;
+      font-size: 0.76rem !important;
+      border-radius: 7px !important;
+      gap: 5px !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
@@ -2342,8 +2347,8 @@ const avgRating = reviewCount > 0
     }
 
     .add-to-cart-btn svg {
-      width: 11px !important;
-      height: 11px !important;
+      width: 14px !important;
+      height: 14px !important;
     }
 
     /* Promise / Standard Section */
