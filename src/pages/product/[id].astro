@@ -146,7 +146,7 @@ const relatedProducts = allProducts
 
           <h1 class="pdp-title">{cleanName}</h1>
 
-          <div class="pdp-rating-row">
+          <div class="pdp-rating-row" data-pdp-id={product.id}>
             {Number(product.reviews) > 0 && Number(product.rating) > 0 ? (
               <>
                 <div class="pdp-rating-badge">
@@ -882,4 +882,38 @@ const relatedProducts = allProducts
       }
     }
   });
+</script>
+
+<script>
+  import { getProducts } from '../../lib/db';
+  import { isSupabaseConfigured } from '../../lib/supabase';
+
+  if (isSupabaseConfigured) {
+    const ratingRow = document.querySelector('.pdp-rating-row');
+    const pdpId = ratingRow?.getAttribute('data-pdp-id');
+    if (pdpId) {
+      getProducts().then((products) => {
+        const live = products.find((p) => String(p.id) === String(pdpId));
+        if (!live) return;
+
+        const stockPill = document.getElementById('pdp-stock-pill');
+        const stock = Number(live.stockQuantity ?? 0);
+        if (stockPill) {
+          stockPill.className = `pdp-stock-pill ${stock <= 10 ? 'low' : ''}`;
+          stockPill.textContent = stock <= 0 ? 'Out of stock' : stock <= 10 ? `🔥 Only ${stock} left` : `${stock} in stock`;
+        }
+
+        if (ratingRow) {
+          const flavourChip = ratingRow.querySelector('.pdp-flavour-chip')?.outerHTML || '';
+          const ratingVal = Number(live.rating ?? 0);
+          const reviewsVal = Number(live.reviews ?? 0);
+          if (reviewsVal > 0 && ratingVal > 0) {
+            ratingRow.innerHTML = `<div class="pdp-rating-badge"><span>★</span><strong>${ratingVal}</strong></div><span class="pdp-review-count">(${live.reviews} verified ${reviewsVal === 1 ? 'rating' : 'ratings'})</span>${flavourChip}`;
+          } else {
+            ratingRow.innerHTML = `<span class="pdp-review-count">✨ New Harvest · Be the first to review after delivery</span>${flavourChip}`;
+          }
+        }
+      });
+    }
+  }
 </script>
