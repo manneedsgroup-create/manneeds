@@ -1,6 +1,10 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import {
   getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   RecaptchaVerifier,
   signInWithPhoneNumber,
   signOut as fbSignOut,
@@ -22,6 +26,10 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 export const firebaseAuth = getAuth(app);
 
 export {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   RecaptchaVerifier,
   signInWithPhoneNumber,
   fbSignOut,

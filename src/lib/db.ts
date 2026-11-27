@@ -1226,42 +1226,58 @@ export async function getCustomerProfile(): Promise<CustomerProfile | null> {
       return profile;
     }
 
-    // Fallback: Firebase Phone Auth verified user
+    // Firebase Auth verified user (Google or Phone OTP)
     const fbUser = typeof window !== 'undefined' ? firebaseAuth.currentUser : null;
-    if (fbUser?.phoneNumber) {
-      const digits10 = fbUser.phoneNumber.replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
+    if (fbUser) {
+      const digits10 = fbUser.phoneNumber
+        ? fbUser.phoneNumber.replace(/^\+91/, '').replace(/\D/g, '').slice(-10)
+        : '';
+      const storageKey = `manneeds_fb_profile_${fbUser.uid}`;
       let saved: Partial<CustomerProfile> = {};
       try {
-        const raw = localStorage.getItem(`manneeds_phone_profile_${digits10}`);
+        const raw = localStorage.getItem(storageKey) || (digits10 ? localStorage.getItem(`manneeds_phone_profile_${digits10}`) : null);
         if (raw) saved = JSON.parse(raw);
       } catch {}
 
       const profile: CustomerProfile = {
         id: fbUser.uid,
         full_name: saved.full_name || fbUser.displayName || '',
-        phone: digits10,
-        provider: 'phone',
+        email: fbUser.email || saved.email || '',
+        phone: saved.phone || digits10 || '',
+        avatar_url: fbUser.photoURL || '',
+        provider: fbUser.phoneNumber ? 'phone' : 'google',
         shipping_address: saved.shipping_address || '',
         city: saved.city || '',
         state: saved.state || '',
         pincode: saved.pincode || ''
       };
 
-      if (!profile.shipping_address && digits10) {
-        const { data: pastOrders } = await supabase
+      if (!profile.shipping_address || !profile.phone) {
+        let query = supabase
           .from('orders')
           .select('customer_name, customer_phone, shipping_address, city, state, pincode')
-          .eq('customer_phone', digits10)
           .order('created_at', { ascending: false })
           .limit(1);
 
-        const lastOrder = pastOrders?.[0];
-        if (lastOrder) {
-          profile.full_name = profile.full_name || lastOrder.customer_name || '';
-          profile.shipping_address = lastOrder.shipping_address || '';
-          profile.city = lastOrder.city || '';
-          profile.state = lastOrder.state || '';
-          profile.pincode = lastOrder.pincode || '';
+        if (fbUser.email && digits10) {
+          query = query.or(`customer_email.eq.${fbUser.email},customer_phone.eq.${digits10}`);
+        } else if (fbUser.email) {
+          query = query.eq('customer_email', fbUser.email);
+        } else if (digits10) {
+          query = query.eq('customer_phone', digits10);
+        }
+
+        if (fbUser.email || digits10) {
+          const { data: pastOrders } = await query;
+          const lastOrder = pastOrders?.[0];
+          if (lastOrder) {
+            profile.full_name = profile.full_name || lastOrder.customer_name || '';
+            profile.phone = profile.phone || lastOrder.customer_phone || '';
+            profile.shipping_address = profile.shipping_address || lastOrder.shipping_address || '';
+            profile.city = profile.city || lastOrder.city || '';
+            profile.state = profile.state || lastOrder.state || '';
+            profile.pincode = profile.pincode || lastOrder.pincode || '';
+          }
         }
       }
       return profile;
@@ -1300,12 +1316,13 @@ export async function updateCustomerProfile(updates: Partial<CustomerProfile>): 
     }
 
     const fbUser = typeof window !== 'undefined' ? firebaseAuth.currentUser : null;
-    if (fbUser?.phoneNumber) {
-      const digits10 = fbUser.phoneNumber.replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
+    if (fbUser) {
+      const digits10 = (updates.phone || fbUser.phoneNumber || '').replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
       localStorage.setItem(
-        `manneeds_phone_profile_${digits10}`,
+        `manneeds_fb_profile_${fbUser.uid}`,
         JSON.stringify({
-          full_name: updates.full_name?.trim() || '',
+          full_name: updates.full_name?.trim() || fbUser.displayName || '',
+          email: fbUser.email || '',
           phone: digits10,
           shipping_address: updates.shipping_address?.trim() || '',
           city: updates.city?.trim() || '',
@@ -1313,7 +1330,7 @@ export async function updateCustomerProfile(updates: Partial<CustomerProfile>): 
           pincode: updates.pincode?.trim() || ''
         })
       );
-      return { success: true, message: 'Delivery details saved to your mobile account.' };
+      return { success: true, message: 'Delivery details saved to your account.' };
     }
 
     return { success: false, message: 'Please sign in first.' };
@@ -1339,15 +1356,27 @@ export async function getCustomerOrders(): Promise<Order[]> {
     }
 
     const fbUser = typeof window !== 'undefined' ? firebaseAuth.currentUser : null;
-    if (fbUser?.phoneNumber) {
-      const digits10 = fbUser.phoneNumber.replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
-      const { data, error } = await supabase
+    if (fbUser) {
+      const digits10 = fbUser.phoneNumber
+        ? fbUser.phoneNumber.replace(/^\+91/, '').replace(/\D/g, '').slice(-10)
+        : '';
+      let query = supabase
         .from('orders')
         .select('*')
-        .eq('customer_phone', digits10)
         .order('created_at', { ascending: false })
         .limit(20);
 
+      if (fbUser.email && digits10) {
+        query = query.or(`customer_email.eq.${fbUser.email},customer_phone.eq.${digits10}`);
+      } else if (fbUser.email) {
+        query = query.eq('customer_email', fbUser.email);
+      } else if (digits10) {
+        query = query.eq('customer_phone', digits10);
+      } else {
+        return [];
+      }
+
+      const { data, error } = await query;
       if (error || !data) return [];
       return data as Order[];
     }

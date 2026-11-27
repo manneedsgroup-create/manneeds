@@ -480,6 +480,10 @@ import MainLayout from '../layouts/MainLayout.astro';
   import { getCustomerProfile, updateCustomerProfile, getCustomerOrders } from '../lib/db';
   import {
     firebaseAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
     RecaptchaVerifier,
     signInWithPhoneNumber,
     fbSignOut,
@@ -529,14 +533,25 @@ import MainLayout from '../layouts/MainLayout.astro';
     authStatusBox.textContent = msg;
   }
 
-  // Google OAuth (Supabase)
+  // Google OAuth via Firebase (Works on every Indian ISP without *.supabase.co blocks)
+  getRedirectResult(firebaseAuth).catch(() => {});
+
   btnGoogle?.addEventListener('click', async () => {
-    if (!isSupabaseConfigured) return showAuthStatus('Supabase is not configured.', true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/account` }
-    });
-    if (error) showAuthStatus(error.message, true);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(firebaseAuth, provider);
+      await loadAccountSession();
+    } catch (err: any) {
+      if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/cancelled-popup-request') {
+        try {
+          await signInWithRedirect(firebaseAuth, provider);
+        } catch (redirErr: any) {
+          showAuthStatus(redirErr?.message || 'Google sign-in failed.', true);
+        }
+      } else {
+        showAuthStatus(err?.message || 'Google sign-in failed.', true);
+      }
+    }
   });
 
   // Mobile OTP Send (Firebase Phone Auth — Free 10k/month)
@@ -642,15 +657,24 @@ import MainLayout from '../layouts/MainLayout.astro';
     if (dashboardView) dashboardView.style.display = 'block';
 
     const profile = await getCustomerProfile();
-    const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || (fbUser?.phoneNumber ? `Customer (${fbUser.phoneNumber})` : 'ManNeeds Customer');
-    const provider = profile?.provider || user?.app_metadata?.provider || (fbUser || user?.phone ? 'phone' : 'verified');
-    const providerLabel = provider === 'google' ? '✓ Google Verified' : '✓ Mobile Verified';
+    const displayName =
+      profile?.full_name ||
+      fbUser?.displayName ||
+      user?.user_metadata?.full_name ||
+      user?.user_metadata?.name ||
+      (fbUser?.phoneNumber ? `Customer (${fbUser.phoneNumber})` : 'ManNeeds Customer');
+    const isGoogle = Boolean(
+      fbUser?.email ||
+      profile?.provider === 'google' ||
+      user?.app_metadata?.provider === 'google'
+    );
+    const providerLabel = isGoogle ? '✓ Google Verified' : '✓ Mobile Verified';
 
     if (dashName) dashName.textContent = displayName;
     if (dashProvider) dashProvider.textContent = providerLabel;
-    if (dashContact) dashContact.textContent = user?.email || fbUser?.phoneNumber || user?.phone || profile?.phone || 'Verified Account';
+    if (dashContact) dashContact.textContent = fbUser?.email || user?.email || fbUser?.phoneNumber || user?.phone || profile?.phone || 'Verified Account';
     if (dashAvatar) {
-      const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url;
+      const avatarUrl = profile?.avatar_url || fbUser?.photoURL || user?.user_metadata?.avatar_url;
       if (avatarUrl) {
         dashAvatar.innerHTML = `<img src="${avatarUrl}" alt="${displayName}" />`;
       } else {
@@ -658,7 +682,7 @@ import MainLayout from '../layouts/MainLayout.astro';
       }
     }
 
-    if (profName) profName.value = profile?.full_name || user?.user_metadata?.full_name || '';
+    if (profName) profName.value = profile?.full_name || fbUser?.displayName || user?.user_metadata?.full_name || '';
     if (profPhone) profPhone.value = (profile?.phone || fbUser?.phoneNumber || user?.phone || '').replace(/^\+91/, '');
     if (profAddress) profAddress.value = profile?.shipping_address || '';
     if (profPincode) profPincode.value = profile?.pincode || '';

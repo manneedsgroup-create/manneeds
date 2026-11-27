@@ -163,11 +163,16 @@ export interface Order {
 }
 
 // Read from environment (supports both Astro PUBLIC_ and Next/Supabase NEXT_PUBLIC_ prefixes)
-// Publishable anon key is safe for browser clients (protected by Supabase RLS)
-const supabaseUrl =
+// In production browser, route through Vercel's /sb proxy so Indian ISPs blocking *.supabase.co work seamlessly.
+const directSupabaseUrl =
   import.meta.env.PUBLIC_SUPABASE_URL ||
   import.meta.env.NEXT_PUBLIC_SUPABASE_URL ||
   'https://aicgtlizgpcacdidoeut.supabase.co';
+const isProdBrowser =
+  typeof window !== 'undefined' &&
+  window.location.hostname !== 'localhost' &&
+  window.location.hostname !== '127.0.0.1';
+const supabaseUrl = isProdBrowser ? `${window.location.origin}/sb` : directSupabaseUrl;
 const supabaseAnonKey =
   import.meta.env.PUBLIC_SUPABASE_ANON_KEY ||
   import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||

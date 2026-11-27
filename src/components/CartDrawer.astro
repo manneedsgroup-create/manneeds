@@ -1924,9 +1924,9 @@
     const cityEl = document.getElementById('checkout-city') as HTMLInputElement | null;
     const stateEl = document.getElementById('checkout-state') as HTMLInputElement | null;
 
-    const fullName = profile?.full_name || session?.user?.user_metadata?.full_name || '';
+    const fullName = profile?.full_name || fbUser?.displayName || session?.user?.user_metadata?.full_name || '';
     const phoneRaw = (profile?.phone || fbUser?.phoneNumber || session?.user?.phone || '').replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
-    const email = profile?.email || session?.user?.email || '';
+    const email = profile?.email || fbUser?.email || session?.user?.email || '';
 
     if (nameEl && !nameEl.value && fullName) nameEl.value = fullName;
     if (phoneEl && !phoneEl.value && phoneRaw) phoneEl.value = phoneRaw;

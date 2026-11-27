@@ -835,8 +835,8 @@ const navLinks: { label: string; href: string; badge?: string }[] = [
     const mobAccLink = document.getElementById('mobile-account-link');
     const activeName = session?.user
       ? (session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.phone || 'Account')
-      : fbUser?.phoneNumber
-        ? fbUser.phoneNumber
+      : fbUser
+        ? (fbUser.displayName || fbUser.email || fbUser.phoneNumber || 'Account')
         : null;
     if (activeName) {
       const first = String(activeName).split(' ')[0];
