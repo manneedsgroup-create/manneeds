@@ -225,11 +225,11 @@
                 <input type="radio" name="payment_method" value="online_upi" />
                 <div class="payment-card-body">
                   <div class="payment-card-header">
-                    <span class="payment-icon">📱</span>
-                    <span class="payment-title">Instant UPI & Cards</span>
-                    <span class="payment-badge-online">Zero Contact</span>
+                    <span class="payment-icon">💳</span>
+                    <span class="payment-title">UPI, Debit &amp; Credit Cards</span>
+                    <span class="payment-badge-online">Cashfree</span>
                   </div>
-                  <p class="payment-desc">Google Pay, PhonePe, Paytm, or Credit/Debit Cards.</p>
+                  <p class="payment-desc">Pay securely via GPay, PhonePe, Paytm UPI, or Visa / Mastercard / RuPay Debit &amp; Credit Cards.</p>
                 </div>
               </label>
             </div>
@@ -1956,6 +1956,55 @@
       };
 
       try {
+        let cfOrderNote = '';
+        if (paymentMethod === 'online_upi') {
+          const cfOrderId = `MN_${Date.now()}`;
+          const cfSessionRes = await fetch('/api/cashfree-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              order_id: cfOrderId,
+              amount: finalTotal,
+              customer_name: name,
+              customer_phone: phone,
+              customer_email: email || `${phone}@manneeds.in`
+            })
+          });
+          const cfData = await cfSessionRes.json();
+
+          if (!cfData?.configured) {
+            throw new Error('Cashfree keys are not configured yet. Please select Cash on Delivery (COD) or add CASHFREE_APP_ID & CASHFREE_SECRET_KEY in Vercel.');
+          }
+          if (!cfData?.payment_session_id) {
+            throw new Error(cfData?.error || 'Could not initialize Cashfree checkout.');
+          }
+
+          const CashfreeFn = (window as any).Cashfree;
+          if (typeof CashfreeFn !== 'function') {
+            throw new Error('Cashfree SDK is still loading. Please try again in a second.');
+          }
+
+          const cashfree = CashfreeFn({ mode: cfData.env === 'sandbox' ? 'sandbox' : 'production' });
+          const cfResult = await cashfree.checkout({
+            paymentSessionId: cfData.payment_session_id,
+            redirectTarget: '_modal'
+          });
+
+          if (cfResult?.error) {
+            throw new Error(cfResult.error.message || 'Payment cancelled or failed.');
+          }
+
+          // Verify payment status with Cashfree server-side
+          const verifyRes = await fetch(`/api/cashfree-verify?order_id=${encodeURIComponent(cfData.order_id)}`);
+          const verifyData = await verifyRes.json();
+          if (!verifyData?.paid) {
+            throw new Error(`Payment not completed (Status: ${verifyData?.order_status || 'PENDING'}).`);
+          }
+          cfOrderNote = `Cashfree Paid (${cfData.order_id})`;
+          orderPayload.payment_status = 'paid';
+          orderPayload.notes = cfOrderNote;
+        }
+
         const res = await createOrder(orderPayload);
         if (!res.success) {
           throw new Error(res.message);
@@ -1968,7 +2017,7 @@
         if (successPaymentMode) {
           successPaymentMode.textContent = paymentMethod === 'cod' 
             ? 'Cash on Delivery (Pay at doorstep)' 
-            : 'Instant UPI / Online';
+            : 'Paid via Cashfree (UPI / Card)';
         }
         if (successTotalAmount) successTotalAmount.textContent = `₹${finalTotal}`;
 
