@@ -68,7 +68,7 @@ const initialReels: ProductReel[] = await getReels(8);
 ---
 
 <MainLayout title="Pure Indian Kitchen Essentials, Spices, Honey & Healthy Foods">
-  <!-- Hero Section -->
+  <!-- Hero + Reels Split Section (Desktop: Left Hero / Right Reels; Mobile: Section-wise Top-to-Down) -->
   <section class="hero-section" id="hero">
     <div class="container hero-container">
       <div class="hero-content">
@@ -87,10 +87,6 @@ const initialReels: ProductReel[] = await getReels(8);
           COLD-MILLED. <span class="text-gradient-green">UNADULTERATED.</span> PURE AROMA.
         </p>
 
-        <p class="hero-description">
-          From stone-ground botanical powders and wild forest honey to crisp vacuum-dried chips and wholesome roasted snacks — experience pure kitchen nutrition free from synthetic colors, palm oil, or preservatives.
-        </p>
-
         <!-- CTA Action Buttons -->
         <div class="hero-actions">
           <a href="#bestsellers" class="btn btn-primary hero-btn-main">
@@ -105,72 +101,67 @@ const initialReels: ProductReel[] = await getReels(8);
           </a>
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- Product Reels & Promotional Videos (Instagram / Facebook / MP4 from Supabase) -->
-  <section class="section reels-section" id="reels">
-    <div class="container">
-      <div class="section-header" style="text-align:center;margin-bottom:2.25rem;">
-        <span class="badge badge-orange">Watch In Action</span>
-        <h2 class="section-title">Farm Harvest &amp; Kitchen Reels</h2>
-        <p class="section-subtitle">
-          See how our cold-milled botanicals, raw honey, and roasted snacks are prepared and enjoyed in real Indian kitchens.
-        </p>
-      </div>
+      <!-- Product Reels & Promotional Videos (Right on Desktop, Below Hero on Mobile) -->
+      <div class="hero-reels-pane" id="reels">
+        <div class="hero-reels-header">
+          <span class="badge badge-orange">Watch In Action</span>
+          <h2 class="hero-reels-title">Farm Harvest &amp; Kitchen Reels</h2>
+        </div>
 
-      <div id="reels-container">
-        {initialReels.length > 0 ? (
-          <div class="reels-carousel" id="reels-grid">
-            {initialReels.map((reel) => {
-              const embed = getReelEmbedInfo(reel);
-              const platformLabel = reel.platform === 'facebook' ? 'Facebook' : reel.platform === 'youtube' ? 'YouTube' : reel.platform === 'mp4' ? 'Video' : 'Instagram';
-              return (
-                <div class="reel-card">
-                  <div class="reel-media-frame">
-                    {embed.type === 'video' ? (
-                      <video src={embed.src} controls playsinline preload="metadata" />
-                    ) : (
-                      <iframe
-                        src={embed.src}
-                        title={reel.title}
-                        loading="lazy"
-                        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                        allowfullscreen
-                      ></iframe>
-                    )}
-                  </div>
-                  <div class="reel-card-footer">
-                    <div class="reel-platform-row">
-                      <span class="reel-platform-pill">{platformLabel}</span>
-                      <a href={reel.reel_url} target="_blank" rel="noopener noreferrer" class="reel-ext-link">Open Reel ↗</a>
+        <div id="reels-container">
+          {initialReels.length > 0 ? (
+            <div class="reels-carousel" id="reels-grid">
+              {initialReels.map((reel) => {
+                const embed = getReelEmbedInfo(reel);
+                const platformLabel = reel.platform === 'facebook' ? 'Facebook' : reel.platform === 'youtube' ? 'YouTube' : reel.platform === 'mp4' ? 'Video' : 'Instagram';
+                return (
+                  <div class="reel-card">
+                    <div class="reel-media-frame">
+                      {embed.type === 'video' ? (
+                        <video src={embed.src} controls playsinline preload="metadata" />
+                      ) : (
+                        <iframe
+                          src={embed.src}
+                          title={reel.title}
+                          loading="lazy"
+                          allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                          allowfullscreen
+                        ></iframe>
+                      )}
                     </div>
-                    <h3 class="reel-title">{reel.title}</h3>
-                    {reel.product_name && <span class="reel-product-tag">🛍 {reel.product_name}</span>}
+                    <div class="reel-card-footer">
+                      <div class="reel-platform-row">
+                        <span class="reel-platform-pill">{platformLabel}</span>
+                        <a href={reel.reel_url} target="_blank" rel="noopener noreferrer" class="reel-ext-link">Open Reel ↗</a>
+                      </div>
+                      <h3 class="reel-title">{reel.title}</h3>
+                      {reel.product_name && <span class="reel-product-tag">🛍 {reel.product_name}</span>}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div class="reviews-empty-card" id="reels-empty-state">
-            <div class="reviews-empty-icon">🎬</div>
-            <h3>Follow ManNeeds on Instagram</h3>
-            <p>
-              Our latest farm-to-kitchen reels and product stories sync here automatically from Instagram.
-            </p>
-            <div class="reviews-empty-actions">
-              <a
-                href="https://www.instagram.com/manneeds_group/"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="btn btn-primary"
-              >
-                Follow @manneeds_group on Instagram ↗
-              </a>
+                );
+              })}
             </div>
-          </div>
-        )}
+          ) : (
+            <div class="reviews-empty-card" id="reels-empty-state">
+              <div class="reviews-empty-icon">🎬</div>
+              <h3>Follow ManNeeds on Instagram</h3>
+              <p>
+                Our latest farm-to-kitchen reels and product stories sync here automatically from Instagram.
+              </p>
+              <div class="reviews-empty-actions">
+                <a
+                  href="https://www.instagram.com/manneeds_group/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn btn-primary"
+                >
+                  Follow @manneeds_group on Instagram ↗
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   </section>
@@ -807,10 +798,77 @@ const initialReels: ProductReel[] = await getReels(8);
     flex-direction: column;
     align-items: center;
     text-align: center;
+    gap: 2.25rem;
   }
 
   .hero-content {
-    max-width: 900px;
+    width: 100%;
+    max-width: 720px;
+  }
+
+  .hero-reels-pane {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .hero-reels-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 1.15rem;
+    text-align: center;
+  }
+
+  .hero-reels-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  @media (min-width: 1024px) {
+    .hero-section {
+      padding-top: 3rem;
+      padding-bottom: 3rem;
+    }
+
+    .hero-container {
+      display: grid;
+      grid-template-columns: minmax(0, 1.02fr) minmax(0, 1.15fr);
+      align-items: center;
+      text-align: left;
+      gap: 3rem;
+    }
+
+    .hero-content {
+      max-width: none;
+    }
+
+    .hero-actions {
+      justify-content: flex-start !important;
+    }
+
+    .hero-reels-header {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      text-align: left;
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-reels-pane .reels-carousel {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      gap: 1rem;
+      padding-bottom: 0.5rem;
+    }
+
+    .hero-reels-pane .reel-card {
+      flex: 0 0 245px;
+      scroll-snap-align: start;
+    }
   }
 
   .hero-badge {
@@ -2119,11 +2177,13 @@ const initialReels: ProductReel[] = await getReels(8);
       margin-bottom: 1rem !important;
     }
 
-    .hero-btn-main {
+    .hero-btn-main,
+    .hero-btn-secondary {
       width: 100% !important;
       max-width: 320px !important;
       padding: 0.75rem 1.25rem !important;
       font-size: 0.95rem !important;
+      justify-content: center;
     }
 
     /* Catalog Section Header */
