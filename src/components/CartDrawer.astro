@@ -128,6 +128,30 @@
           <div class="strip-total" id="checkout-payable-total">₹0</div>
         </div>
 
+        <!-- Quick Sign-In Banner in Checkout -->
+        <div class="checkout-auth-banner" id="checkout-auth-banner">
+          <div class="checkout-auth-copy">
+            <strong>Sign in to auto-fill &amp; track order</strong>
+            <span>Optional — or continue as guest below</span>
+          </div>
+          <div class="checkout-auth-btns">
+            <button type="button" class="checkout-google-btn" id="checkout-google-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"/>
+                <path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"/>
+              </svg>
+              <span>Google Sign-In</span>
+            </button>
+            <a href="/account" class="checkout-otp-link">Mobile OTP</a>
+          </div>
+        </div>
+
+        <div class="checkout-signed-in-pill" id="checkout-signed-in-pill" style="display: none;">
+          <span>✓ Signed in as <strong id="checkout-user-label">Customer</strong></span>
+        </div>
+
         <!-- Checkout Form -->
         <form id="checkout-form" class="checkout-form" autocomplete="on">
           <!-- Contact Info -->
@@ -767,6 +791,65 @@
     font-size: 1.25rem;
     font-weight: 900;
     color: var(--mn-cta);
+  }
+
+  .checkout-auth-banner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius-md);
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-subtle);
+    margin-bottom: 1.15rem;
+  }
+  .checkout-auth-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+  }
+  .checkout-auth-copy strong { font-size: 0.84rem; color: var(--text-primary); }
+  .checkout-auth-copy span { font-size: 0.74rem; color: var(--text-secondary); }
+  .checkout-auth-btns {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .checkout-google-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.52rem 0.75rem;
+    border-radius: var(--radius-md);
+    background: #FFFFFF;
+    color: #1F2937;
+    border: 1px solid var(--border-medium);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+  .checkout-otp-link {
+    padding: 0.52rem 0.85rem;
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-medium);
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .checkout-signed-in-pill {
+    padding: 0.55rem 0.9rem;
+    border-radius: var(--radius-md);
+    background: rgba(21, 128, 61, 0.12);
+    border: 1px solid rgba(21, 128, 61, 0.25);
+    color: #15803D;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+  }
+  :global(html.dark) .checkout-signed-in-pill {
+    color: #4ADE80;
   }
 
   .checkout-form {
@@ -1907,13 +1990,40 @@
   // Auto-fill checkout fields when customer is signed in (Google or Mobile OTP)
   import { getCustomerProfile } from '../lib/db';
   import { supabase as cartSupabase, isSupabaseConfigured as cartSbReady } from '../lib/supabase';
-  import { firebaseAuth as cartFbAuth, onAuthStateChanged as onCartFbAuth } from '../lib/firebase';
+  import {
+    firebaseAuth as cartFbAuth,
+    GoogleAuthProvider as CartGoogleProvider,
+    signInWithPopup as cartSignInWithPopup,
+    signInWithRedirect as cartSignInWithRedirect,
+    onAuthStateChanged as onCartFbAuth
+  } from '../lib/firebase';
+
+  const checkoutAuthBanner = document.getElementById('checkout-auth-banner');
+  const checkoutSignedInPill = document.getElementById('checkout-signed-in-pill');
+  const checkoutUserLabel = document.getElementById('checkout-user-label');
+  const checkoutGoogleBtn = document.getElementById('checkout-google-btn');
+
+  checkoutGoogleBtn?.addEventListener('click', async () => {
+    const provider = new CartGoogleProvider();
+    try {
+      await cartSignInWithPopup(cartFbAuth, provider);
+      await autofillCheckoutFromAccount();
+    } catch (err: any) {
+      if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/cancelled-popup-request') {
+        await cartSignInWithRedirect(cartFbAuth, provider);
+      }
+    }
+  });
 
   async function autofillCheckoutFromAccount() {
     if (!cartSbReady) return;
     const { data: { session } } = await cartSupabase.auth.getSession();
     const fbUser = cartFbAuth.currentUser;
-    if (!session?.user && !fbUser) return;
+    if (!session?.user && !fbUser) {
+      if (checkoutAuthBanner) checkoutAuthBanner.style.display = 'flex';
+      if (checkoutSignedInPill) checkoutSignedInPill.style.display = 'none';
+      return;
+    }
     const profile = await getCustomerProfile();
 
     const nameEl = document.getElementById('checkout-name') as HTMLInputElement | null;
@@ -1927,6 +2037,10 @@
     const fullName = profile?.full_name || fbUser?.displayName || session?.user?.user_metadata?.full_name || '';
     const phoneRaw = (profile?.phone || fbUser?.phoneNumber || session?.user?.phone || '').replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
     const email = profile?.email || fbUser?.email || session?.user?.email || '';
+
+    if (checkoutAuthBanner) checkoutAuthBanner.style.display = 'none';
+    if (checkoutSignedInPill) checkoutSignedInPill.style.display = 'block';
+    if (checkoutUserLabel) checkoutUserLabel.textContent = fullName || email || phoneRaw || 'Verified Customer';
 
     if (nameEl && !nameEl.value && fullName) nameEl.value = fullName;
     if (phoneEl && !phoneEl.value && phoneRaw) phoneEl.value = phoneRaw;
