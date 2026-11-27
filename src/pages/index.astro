@@ -272,12 +272,19 @@ const initialReels: ProductReel[] = await getReels(8);
 
                 <h3 class="product-name" title={cleanProductName(item.name)}>{cleanProductName(item.name)}</h3>
 
-                {/* Rating & Review Count - Blinkit Inspired */}
-                <div class="product-rating" aria-label={`Rated ${item.rating || 4.8} out of 5 stars with ${item.reviews || '250+'} reviews`}>
-                  <span class="rating-star">★</span>
-                  <span class="rating-score">{item.rating || 4.8}</span>
-                  <span class="rating-count">({item.reviews || '250+'})</span>
-                </div>
+                {/* Rating & Review Count (Real Supabase ratings only; 'New' when 0 reviews) */}
+                {Number(item.reviews) > 0 && Number(item.rating) > 0 ? (
+                  <div class="product-rating" aria-label={`Rated ${item.rating} out of 5 stars with ${item.reviews} reviews`}>
+                    <span class="rating-star">★</span>
+                    <span class="rating-score">{item.rating}</span>
+                    <span class="rating-count">({item.reviews})</span>
+                  </div>
+                ) : (
+                  <div class="product-rating product-rating-new" aria-label="New Harvest — awaiting first verified review">
+                    <span class="rating-new-dot">✨</span>
+                    <span class="rating-count">New Harvest</span>
+                  </div>
+                )}
                 <p class="product-desc">{item.desc}</p>
 
                 {/* Pack Size Selector Indicator */}
@@ -2892,8 +2899,8 @@ const initialReels: ProductReel[] = await getReels(8);
     const category = card.getAttribute('data-category') || '';
     const imgUrl = card.getAttribute('data-img') || card.querySelector('.product-real-img')?.getAttribute('src') || '';
     const stockText = card.querySelector('[data-stock-target]')?.textContent?.trim() || 'In stock';
-    const ratingScore = card.querySelector('.rating-score')?.textContent?.trim() || '4.8';
-    const ratingCount = card.querySelector('.rating-count')?.textContent?.trim() || '(250+)';
+    const ratingScore = card.querySelector('.rating-score')?.textContent?.trim() || '';
+    const ratingCount = card.querySelector('.rating-count')?.textContent?.trim() || '';
     const desc = card.querySelector('.product-desc')?.textContent?.trim() || '';
     const selectedWeight = card.getAttribute('data-selected-weight') || '100g';
     const selectedPrice = card.getAttribute('data-selected-price') || '₹149';
@@ -2924,7 +2931,7 @@ const initialReels: ProductReel[] = await getReels(8);
       pdStock.className = `pd-modal-stock ${stockText.includes('Only') || stockText.includes('Out') ? 'low' : ''}`;
     }
     if (pdTitle) pdTitle.textContent = name;
-    if (pdRating) pdRating.textContent = `★ ${ratingScore} ${ratingCount}`;
+    if (pdRating) pdRating.textContent = ratingScore ? `★ ${ratingScore} ${ratingCount}` : '✨ New Harvest · Verified reviews coming soon';
     if (pdDesc) pdDesc.textContent = desc;
 
     function selectQuickVariant(v: any) {
@@ -3313,11 +3320,18 @@ const initialReels: ProductReel[] = await getReels(8);
               </span>
             </div>
             <h3 class="product-name" title="${cleanProductName(item.name)}">${cleanProductName(item.name)}</h3>
-            <div class="product-rating" aria-label="Rated ${item.rating || 4.8} out of 5 stars with ${item.reviews || '250+'} reviews">
-              <span class="rating-star">★</span>
-              <span class="rating-score">${item.rating || 4.8}</span>
-              <span class="rating-count">(${item.reviews || '250+'})</span>
-            </div>
+            ${Number(item.reviews) > 0 && Number(item.rating) > 0 ? `
+              <div class="product-rating" aria-label="Rated ${item.rating} out of 5 stars with ${item.reviews} reviews">
+                <span class="rating-star">★</span>
+                <span class="rating-score">${item.rating}</span>
+                <span class="rating-count">(${item.reviews})</span>
+              </div>
+            ` : `
+              <div class="product-rating product-rating-new" aria-label="New Harvest">
+                <span class="rating-new-dot">✨</span>
+                <span class="rating-count">New Harvest</span>
+              </div>
+            `}
             <p class="product-desc">${item.desc || item.description || ''}</p>
 
             ${variants && variants.length > 0 ? `

@@ -147,11 +147,17 @@ const relatedProducts = allProducts
           <h1 class="pdp-title">{cleanName}</h1>
 
           <div class="pdp-rating-row">
-            <div class="pdp-rating-badge">
-              <span>★</span>
-              <strong>{product.rating || 4.8}</strong>
-            </div>
-            <span class="pdp-review-count">({product.reviews || '250+'} ratings)</span>
+            {Number(product.reviews) > 0 && Number(product.rating) > 0 ? (
+              <>
+                <div class="pdp-rating-badge">
+                  <span>★</span>
+                  <strong>{product.rating}</strong>
+                </div>
+                <span class="pdp-review-count">({product.reviews} verified {Number(product.reviews) === 1 ? 'rating' : 'ratings'})</span>
+              </>
+            ) : (
+              <span class="pdp-review-count">✨ New Harvest · Be the first to review after delivery</span>
+            )}
             {product.flavour && <span class="pdp-flavour-chip">Variant: <strong>{product.flavour}</strong></span>}
           </div>
 
