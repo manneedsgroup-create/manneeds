@@ -1,0 +1,50 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+---
+
+<MainLayout title="Shipping Policy | ManNeeds" description="Shipping & Delivery Policy for ManNeeds orders across India.">
+  <section class="section policy-section">
+    <div class="container policy-container">
+      <span class="badge badge-green">Delivery &amp; Logistics</span>
+      <h1 class="section-title">Shipping &amp; Delivery Policy</h1>
+      <p class="policy-updated">Last updated: November 2026 · <strong>ManNeeds</strong></p>
+
+      <div class="policy-card">
+        <h2>1. Dispatch Timeline</h2>
+        <p>All confirmed orders are packed fresh and dispatched within <strong>24–48 business hours</strong> (Monday to Saturday, excluding public holidays).</p>
+
+        <h2>2. Delivery Timeline</h2>
+        <ul>
+          <li><strong>Metro &amp; Tier-1 Cities:</strong> 2–4 business days after dispatch.</li>
+          <li><strong>Rest of India (500+ Cities):</strong> 3–6 business days after dispatch.</li>
+        </ul>
+
+        <h2>3. Shipping Charges</h2>
+        <p><strong>Free Express Shipping</strong> on all orders of <strong>₹499 or above</strong>. For orders below ₹499, a standard flat shipping fee of ₹49 applies.</p>
+
+        <h2>4. Order Tracking</h2>
+        <p>Once dispatched, tracking details are shared via SMS/WhatsApp and can also be viewed in your <a href="/account">My Account</a> order history.</p>
+      </div>
+    </div>
+  </section>
+</MainLayout>
+
+<style>
+  .policy-section { padding: 3rem 0 4.5rem; background: var(--bg-base); }
+  .policy-container { max-width: 820px; }
+  .policy-updated { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.75rem; }
+  .policy-card {
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .policy-card h2 { font-size: 1.15rem; margin: 0.5rem 0 0; color: var(--text-primary); }
+  .policy-card p, .policy-card li { font-size: 0.94rem; color: var(--text-secondary); line-height: 1.7; }
+  .policy-card ul { padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.4rem; }
+  .policy-card a { color: var(--mn-cta); font-weight: 700; }
+  @media (max-width: 639px) { .policy-card { padding: 1.35rem; } }
+</style>

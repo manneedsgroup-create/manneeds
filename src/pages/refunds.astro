@@ -1,0 +1,49 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+---
+
+<MainLayout title="Cancellation & Refund Policy | ManNeeds" description="7-day replacement and refund policy for ManNeeds.">
+  <section class="section policy-section">
+    <div class="container policy-container">
+      <span class="badge badge-green">Customer Guarantee</span>
+      <h1 class="section-title">Cancellation, Return &amp; Refund Policy</h1>
+      <p class="policy-updated">Last updated: November 2026 · <strong>ManNeeds</strong></p>
+
+      <div class="policy-card">
+        <h2>1. Order Cancellation</h2>
+        <p>You may cancel your order before it is dispatched by messaging us on WhatsApp (<a href="https://wa.me/919748973335">+91 97489 73335</a>) or emailing <a href="mailto:manneedsgroup@gmail.com">manneedsgroup@gmail.com</a> with your Order ID.</p>
+
+        <h2>2. 7-Day Replacement &amp; Return Policy</h2>
+        <p>Because our products are consumable food items, opened packages cannot be returned unless defective. However, we offer a <strong>100% 7-day replacement or refund guarantee</strong> if you receive:</p>
+        <ul>
+          <li>A damaged, leaked, or tampered package</li>
+          <li>An incorrect product or wrong pack size</li>
+          <li>An expired or quality-compromised batch</li>
+        </ul>
+
+        <h2>3. Refund Timeline</h2>
+        <p>Once your replacement/refund request is approved (usually within 24 hours after sharing a photo on WhatsApp), refunds for prepaid UPI/Card orders are credited back to your original payment method within <strong>5–7 business days</strong>.</p>
+      </div>
+    </div>
+  </section>
+</MainLayout>
+
+<style>
+  .policy-section { padding: 3rem 0 4.5rem; background: var(--bg-base); }
+  .policy-container { max-width: 820px; }
+  .policy-updated { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.75rem; }
+  .policy-card {
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .policy-card h2 { font-size: 1.15rem; margin: 0.5rem 0 0; color: var(--text-primary); }
+  .policy-card p, .policy-card li { font-size: 0.94rem; color: var(--text-secondary); line-height: 1.7; }
+  .policy-card ul { padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.4rem; }
+  .policy-card a { color: var(--mn-cta); font-weight: 700; }
+  @media (max-width: 639px) { .policy-card { padding: 1.35rem; } }
+</style>
