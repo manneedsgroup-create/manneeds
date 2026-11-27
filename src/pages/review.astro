@@ -223,7 +223,7 @@ const productNames = products.map((p) => cleanProductName(p.name));
 </style>
 
 <script>
-  import { submitReview } from '../lib/db';
+  import { submitReview, getCustomerProfile } from '../lib/db';
 
   const params = new URLSearchParams(window.location.search);
   const nameInput = document.getElementById('rev-name') as HTMLInputElement | null;
@@ -242,6 +242,15 @@ const productNames = products.map((p) => cleanProductName(p.name));
   if (nameInput && params.get('name')) nameInput.value = params.get('name') || '';
   if (orderInput && params.get('order')) orderInput.value = params.get('order') || '';
   if (cityInput && params.get('city')) cityInput.value = params.get('city') || '';
+
+  // Auto-fetch signed-in customer profile if fields are empty
+  getCustomerProfile().then((profile) => {
+    if (!profile) return;
+    if (nameInput && !nameInput.value && profile.full_name) nameInput.value = profile.full_name;
+    if (cityInput && !cityInput.value && (profile.city || profile.state)) {
+      cityInput.value = [profile.city, profile.state].filter(Boolean).join(', ');
+    }
+  });
   if (productSelect && params.get('product')) {
     const targetProd = params.get('product') || '';
     const match = Array.from(productSelect.options).find(

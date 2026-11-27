@@ -688,4 +688,19 @@ import MainLayout from '../layouts/MainLayout.astro';
   supabase.auth.onAuthStateChange(() => {
     loadAccountSession();
   });
+
+  // Auto-fetch City & State from 6-digit Indian Pincode
+  profPincode?.addEventListener('input', async () => {
+    const pin = profPincode.value.replace(/\D/g, '');
+    if (pin.length !== 6) return;
+    try {
+      const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+      const json = await res.json();
+      const po = json?.[0]?.PostOffice?.[0];
+      if (po) {
+        if (profCity) profCity.value = po.District || po.Block || profCity.value;
+        if (profState) profState.value = po.State || profState.value;
+      }
+    } catch {}
+  });
 </script>
