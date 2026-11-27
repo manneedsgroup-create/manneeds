@@ -182,7 +182,7 @@ const initialReels: ProductReel[] = await getReels(8);
       </div>
 
       <div class="products-grid" id="products-grid">
-        {bestsellers.map((item) => {
+        {bestsellers.map((item, cardIdx) => {
           const masterStock = item.stockQuantity !== undefined && item.stockQuantity !== null ? Number(item.stockQuantity) : 0;
           const defaultVariant = item.variants && item.variants.length > 0 ? item.variants[0] : null;
           const currentPrice = defaultVariant ? defaultVariant.price : item.price;
@@ -220,7 +220,8 @@ const initialReels: ProductReel[] = await getReels(8);
                             src={imgUrl} 
                             alt={`${cleanProductName(item.name)} photo ${imgIdx + 1}`} 
                             class="product-real-img" 
-                            loading={imgIdx === 0 ? "eager" : "lazy"} 
+                            loading={cardIdx < 4 && imgIdx === 0 ? "eager" : "lazy"} 
+                            decoding="async" 
                           />
                         </div>
                       ))
