@@ -106,31 +106,31 @@ import MainLayout from '../layouts/MainLayout.astro';
           <div class="dashboard-card">
             <h2>Saved Delivery Details</h2>
             <p class="dash-card-sub">Auto-filled at checkout for faster ordering.</p>
-            <form id="profile-save-form" class="dash-form">
+            <form id="profile-save-form" class="dash-form" autocomplete="on">
               <div class="dash-field">
                 <label for="prof-name">Full Name</label>
-                <input type="text" id="prof-name" required placeholder="Your full name" />
+                <input type="text" id="prof-name" name="name" autocomplete="name" required placeholder="Your full name" />
               </div>
               <div class="dash-field">
                 <label for="prof-phone">Mobile Number</label>
-                <input type="tel" id="prof-phone" placeholder="10-digit mobile number" />
+                <input type="tel" id="prof-phone" name="tel" autocomplete="tel" placeholder="10-digit mobile number" />
               </div>
               <div class="dash-field">
                 <label for="prof-address">Shipping Address</label>
-                <textarea id="prof-address" rows="2" placeholder="House/Flat, Street, Area"></textarea>
+                <textarea id="prof-address" name="street-address" autocomplete="street-address" rows="2" placeholder="House/Flat, Street, Area"></textarea>
               </div>
               <div class="dash-form-row">
                 <div class="dash-field">
                   <label for="prof-pincode">Pincode</label>
-                  <input type="text" id="prof-pincode" maxlength="6" placeholder="Pincode" />
+                  <input type="text" id="prof-pincode" name="postal-code" autocomplete="postal-code" maxlength="6" placeholder="Pincode" />
                 </div>
                 <div class="dash-field">
                   <label for="prof-city">City</label>
-                  <input type="text" id="prof-city" placeholder="City" />
+                  <input type="text" id="prof-city" name="address-level2" autocomplete="address-level2" placeholder="City" />
                 </div>
                 <div class="dash-field">
                   <label for="prof-state">State</label>
-                  <input type="text" id="prof-state" placeholder="State" />
+                  <input type="text" id="prof-state" name="address-level1" autocomplete="address-level1" placeholder="State" />
                 </div>
               </div>
               <button type="submit" id="btn-save-profile" class="btn btn-primary">Save Details</button>

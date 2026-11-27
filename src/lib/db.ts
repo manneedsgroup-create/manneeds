@@ -1182,15 +1182,49 @@ export async function getCustomerProfile(): Promise<CustomerProfile | null> {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return null;
+    const user = session.user;
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('customers')
       .select('*')
-      .eq('id', session.user.id)
-      .single();
+      .eq('id', user.id)
+      .maybeSingle();
 
-    if (error || !data) return null;
-    return data as CustomerProfile;
+    const profile: CustomerProfile = (data as CustomerProfile) || {
+      id: user.id,
+      full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
+      email: user.email || '',
+      phone: user.phone || '',
+      avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || ''
+    };
+
+    // If saved address or phone is missing, auto-fetch from the user's latest past order
+    if (!profile.shipping_address || !profile.phone) {
+      let query = supabase
+        .from('orders')
+        .select('customer_name, customer_phone, shipping_address, city, state, pincode')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (user.email) {
+        query = query.or(`user_id.eq.${user.id},customer_email.eq.${user.email}`);
+      } else {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data: pastOrders } = await query;
+      const lastOrder = pastOrders?.[0];
+      if (lastOrder) {
+        profile.full_name = profile.full_name || lastOrder.customer_name || '';
+        profile.phone = profile.phone || lastOrder.customer_phone || '';
+        profile.shipping_address = profile.shipping_address || lastOrder.shipping_address || '';
+        profile.city = profile.city || lastOrder.city || '';
+        profile.state = profile.state || lastOrder.state || '';
+        profile.pincode = profile.pincode || lastOrder.pincode || '';
+      }
+    }
+
+    return profile;
   } catch {
     return null;
   }
