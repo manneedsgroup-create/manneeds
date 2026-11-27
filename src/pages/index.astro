@@ -68,42 +68,47 @@ const initialReels: ProductReel[] = await getReels(8);
 ---
 
 <MainLayout title="Pure Indian Kitchen Essentials, Spices, Honey & Healthy Foods">
-  <!-- Hero + Reels Split Section (Desktop: Left Hero / Right Reels; Mobile: Section-wise Top-to-Down) -->
-  <section class="hero-section" id="hero">
-    <div class="container hero-container">
-      <div class="hero-content">
-        <!-- Floating Pill Badge -->
-        <div class="badge badge-green hero-badge">
-          <span class="badge-dot"></span>
-          🌾 100% Pure Indian Farm Harvest • Zero Chemical Fillers
-        </div>
-        
-        <h1 class="hero-title">
-          PURE FOOD, <br />
-          <span class="text-gradient-orange">HONEST HARVEST.</span>
-        </h1>
-        
-        <p class="hero-tagline-sub">
-          COLD-MILLED. <span class="text-gradient-green">UNADULTERATED.</span> PURE AROMA.
-        </p>
+  <!-- Top Flow: Desktop = Hero (Left) + Reels (Right), then Products; Mobile = Compact Hero -> Products -> Reels -->
+  <div class="top-flow">
+    <!-- Hero Section -->
+    <section class="hero-section" id="hero">
+      <div class="container hero-container">
+        <div class="hero-content">
+          <!-- Floating Pill Badge -->
+          <div class="badge badge-green hero-badge">
+            <span class="badge-dot"></span>
+            🌾 100% Pure Indian Farm Harvest • Zero Chemical Fillers
+          </div>
+          
+          <h1 class="hero-title">
+            PURE FOOD, <br />
+            <span class="text-gradient-orange">HONEST HARVEST.</span>
+          </h1>
+          
+          <p class="hero-tagline-sub">
+            COLD-MILLED. <span class="text-gradient-green">UNADULTERATED.</span> PURE AROMA.
+          </p>
 
-        <!-- CTA Action Buttons -->
-        <div class="hero-actions">
-          <a href="#bestsellers" class="btn btn-primary hero-btn-main">
-            <span>Shop Harvest Essentials (Flat 15% Off)</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-              <polyline points="12 5 19 12 12 19"></polyline>
-            </svg>
-          </a>
-          <a href="#reels" class="btn hero-btn-secondary">
-            <span>▶ Watch Farm &amp; Kitchen Reels</span>
-          </a>
+          <!-- CTA Action Buttons -->
+          <div class="hero-actions">
+            <a href="#bestsellers" class="btn btn-primary hero-btn-main">
+              <span>Shop Harvest (15% Off)</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+            <a href="#reels" class="btn hero-btn-secondary">
+              <span>▶ Watch Reels</span>
+            </a>
+          </div>
         </div>
       </div>
+    </section>
 
-      <!-- Product Reels & Promotional Videos (Right on Desktop, Below Hero on Mobile) -->
-      <div class="hero-reels-pane" id="reels">
+    <!-- Product Reels & Promotional Videos (Right on Desktop, Below Products on Mobile) -->
+    <section class="hero-reels-pane" id="reels">
+      <div class="container hero-reels-inner">
         <div class="hero-reels-header">
           <span class="badge badge-orange">Watch In Action</span>
           <h2 class="hero-reels-title">Farm Harvest &amp; Kitchen Reels</h2>
@@ -163,8 +168,7 @@ const initialReels: ProductReel[] = await getReels(8);
           )}
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
   <!-- Flagship Bestsellers & Categories Section -->
   <section class="section bestsellers-section" id="bestsellers">
@@ -402,6 +406,7 @@ const initialReels: ProductReel[] = await getReels(8);
       </div>
     </div>
   </section>
+  </div>
 
   <!-- Curated Bundle Deals Section -->
   <section class="section bundle-section" id="bundles">
@@ -793,12 +798,32 @@ const initialReels: ProductReel[] = await getReels(8);
                 var(--bg-base);
   }
 
+  /* Responsive Top Flow: Mobile = Compact Hero -> Products -> Reels; Desktop = Hero (Left) + Reels (Right) -> Products */
+  .top-flow {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .top-flow > #hero {
+    order: 1;
+  }
+
+  .top-flow > #bestsellers {
+    order: 2;
+  }
+
+  .top-flow > #reels {
+    order: 3;
+    padding: 2rem 0 2.5rem;
+    background: var(--bg-base);
+  }
+
   .hero-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: 2.25rem;
+    gap: 1.5rem;
   }
 
   .hero-content {
@@ -828,17 +853,48 @@ const initialReels: ProductReel[] = await getReels(8);
   }
 
   @media (min-width: 1024px) {
-    .hero-section {
-      padding-top: 3rem;
-      padding-bottom: 3rem;
+    .top-flow {
+      display: grid;
+      grid-template-columns: minmax(1.5rem, 1fr) minmax(0, calc(var(--max-width) * 0.45)) minmax(0, calc(var(--max-width) * 0.55)) minmax(1.5rem, 1fr);
+      align-items: center;
+      background: radial-gradient(circle at 30% 15%, rgba(217, 107, 39, 0.06) 0%, transparent 55%),
+                  radial-gradient(circle at 80% 35%, rgba(30, 70, 32, 0.06) 0%, transparent 50%),
+                  var(--bg-base);
+    }
+
+    .top-flow > #hero {
+      grid-column: 2;
+      grid-row: 1;
+      order: unset;
+      background: transparent;
+      padding: 2.75rem 1.5rem 2.75rem 0;
+    }
+
+    .top-flow > #reels {
+      grid-column: 3;
+      grid-row: 1;
+      order: unset;
+      background: transparent;
+      padding: 2.75rem 0 2.75rem 1.5rem;
+    }
+
+    .top-flow > #bestsellers {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      order: unset;
+      background: var(--bg-base);
     }
 
     .hero-container {
-      display: grid;
-      grid-template-columns: minmax(0, 1.02fr) minmax(0, 1.15fr);
-      align-items: center;
+      padding-left: 0;
+      padding-right: 0;
+      align-items: flex-start;
       text-align: left;
-      gap: 3rem;
+    }
+
+    .hero-reels-inner {
+      padding-left: 0;
+      padding-right: 0;
     }
 
     .hero-content {
@@ -2143,26 +2199,26 @@ const initialReels: ProductReel[] = await getReels(8);
       padding-bottom: 1.5rem !important;
     }
 
-    /* Hero compacting */
+    /* Hero compacting so Products appear immediately at the top on mobile */
     .hero-section {
-      padding-top: 1.75rem !important;
-      padding-bottom: 1.25rem !important;
+      padding-top: 0.95rem !important;
+      padding-bottom: 0.65rem !important;
     }
 
     .hero-badge {
-      font-size: 0.72rem !important;
-      padding: 0.25rem 0.65rem !important;
-      margin-bottom: 0.75rem !important;
+      font-size: 0.68rem !important;
+      padding: 0.22rem 0.6rem !important;
+      margin-bottom: 0.45rem !important;
     }
 
     .hero-title {
-      font-size: 2.15rem !important;
+      font-size: 1.65rem !important;
       line-height: 1.08 !important;
-      margin-bottom: 0.35rem !important;
+      margin-bottom: 0.25rem !important;
     }
 
     .hero-tagline-sub {
-      font-size: 0.9rem !important;
+      font-size: 0.78rem !important;
       margin-bottom: 0.65rem !important;
     }
 
@@ -2174,16 +2230,21 @@ const initialReels: ProductReel[] = await getReels(8);
     }
 
     .hero-actions {
-      margin-bottom: 1rem !important;
+      gap: 0.5rem !important;
+      margin-bottom: 0.35rem !important;
     }
 
     .hero-btn-main,
     .hero-btn-secondary {
-      width: 100% !important;
-      max-width: 320px !important;
-      padding: 0.75rem 1.25rem !important;
-      font-size: 0.95rem !important;
+      width: auto !important;
+      max-width: none !important;
+      padding: 0.58rem 0.95rem !important;
+      font-size: 0.84rem !important;
       justify-content: center;
+    }
+
+    #bestsellers.section {
+      padding-top: 1.1rem !important;
     }
 
     /* Catalog Section Header */
