@@ -406,7 +406,6 @@ const initialReels: ProductReel[] = await getReels(8);
       </div>
     </div>
   </section>
-  </div>
 
   <!-- Curated Bundle Deals Section -->
   <section class="section bundle-section" id="bundles">
@@ -641,7 +640,7 @@ const initialReels: ProductReel[] = await getReels(8);
       </div>
     </div>
   </section>
-
+  </div>
 
   <!-- VIP Promo CTA -->
   <section class="section promo-cta-section">
@@ -812,10 +811,26 @@ const initialReels: ProductReel[] = await getReels(8);
     order: 2;
   }
 
-  .top-flow > #reels {
+  .top-flow > #bundles {
     order: 3;
-    padding: 2rem 0 2.5rem;
-    background: var(--bg-base);
+  }
+
+  .top-flow > #our-story {
+    order: 4;
+  }
+
+  .top-flow > #why-manneeds {
+    order: 5;
+  }
+
+  .top-flow > #reviews {
+    order: 6;
+  }
+
+  .top-flow > #reels {
+    order: 7;
+    padding: 0 0 3rem;
+    background: var(--bg-surface);
   }
 
   .hero-container {
@@ -878,10 +893,17 @@ const initialReels: ProductReel[] = await getReels(8);
       padding: 2.75rem 0 2.75rem 1.5rem;
     }
 
-    .top-flow > #bestsellers {
+    .top-flow > #bestsellers,
+    .top-flow > #bundles,
+    .top-flow > #our-story,
+    .top-flow > #why-manneeds,
+    .top-flow > #reviews {
       grid-column: 1 / -1;
-      grid-row: 2;
       order: unset;
+    }
+
+    .top-flow > #bestsellers {
+      grid-row: 2;
       background: var(--bg-base);
     }
 
