@@ -3308,11 +3308,14 @@ const initialReels: ProductReel[] = await getReels(8);
       const container = document.getElementById('reels-container');
       if (!container || !reels || reels.length === 0) return;
 
-      const cardsHtml = reels.map((reel) => {
-        const embed = getReelEmbedInfo(reel);
+      const cardsHtml = reels.map((reel: any) => {
+        const embed = reel.media_url
+          ? { type: 'video', src: reel.media_url }
+          : getReelEmbedInfo(reel);
         const platformLabel = reel.platform === 'facebook' ? 'Facebook' : reel.platform === 'youtube' ? 'YouTube' : reel.platform === 'mp4' ? 'Video' : 'Instagram';
+        const posterAttr = reel.thumbnail_url ? ` poster="${escHtml(reel.thumbnail_url)}"` : '';
         const mediaHtml = embed.type === 'video'
-          ? `<video src="${escHtml(embed.src)}" controls playsinline preload="metadata"></video>`
+          ? `<video src="${escHtml(embed.src)}"${posterAttr} controls playsinline preload="metadata"></video>`
           : `<iframe src="${escHtml(embed.src)}" title="${escHtml(reel.title)}" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" allowfullscreen></iframe>`;
         return `
           <div class="reel-card">
@@ -3332,9 +3335,23 @@ const initialReels: ProductReel[] = await getReels(8);
       container.innerHTML = `<div class="reels-carousel" id="reels-grid">${cardsHtml}</div>`;
     }
 
-    getReels(8).then((liveReels) => {
-      if (liveReels.length > 0) renderLiveReels(liveReels);
-    });
+    // 1. Try automatic Instagram page feed (/api/instagram-reels) first, then fallback to Supabase reels
+    fetch('/api/instagram-reels')
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.reels && data.reels.length > 0) {
+          renderLiveReels(data.reels);
+          return;
+        }
+        return getReels(8).then((liveReels) => {
+          if (liveReels.length > 0) renderLiveReels(liveReels);
+        });
+      })
+      .catch(() => {
+        getReels(8).then((liveReels) => {
+          if (liveReels.length > 0) renderLiveReels(liveReels);
+        });
+      });
 
     supabase
       .channel('realtime:reels')
