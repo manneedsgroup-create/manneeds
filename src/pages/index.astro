@@ -100,7 +100,77 @@ const initialReels: ProductReel[] = await getReels(8);
               <polyline points="12 5 19 12 12 19"></polyline>
             </svg>
           </a>
+          <a href="#reels" class="btn hero-btn-secondary">
+            <span>▶ Watch Farm &amp; Kitchen Reels</span>
+          </a>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Product Reels & Promotional Videos (Instagram / Facebook / MP4 from Supabase) -->
+  <section class="section reels-section" id="reels">
+    <div class="container">
+      <div class="section-header" style="text-align:center;margin-bottom:2.25rem;">
+        <span class="badge badge-orange">Watch In Action</span>
+        <h2 class="section-title">Farm Harvest &amp; Kitchen Reels</h2>
+        <p class="section-subtitle">
+          See how our cold-milled botanicals, raw honey, and roasted snacks are prepared and enjoyed in real Indian kitchens.
+        </p>
+      </div>
+
+      <div id="reels-container">
+        {initialReels.length > 0 ? (
+          <div class="reels-carousel" id="reels-grid">
+            {initialReels.map((reel) => {
+              const embed = getReelEmbedInfo(reel);
+              const platformLabel = reel.platform === 'facebook' ? 'Facebook' : reel.platform === 'youtube' ? 'YouTube' : reel.platform === 'mp4' ? 'Video' : 'Instagram';
+              return (
+                <div class="reel-card">
+                  <div class="reel-media-frame">
+                    {embed.type === 'video' ? (
+                      <video src={embed.src} controls playsinline preload="metadata" />
+                    ) : (
+                      <iframe
+                        src={embed.src}
+                        title={reel.title}
+                        loading="lazy"
+                        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                        allowfullscreen
+                      ></iframe>
+                    )}
+                  </div>
+                  <div class="reel-card-footer">
+                    <div class="reel-platform-row">
+                      <span class="reel-platform-pill">{platformLabel}</span>
+                      <a href={reel.reel_url} target="_blank" rel="noopener noreferrer" class="reel-ext-link">Open Reel ↗</a>
+                    </div>
+                    <h3 class="reel-title">{reel.title}</h3>
+                    {reel.product_name && <span class="reel-product-tag">🛍 {reel.product_name}</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div class="reviews-empty-card" id="reels-empty-state">
+            <div class="reviews-empty-icon">🎬</div>
+            <h3>Follow ManNeeds on Instagram</h3>
+            <p>
+              Our latest farm-to-kitchen reels and product stories sync here automatically from Instagram.
+            </p>
+            <div class="reviews-empty-actions">
+              <a
+                href="https://www.instagram.com/manneeds_group/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-primary"
+              >
+                Follow @manneeds_group on Instagram ↗
+              </a>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   </section>
@@ -577,73 +647,6 @@ const initialReels: ProductReel[] = await getReels(8);
   </section>
 
 
-  <!-- Product Reels & Promotional Videos (Instagram / Facebook / MP4 from Supabase) -->
-  <section class="section reels-section" id="reels">
-    <div class="container">
-      <div class="section-header" style="text-align:center;margin-bottom:2.25rem;">
-        <span class="badge badge-orange">Watch In Action</span>
-        <h2 class="section-title">Farm Harvest &amp; Kitchen Reels</h2>
-        <p class="section-subtitle">
-          See how our cold-milled botanicals, raw honey, and roasted snacks are prepared and enjoyed in real Indian kitchens.
-        </p>
-      </div>
-
-      <div id="reels-container">
-        {initialReels.length > 0 ? (
-          <div class="reels-carousel" id="reels-grid">
-            {initialReels.map((reel) => {
-              const embed = getReelEmbedInfo(reel);
-              const platformLabel = reel.platform === 'facebook' ? 'Facebook' : reel.platform === 'youtube' ? 'YouTube' : reel.platform === 'mp4' ? 'Video' : 'Instagram';
-              return (
-                <div class="reel-card">
-                  <div class="reel-media-frame">
-                    {embed.type === 'video' ? (
-                      <video src={embed.src} controls playsinline preload="metadata" />
-                    ) : (
-                      <iframe
-                        src={embed.src}
-                        title={reel.title}
-                        loading="lazy"
-                        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                        allowfullscreen
-                      ></iframe>
-                    )}
-                  </div>
-                  <div class="reel-card-footer">
-                    <div class="reel-platform-row">
-                      <span class="reel-platform-pill">{platformLabel}</span>
-                      <a href={reel.reel_url} target="_blank" rel="noopener noreferrer" class="reel-ext-link">Open Reel ↗</a>
-                    </div>
-                    <h3 class="reel-title">{reel.title}</h3>
-                    {reel.product_name && <span class="reel-product-tag">🛍 {reel.product_name}</span>}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div class="reviews-empty-card" id="reels-empty-state">
-            <div class="reviews-empty-icon">🎬</div>
-            <h3>Follow ManNeeds on Instagram</h3>
-            <p>
-              Our latest farm-to-kitchen reels and product stories sync here automatically from Instagram.
-            </p>
-            <div class="reviews-empty-actions">
-              <a
-                href="https://www.instagram.com/manneeds_group/"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="btn btn-primary"
-              >
-                Follow @manneeds_group on Instagram ↗
-              </a>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  </section>
-
   <!-- VIP Promo CTA -->
   <section class="section promo-cta-section">
     <div class="container">
@@ -861,6 +864,23 @@ const initialReels: ProductReel[] = await getReels(8);
   .hero-btn-main {
     padding: 0.95rem 1.85rem;
     font-size: 1.05rem;
+  }
+
+  .hero-btn-secondary {
+    padding: 0.95rem 1.65rem;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 999px;
+    border: 1px solid var(--border-color, rgba(234, 88, 12, 0.35));
+    background: rgba(234, 88, 12, 0.08);
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+  }
+
+  .hero-btn-secondary:hover {
+    background: rgba(234, 88, 12, 0.16);
+    border-color: rgba(234, 88, 12, 0.6);
+    transform: translateY(-2px);
   }
 
 

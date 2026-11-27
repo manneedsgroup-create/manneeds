@@ -6,9 +6,9 @@ interface Props {
 const { cartCount = 0 } = Astro.props;
 
 const navLinks: { label: string; href: string; badge?: string }[] = [
+  { label: 'Reels', href: '/#reels', badge: 'Watch' },
   { label: 'Shop', href: '/#bestsellers' },
   { label: 'Combos', href: '/#bundles', badge: 'Save' },
-  { label: 'Reels', href: '/#reels' },
   { label: 'Our Story', href: '/#our-story' },
   { label: 'Reviews', href: '/#reviews' },
   { label: 'FAQ', href: '/#faq' }
