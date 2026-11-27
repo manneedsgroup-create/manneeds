@@ -163,8 +163,16 @@ export interface Order {
 }
 
 // Read from environment (supports both Astro PUBLIC_ and Next/Supabase NEXT_PUBLIC_ prefixes)
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+// Publishable anon key is safe for browser clients (protected by Supabase RLS)
+const supabaseUrl =
+  import.meta.env.PUBLIC_SUPABASE_URL ||
+  import.meta.env.NEXT_PUBLIC_SUPABASE_URL ||
+  'https://aicgtlizgpcacdidoeut.supabase.co';
+const supabaseAnonKey =
+  import.meta.env.PUBLIC_SUPABASE_ANON_KEY ||
+  import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  'sb_publishable_Yu2qHXqF6kH2n2QpOdFqHg_ceIjFQje';
 
 export const isSupabaseConfigured = Boolean(
   supabaseUrl && 
