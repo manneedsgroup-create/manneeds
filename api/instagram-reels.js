@@ -39,16 +39,18 @@ export default async function handler(req, res) {
       const response = await fetch(beholdUrl);
       const json = await response.json();
       const posts = Array.isArray(json?.posts) ? json.posts : Array.isArray(json) ? json : [];
-      const reels = posts
-        .filter((p) => p.mediaType === 'VIDEO' || p.isReel || p.permalink?.includes('/reel/'))
+      const videoPosts = posts.filter((p) => p.mediaType === 'VIDEO' || p.isReel || p.permalink?.includes('/reel/'));
+      const chosen = videoPosts.length > 0 ? videoPosts : posts;
+      const reels = chosen
         .slice(0, 8)
         .map((p) => ({
           id: p.id,
           title: (p.caption || 'ManNeeds Pure Harvest').split('\n')[0].slice(0, 72),
           platform: 'instagram',
+          media_type: p.mediaType === 'VIDEO' || p.isReel || p.permalink?.includes('/reel/') ? 'VIDEO' : 'IMAGE',
           reel_url: p.permalink,
-          media_url: p.mediaUrl,
-          thumbnail_url: p.thumbnailUrl,
+          media_url: p.mediaUrl || p.sizes?.large?.mediaUrl || p.sizes?.medium?.mediaUrl || '',
+          thumbnail_url: p.thumbnailUrl || p.sizes?.medium?.mediaUrl || '',
           created_at: p.timestamp
         }));
 
