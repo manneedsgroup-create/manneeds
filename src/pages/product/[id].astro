@@ -256,14 +256,63 @@ const relatedProducts = allProducts
             <details open class="pdp-acc-item">
               <summary>Product Details</summary>
               <p>{product.desc}</p>
+              {product.ingredients && (
+                <p style="margin-top:0.5rem;"><strong>Ingredients:</strong> {product.ingredients}</p>
+              )}
             </details>
+            {product.nutrition_info && (
+              <details open class="pdp-acc-item">
+                <summary>NABL Lab-Tested Nutrition (per 100g) &amp; Purity Report</summary>
+                <div class="pdp-lab-grid">
+                  {Object.entries(product.nutrition_info).map(([k, v]) => {
+                    const labels: Record<string, string> = {
+                      energy_kcal: 'Energy (kcal)',
+                      protein_g: 'Protein (g)',
+                      carbohydrates_g: 'Total Carbohydrates (g)',
+                      dietary_fibre_g: 'Dietary Fibre (g)',
+                      added_sugar_g: 'Added Sugar (g)',
+                      total_fat_g: 'Total Fat (g)',
+                      saturated_fat_g: 'Saturated Fat (g)',
+                      trans_fat_g: 'Trans Fat (g)',
+                      cholesterol_mg: 'Cholesterol (mg)',
+                      calcium_mg: 'Calcium (mg)',
+                      iron_mg: 'Iron (mg)',
+                      sodium_mg: 'Sodium (mg)',
+                      potassium_mg: 'Potassium (mg)',
+                      magnesium_mg: 'Magnesium (mg)',
+                      manganese_mg: 'Manganese (mg)',
+                      phosphorous_mg: 'Phosphorous (mg)',
+                      zinc_mg: 'Zinc (mg)',
+                      chloride_mg: 'Chloride (mg)',
+                      vitamin_c_mg: 'Vitamin C (mg)',
+                      vitamin_a_mcg: 'Vitamin A (mcg)',
+                      vitamin_e_mcg: 'Vitamin E (mcg)',
+                      vitamin_k_mcg: 'Vitamin K (mcg)',
+                      moisture: 'Moisture',
+                      ash: 'Ash Content'
+                    };
+                    return (
+                      <div class="pdp-lab-row">
+                        <span>{labels[k] || k}</span>
+                        <strong>{v}</strong>
+                      </div>
+                    );
+                  })}
+                </div>
+                {product.lab_report && (
+                  <p class="pdp-lab-cert-note">
+                    🔬 Tested by <strong>{product.lab_report.lab}</strong> (NABL {product.lab_report.nabl_cert}) · Report <code>{product.lab_report.report_no}</code> ({product.lab_report.test_date}) · Heavy Metals: <strong>{product.lab_report.heavy_metals}</strong> · Status: <strong>{product.lab_report.status}</strong>
+                  </p>
+                )}
+              </details>
+            )}
             <details class="pdp-acc-item">
               <summary>Purity &amp; Processing</summary>
-              <p>Cold-milled and slow-processed below 40°C in small batches to lock in natural aroma, essential oils, and nutrition. Zero synthetic colors, fillers, or preservatives.</p>
+              <p>{product.purity_processing || 'Cold-milled and slow-processed below 40°C in small batches to lock in natural aroma, essential oils, and nutrition. Zero synthetic colors, fillers, or preservatives.'}</p>
             </details>
             <details class="pdp-acc-item">
               <summary>Storage &amp; Shelf Life</summary>
-              <p>Store in a cool, dry place away from direct sunlight. Reseal pouch tightly or transfer to an airtight glass jar after opening. Best before 9–12 months from packaging.</p>
+              <p>{product.storage_shelf_life || 'Store in a cool, dry place away from direct sunlight. Reseal pouch tightly or transfer to an airtight glass jar after opening. Best before 9–12 months from packaging.'}</p>
             </details>
             <details class="pdp-acc-item">
               <summary>Customer Support &amp; Replacement</summary>
@@ -705,6 +754,34 @@ const relatedProducts = allProducts
     font-size: 0.88rem;
     color: var(--text-secondary);
     line-height: 1.65;
+  }
+  .pdp-lab-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem 1rem;
+    margin-top: 0.7rem;
+    padding: 0.65rem 0.75rem;
+    background: var(--bg-base);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+  }
+  .pdp-lab-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    padding: 0.2rem 0;
+    border-bottom: 1px dashed var(--border-subtle);
+  }
+  .pdp-lab-row strong { color: var(--text-primary); }
+  .pdp-lab-cert-note {
+    margin-top: 0.6rem !important;
+    font-size: 0.78rem !important;
+    color: var(--mn-primary) !important;
+  }
+  @media (max-width: 600px) {
+    .pdp-lab-grid { grid-template-columns: 1fr; }
   }
 
   .pdp-related-section {

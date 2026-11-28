@@ -27,6 +27,12 @@ export interface Product {
   videos?: string[];
   folder?: string;
   variants?: ProductVariant[];
+  ingredients?: string;
+  purity_processing?: string;
+  storage_shelf_life?: string;
+  farm_origin?: string;
+  nutrition_info?: Record<string, string | number>;
+  lab_report?: Record<string, string>;
 }
 
 // ==========================================

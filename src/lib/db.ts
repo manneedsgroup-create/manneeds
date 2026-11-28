@@ -14,6 +14,7 @@ import {
   type CustomerProfile,
   type ProductReel
 } from './supabase';
+import { PRODUCT_LAB_DETAILS } from './labReports';
 import { firebaseAuth } from './firebase';
 
 export type { Order, OrderItem, InventorySummary, Review, CustomerProfile, ProductReel };
@@ -624,6 +625,7 @@ export async function getProducts(): Promise<Product[]> {
         ? item.images
         : (item.image ? [item.image] : (defaultProd?.images || []));
 
+      const labDefault = PRODUCT_LAB_DETAILS[Number(item.id)];
       return {
         id: item.id,
         name: cleanProductName(item.name),
@@ -642,17 +644,29 @@ export async function getProducts(): Promise<Product[]> {
         image: images[0] || item.image || item.image_url || '',
         images,
         videos: defaultProd?.videos || [],
-        variants
+        variants,
+        ingredients: item.ingredients || labDefault?.ingredients,
+        purity_processing: item.purity_processing || undefined,
+        storage_shelf_life: item.storage_shelf_life || undefined,
+        farm_origin: item.farm_origin || undefined,
+        nutrition_info: item.nutrition_info || labDefault?.nutrition_info,
+        lab_report: item.lab_report || labDefault?.lab_report
       };
     });
 
     // Merge any products from DEFAULT_PRODUCTS that are not yet in Supabase table
     const existingIds = new Set(mapped.map((p) => p.id));
-    const missingDefaults = DEFAULT_PRODUCTS.filter((p) => !existingIds.has(p.id));
+    const missingDefaults = DEFAULT_PRODUCTS.filter((p) => !existingIds.has(p.id)).map((p) => ({
+      ...p,
+      ...(PRODUCT_LAB_DETAILS[p.id] || {})
+    }));
     return [...mapped, ...missingDefaults];
   } catch (err) {
     console.error('[Supabase] Failed to fetch products:', err);
-    return DEFAULT_PRODUCTS;
+    return DEFAULT_PRODUCTS.map((p) => ({
+      ...p,
+      ...(PRODUCT_LAB_DETAILS[p.id] || {})
+    }));
   }
 }
 
