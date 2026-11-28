@@ -1336,33 +1336,63 @@ export async function updateCustomerProfile(updates: Partial<CustomerProfile>): 
 
     const fbUser = typeof window !== 'undefined' ? firebaseAuth.currentUser : null;
     if (fbUser) {
-      const digits10 = (updates.phone || fbUser.phoneNumber || '').replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
-      const payload = {
+      const existing = await getCustomerProfile();
+      const digits10 = (updates.phone ?? existing?.phone ?? fbUser.phoneNumber ?? '').replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
+      const altDigits = (updates.alt_phone ?? existing?.alt_phone ?? '').replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
+
+      const basePayload = {
         firebase_uid: fbUser.uid,
-        full_name: updates.full_name?.trim() || fbUser.displayName || '',
-        email: fbUser.email || null,
+        full_name: updates.full_name?.trim() || existing?.full_name || fbUser.displayName || '',
+        email: updates.email?.trim() || existing?.email || fbUser.email || null,
         phone: digits10 || null,
-        avatar_url: fbUser.photoURL || null,
+        avatar_url: fbUser.photoURL || existing?.avatar_url || null,
         provider: fbUser.phoneNumber ? 'phone' : 'google',
-        shipping_address: updates.shipping_address?.trim() || null,
-        city: updates.city?.trim() || null,
-        state: updates.state?.trim() || null,
-        pincode: updates.pincode?.trim() || null,
+        shipping_address: updates.shipping_address !== undefined ? (updates.shipping_address?.trim() || null) : (existing?.shipping_address || null),
+        city: updates.city !== undefined ? (updates.city?.trim() || null) : (existing?.city || null),
+        state: updates.state !== undefined ? (updates.state?.trim() || null) : (existing?.state || null),
+        pincode: updates.pincode !== undefined ? (updates.pincode?.trim() || null) : (existing?.pincode || null),
         updated_at: new Date().toISOString()
       };
 
+      const extendedPayload = {
+        ...basePayload,
+        alt_phone: altDigits || null,
+        landmark: updates.landmark !== undefined ? (updates.landmark?.trim() || null) : (existing?.landmark || null),
+        address_type: updates.address_type || existing?.address_type || 'Home',
+        dietary_pref: updates.dietary_pref || existing?.dietary_pref || 'All Pure Foods',
+        whatsapp_opt_in: updates.whatsapp_opt_in !== undefined ? updates.whatsapp_opt_in : (existing?.whatsapp_opt_in ?? true),
+        gstin: updates.gstin !== undefined ? (updates.gstin?.trim().toUpperCase() || null) : (existing?.gstin || null),
+        membership_tier: updates.membership_tier !== undefined ? updates.membership_tier : (existing?.membership_tier || null),
+        membership_expires_at: updates.membership_expires_at !== undefined ? updates.membership_expires_at : (existing?.membership_expires_at || null),
+        membership_payment_id: updates.membership_payment_id !== undefined ? updates.membership_payment_id : (existing?.membership_payment_id || null)
+      };
+
       try {
-        localStorage.setItem(`manneeds_fb_profile_${fbUser.uid}`, JSON.stringify(payload));
+        localStorage.setItem(`manneeds_fb_profile_${fbUser.uid}`, JSON.stringify(extendedPayload));
+        if (extendedPayload.membership_tier === 'annual_99' && extendedPayload.membership_expires_at) {
+          localStorage.setItem('manneeds_membership_v1', JSON.stringify({
+            tier: extendedPayload.membership_tier,
+            expires_at: extendedPayload.membership_expires_at
+          }));
+        }
       } catch {}
 
-      const { error } = await supabase
+      let { error } = await supabase
         .from('customer_profiles')
-        .upsert(payload, { onConflict: 'firebase_uid' });
+        .upsert(extendedPayload, { onConflict: 'firebase_uid' });
+
+      // Fallback to base columns if extended columns migration hasn't been run in Supabase yet
+      if (error && /column/i.test(error.message || '')) {
+        const retry = await supabase
+          .from('customer_profiles')
+          .upsert(basePayload, { onConflict: 'firebase_uid' });
+        error = retry.error;
+      }
 
       if (error) {
         return { success: false, message: `Could not sync to cloud: ${error.message}` };
       }
-      return { success: true, message: 'Delivery details saved & synced across all your devices!' };
+      return { success: true, message: 'Account & delivery preferences saved across your devices!' };
     }
 
     return { success: false, message: 'Please sign in first.' };
@@ -1417,6 +1447,30 @@ export async function getCustomerOrders(): Promise<Order[]> {
   } catch {
     return [];
   }
+}
+
+export function isMembershipActive(profile?: Partial<CustomerProfile> | null): boolean {
+  if (profile?.membership_tier === 'annual_99' && profile?.membership_expires_at) {
+    return new Date(profile.membership_expires_at).getTime() > Date.now();
+  }
+  try {
+    if (typeof window !== 'undefined') {
+      const raw = localStorage.getItem('manneeds_membership_v1');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.tier === 'annual_99' && parsed?.expires_at) {
+          return new Date(parsed.expires_at).getTime() > Date.now();
+        }
+      }
+    }
+  } catch {}
+  return false;
+}
+
+export async function hasActiveMembership(): Promise<boolean> {
+  if (isMembershipActive(null)) return true;
+  const profile = await getCustomerProfile();
+  return isMembershipActive(profile);
 }
 
 /**

@@ -57,6 +57,9 @@
           <span class="coupon-badge" id="cart-coupon-badge">MANNEEDS15</span>
           <span class="coupon-text" id="cart-coupon-text">15% OFF · New User Welcome</span>
         </div>
+        <a href="/account#membership" class="cart-club-upsell" id="cart-club-upsell">
+          👑 Harvest Club ₹99/yr: Get 15% OFF every order + Free Shipping →
+        </a>
 
         <!-- Price Breakdown -->
         <div class="cart-totals">
@@ -666,6 +669,16 @@
     flex-shrink: 0;
   }
 
+  .cart-club-upsell {
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--mn-cta);
+    text-decoration: none;
+    margin: 0.35rem 0 0.6rem;
+    text-align: center;
+  }
+  .cart-club-upsell:hover { text-decoration: underline; }
   .cart-coupon-strip {
     display: flex;
     align-items: center;
@@ -1547,7 +1560,7 @@
 </style>
 
 <script>
-  import { createOrder, cleanProductName, isReturningCustomer, type Order } from '../lib/db';
+  import { createOrder, cleanProductName, isReturningCustomer, hasActiveMembership, type Order } from '../lib/db';
 
   // Global Cart Manager with LocalStorage persistence
   interface CartItem {
@@ -1659,7 +1672,12 @@
     }
   })();
 
+  let isClubMember = false;
+
   function getDiscountTier() {
+    if (isClubMember) {
+      return { rate: 0.15, pct: 15, code: 'MANNEEDS_CLUB', strip: '15% OFF · Harvest Club Member', rowLabel: 'Harvest Club (15% OFF)' };
+    }
     return isRegularCustomer
       ? { rate: 0.10, pct: 10, code: 'MANNEEDS10', strip: '10% OFF · Regular Customer', rowLabel: 'Regular Discount (10% OFF)' }
       : { rate: 0.15, pct: 15, code: 'MANNEEDS15', strip: '15% OFF · New User Welcome', rowLabel: 'New User Discount (15% OFF)' };
@@ -1671,16 +1689,22 @@
     const textEl = document.getElementById('cart-coupon-text');
     const rowLabelEl = document.getElementById('cart-discount-label');
     const pillEl = document.getElementById('checkout-discount-pill');
+    const upsellEl = document.getElementById('cart-club-upsell');
     if (badgeEl) badgeEl.textContent = tier.code;
     if (textEl) textEl.textContent = tier.strip;
     if (rowLabelEl) rowLabelEl.textContent = tier.rowLabel;
     if (pillEl) pillEl.textContent = `${tier.code} (${tier.pct}% OFF)`;
+    if (upsellEl) upsellEl.style.display = isClubMember ? 'none' : 'block';
   }
 
   async function refreshCustomerDiscountTier(phone?: string, email?: string) {
-    const returning = await isReturningCustomer(phone, email);
-    if (returning !== isRegularCustomer) {
+    const [returning, member] = await Promise.all([
+      isReturningCustomer(phone, email),
+      hasActiveMembership()
+    ]);
+    if (returning !== isRegularCustomer || member !== isClubMember) {
       isRegularCustomer = returning;
+      isClubMember = member;
       renderCart();
     } else {
       syncDiscountUI();
@@ -1694,7 +1718,7 @@
     const { rate } = getDiscountTier();
     const subtotal = cart.reduce((sum, item) => sum + (parsePrice(item.price) * item.quantity), 0);
     const discount = Math.round(subtotal * rate);
-    const shipping = subtotal >= 499 ? 0 : (subtotal > 0 ? 49 : 0);
+    const shipping = isClubMember ? 0 : (subtotal >= 499 ? 0 : (subtotal > 0 ? 49 : 0));
     const finalTotal = Math.max(0, subtotal - discount + shipping);
     return { subtotal, discount, shipping, finalTotal };
   }

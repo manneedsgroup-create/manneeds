@@ -95,23 +95,74 @@ import MainLayout from '../layouts/MainLayout.astro';
           <button type="button" id="btn-signout" class="btn btn-secondary">Sign Out</button>
         </div>
 
+        <!-- Harvest Club ₹99/Year Membership Banner -->
+        <div class="membership-card" id="membership">
+          <div class="membership-info">
+            <div class="membership-badge-row">
+              <span class="badge badge-orange">👑 ManNeeds Harvest Club</span>
+              <span class="membership-status-pill" id="mem-status-pill">₹99 / Year</span>
+            </div>
+            <h2 id="mem-title">Unlock 15% OFF Every Order + Free Shipping All Year</h2>
+            <p id="mem-desc">
+              Upgrade from standard 10% regular savings to <strong>15% OFF on every single order</strong> plus <strong>FREE Express Shipping</strong> with zero minimum order value for 365 days.
+            </p>
+            <div class="membership-perks">
+              <span>✓ 15% OFF Always (vs 10% Regular)</span>
+              <span>✓ Free Shipping Under ₹499</span>
+              <span>✓ Priority Fresh-Batch Dispatch</span>
+            </div>
+          </div>
+          <div class="membership-cta-col">
+            <button type="button" id="btn-join-membership" class="btn btn-primary membership-join-btn">
+              Join Harvest Club · ₹99/yr
+            </button>
+            <span class="membership-expiry-note" id="mem-expiry-note">Instant activation via UPI / Card</span>
+          </div>
+        </div>
+
         <div class="dashboard-grid">
           <!-- Saved Address & Profile -->
           <div class="dashboard-card">
-            <h2>Saved Delivery Details</h2>
-            <p class="dash-card-sub">Auto-filled at checkout for faster ordering.</p>
+            <h2>Account &amp; Delivery Preferences</h2>
+            <p class="dash-card-sub">Manage your contact, delivery address, dietary preferences &amp; alerts.</p>
             <form id="profile-save-form" class="dash-form" autocomplete="on">
-              <div class="dash-field">
-                <label for="prof-name">Full Name</label>
-                <input type="text" id="prof-name" name="name" autocomplete="name" required placeholder="Your full name" />
+              <div class="dash-form-row-2">
+                <div class="dash-field">
+                  <label for="prof-name">Full Name</label>
+                  <input type="text" id="prof-name" name="name" autocomplete="name" required placeholder="Your full name" />
+                </div>
+                <div class="dash-field">
+                  <label for="prof-email">Email Address</label>
+                  <input type="email" id="prof-email" name="email" autocomplete="email" placeholder="you@example.com" />
+                </div>
               </div>
-              <div class="dash-field">
-                <label for="prof-phone">Mobile Number</label>
-                <input type="tel" id="prof-phone" name="tel" autocomplete="tel" placeholder="10-digit mobile number" />
+              <div class="dash-form-row-2">
+                <div class="dash-field">
+                  <label for="prof-phone">Primary Mobile</label>
+                  <input type="tel" id="prof-phone" name="tel" autocomplete="tel" placeholder="10-digit mobile number" />
+                </div>
+                <div class="dash-field">
+                  <label for="prof-alt-phone">Alternate / WhatsApp No.</label>
+                  <input type="tel" id="prof-alt-phone" maxlength="10" inputmode="numeric" placeholder="Optional 10-digit number" />
+                </div>
               </div>
               <div class="dash-field">
                 <label for="prof-address">Shipping Address</label>
                 <textarea id="prof-address" name="street-address" autocomplete="street-address" rows="2" placeholder="House/Flat, Street, Area"></textarea>
+              </div>
+              <div class="dash-form-row-2">
+                <div class="dash-field">
+                  <label for="prof-landmark">Landmark</label>
+                  <input type="text" id="prof-landmark" placeholder="e.g. Near Metro Gate 2" />
+                </div>
+                <div class="dash-field">
+                  <label for="prof-address-type">Address Type</label>
+                  <select id="prof-address-type" class="dash-select">
+                    <option value="Home">🏠 Home</option>
+                    <option value="Work">🏢 Work / Office</option>
+                    <option value="Other">📍 Other</option>
+                  </select>
+                </div>
               </div>
               <div class="dash-form-row">
                 <div class="dash-field">
@@ -127,7 +178,27 @@ import MainLayout from '../layouts/MainLayout.astro';
                   <input type="text" id="prof-state" name="address-level1" autocomplete="address-level1" placeholder="State" />
                 </div>
               </div>
-              <button type="submit" id="btn-save-profile" class="btn btn-primary">Save Details</button>
+              <div class="dash-form-row-2">
+                <div class="dash-field">
+                  <label for="prof-dietary">Kitchen &amp; Spice Preference</label>
+                  <select id="prof-dietary" class="dash-select">
+                    <option value="All Pure Foods">🌿 All Pure Foods</option>
+                    <option value="Mild & Kids-Friendly">🍯 Mild &amp; Kids-Friendly</option>
+                    <option value="Extra Spicy">🌶️ Extra Spicy</option>
+                    <option value="Jain / No Onion-Garlic">🙏 Jain / No Onion-Garlic</option>
+                    <option value="Keto / Low-Carb">🥑 Keto / Low-Carb</option>
+                  </select>
+                </div>
+                <div class="dash-field">
+                  <label for="prof-gstin">GSTIN (Optional)</label>
+                  <input type="text" id="prof-gstin" maxlength="15" placeholder="For business tax invoice" style="text-transform:uppercase;" />
+                </div>
+              </div>
+              <label class="dash-checkbox-row">
+                <input type="checkbox" id="prof-wa-optin" checked />
+                <span>Send me WhatsApp order tracking &amp; fresh-harvest batch alerts</span>
+              </label>
+              <button type="submit" id="btn-save-profile" class="btn btn-primary">Save Account Preferences</button>
               <div id="prof-status-msg" class="auth-status-box" style="display: none;"></div>
             </form>
           </div>
@@ -152,6 +223,65 @@ import MainLayout from '../layouts/MainLayout.astro';
 </MainLayout>
 
 <style>
+  .membership-card {
+    background: linear-gradient(135deg, rgba(217, 107, 39, 0.12) 0%, rgba(30, 70, 32, 0.12) 100%);
+    border: 1.5px solid rgba(217, 107, 39, 0.35);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .membership-info { flex: 1; min-width: 260px; }
+  .membership-badge-row { display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+  .membership-status-pill {
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    background: var(--bg-surface);
+    color: var(--mn-cta);
+    border: 1px solid rgba(217, 107, 39, 0.35);
+  }
+  .membership-status-pill.active {
+    background: var(--bg-tint-green);
+    color: var(--mn-primary);
+    border-color: var(--border-green);
+  }
+  .membership-info h2 { font-size: 1.2rem; margin: 0 0 0.35rem; color: var(--text-primary); }
+  .membership-info p { font-size: 0.88rem; color: var(--text-secondary); margin: 0 0 0.65rem; line-height: 1.5; }
+  .membership-perks { display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem; font-size: 0.8rem; font-weight: 700; color: var(--mn-primary); }
+  .membership-cta-col { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; }
+  .membership-join-btn { padding: 0.85rem 1.5rem; white-space: nowrap; }
+  .membership-expiry-note { font-size: 0.75rem; color: var(--text-secondary); }
+  .dash-form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .dash-select {
+    width: 100%;
+    padding: 0.68rem 0.85rem;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--border-medium);
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-family: var(--font-body);
+  }
+  .dash-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.84rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    margin: 0.25rem 0;
+  }
+  .dash-checkbox-row input { width: 16px; height: 16px; accent-color: var(--mn-cta); }
+  @media (max-width: 640px) {
+    .dash-form-row-2 { grid-template-columns: 1fr; }
+    .membership-cta-col { width: 100%; align-items: stretch; }
+  }
   .account-section {
     padding: 3.5rem 0 4.5rem;
     background: var(--bg-base);
@@ -514,13 +644,26 @@ import MainLayout from '../layouts/MainLayout.astro';
 
   const profileForm = document.getElementById('profile-save-form') as HTMLFormElement | null;
   const profName = document.getElementById('prof-name') as HTMLInputElement | null;
+  const profEmail = document.getElementById('prof-email') as HTMLInputElement | null;
   const profPhone = document.getElementById('prof-phone') as HTMLInputElement | null;
+  const profAltPhone = document.getElementById('prof-alt-phone') as HTMLInputElement | null;
   const profAddress = document.getElementById('prof-address') as HTMLTextAreaElement | null;
+  const profLandmark = document.getElementById('prof-landmark') as HTMLInputElement | null;
+  const profAddressType = document.getElementById('prof-address-type') as HTMLSelectElement | null;
   const profPincode = document.getElementById('prof-pincode') as HTMLInputElement | null;
   const profCity = document.getElementById('prof-city') as HTMLInputElement | null;
   const profState = document.getElementById('prof-state') as HTMLInputElement | null;
+  const profDietary = document.getElementById('prof-dietary') as HTMLSelectElement | null;
+  const profGstin = document.getElementById('prof-gstin') as HTMLInputElement | null;
+  const profWaOptin = document.getElementById('prof-wa-optin') as HTMLInputElement | null;
   const profStatusMsg = document.getElementById('prof-status-msg');
   const ordersList = document.getElementById('orders-list');
+
+  const memStatusPill = document.getElementById('mem-status-pill');
+  const memTitle = document.getElementById('mem-title');
+  const memDesc = document.getElementById('mem-desc');
+  const memJoinBtn = document.getElementById('btn-join-membership') as HTMLButtonElement | null;
+  const memExpiryNote = document.getElementById('mem-expiry-note');
 
   let pendingPhoneE164 = '';
   let confirmationResult: ConfirmationResult | null = null;
@@ -628,16 +771,124 @@ import MainLayout from '../layouts/MainLayout.astro';
     e.preventDefault();
     const res = await updateCustomerProfile({
       full_name: profName?.value || '',
+      email: profEmail?.value || '',
       phone: profPhone?.value || '',
+      alt_phone: profAltPhone?.value || '',
       shipping_address: profAddress?.value || '',
+      landmark: profLandmark?.value || '',
+      address_type: profAddressType?.value || 'Home',
       pincode: profPincode?.value || '',
       city: profCity?.value || '',
-      state: profState?.value || ''
+      state: profState?.value || '',
+      dietary_pref: profDietary?.value || 'All Pure Foods',
+      gstin: profGstin?.value || '',
+      whatsapp_opt_in: profWaOptin ? profWaOptin.checked : true
     });
     if (profStatusMsg) {
       profStatusMsg.style.display = 'block';
       profStatusMsg.className = `auth-status-box ${res.success ? 'success' : 'error'}`;
       profStatusMsg.textContent = res.message;
+    }
+  });
+
+  function renderMembershipUI(profile: any) {
+    const active = profile?.membership_tier === 'annual_99' &&
+      profile?.membership_expires_at &&
+      new Date(profile.membership_expires_at).getTime() > Date.now();
+    if (active) {
+      const expStr = new Date(profile.membership_expires_at).toLocaleDateString('en-IN', {
+        day: 'numeric', month: 'short', year: 'numeric'
+      });
+      if (memStatusPill) {
+        memStatusPill.textContent = '✓ ACTIVE MEMBER';
+        memStatusPill.classList.add('active');
+      }
+      if (memTitle) memTitle.textContent = 'Your Harvest Club Membership is Active';
+      if (memDesc) memDesc.innerHTML = 'Enjoy <strong>15% OFF on every order</strong> (auto-applied with <code>MANNEEDS_CLUB</code>) + <strong>FREE Express Shipping</strong> with no minimum cart value.';
+      if (memJoinBtn) {
+        memJoinBtn.textContent = '✓ Active Member';
+        memJoinBtn.disabled = true;
+      }
+      if (memExpiryNote) memExpiryNote.textContent = `Valid until ${expStr}`;
+    } else {
+      if (memStatusPill) {
+        memStatusPill.textContent = '₹99 / Year';
+        memStatusPill.classList.remove('active');
+      }
+      if (memJoinBtn) {
+        memJoinBtn.textContent = 'Join Harvest Club · ₹99/yr';
+        memJoinBtn.disabled = false;
+      }
+      if (memExpiryNote) memExpiryNote.textContent = 'Instant activation via UPI / Card';
+    }
+  }
+
+  memJoinBtn?.addEventListener('click', async () => {
+    const phoneDigits = (profPhone?.value || '').replace(/\D/g, '').slice(-10);
+    if (!/^[6-9]\d{9}$/.test(phoneDigits)) {
+      if (memExpiryNote) {
+        memExpiryNote.textContent = 'Please save your 10-digit Mobile Number below first.';
+        memExpiryNote.style.color = '#DC2626';
+      }
+      profPhone?.focus();
+      return;
+    }
+
+    memJoinBtn.disabled = true;
+    memJoinBtn.textContent = 'Starting ₹99 Checkout...';
+    try {
+      const memOrderId = `MN_CLUB_${Date.now()}`;
+      const res = await fetch('/api/cashfree-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: memOrderId,
+          amount: 99,
+          customer_name: profName?.value || 'ManNeeds Member',
+          customer_phone: phoneDigits,
+          customer_email: profEmail?.value || `${phoneDigits}@manneeds.in`
+        })
+      });
+      const data = await res.json();
+      if (!data?.configured || !data?.payment_session_id) {
+        throw new Error(data?.error || 'Payment gateway unavailable.');
+      }
+
+      if (!(window as any).Cashfree) {
+        await new Promise<void>((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
+          s.onload = () => resolve();
+          s.onerror = () => reject(new Error('Could not load Cashfree SDK.'));
+          document.head.appendChild(s);
+        });
+      }
+
+      const cashfree = (window as any).Cashfree({ mode: data.env === 'sandbox' ? 'sandbox' : 'production' });
+      const result = await cashfree.checkout({
+        paymentSessionId: data.payment_session_id,
+        redirectTarget: '_modal'
+      });
+      if (result?.error) throw new Error(result.error.message || 'Payment cancelled.');
+
+      const verifyRes = await fetch(`/api/cashfree-verify?order_id=${encodeURIComponent(data.order_id)}`);
+      const verifyData = await verifyRes.json();
+      if (!verifyData?.paid) throw new Error(`Payment not completed (${verifyData?.order_status || 'PENDING'}).`);
+
+      const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+      await updateCustomerProfile({
+        membership_tier: 'annual_99',
+        membership_expires_at: expiresAt,
+        membership_payment_id: data.order_id
+      });
+      renderMembershipUI({ membership_tier: 'annual_99', membership_expires_at: expiresAt });
+    } catch (err: any) {
+      if (memExpiryNote) {
+        memExpiryNote.textContent = err?.message || 'Could not activate membership.';
+        memExpiryNote.style.color = '#DC2626';
+      }
+      memJoinBtn.disabled = false;
+      memJoinBtn.textContent = 'Join Harvest Club · ₹99/yr';
     }
   });
 
@@ -683,11 +934,19 @@ import MainLayout from '../layouts/MainLayout.astro';
     }
 
     if (profName) profName.value = profile?.full_name || fbUser?.displayName || user?.user_metadata?.full_name || '';
+    if (profEmail) profEmail.value = profile?.email || fbUser?.email || user?.email || '';
     if (profPhone) profPhone.value = (profile?.phone || fbUser?.phoneNumber || user?.phone || '').replace(/^\+91/, '');
+    if (profAltPhone) profAltPhone.value = profile?.alt_phone || '';
     if (profAddress) profAddress.value = profile?.shipping_address || '';
+    if (profLandmark) profLandmark.value = profile?.landmark || '';
+    if (profAddressType) profAddressType.value = profile?.address_type || 'Home';
     if (profPincode) profPincode.value = profile?.pincode || '';
     if (profCity) profCity.value = profile?.city || '';
     if (profState) profState.value = profile?.state || '';
+    if (profDietary) profDietary.value = profile?.dietary_pref || 'All Pure Foods';
+    if (profGstin) profGstin.value = profile?.gstin || '';
+    if (profWaOptin) profWaOptin.checked = profile?.whatsapp_opt_in !== false;
+    renderMembershipUI(profile);
 
     const orders = await getCustomerOrders();
     if (ordersList) {

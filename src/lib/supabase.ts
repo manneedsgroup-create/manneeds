@@ -121,9 +121,18 @@ export interface CustomerProfile {
   avatar_url?: string;
   provider?: 'google' | 'apple' | 'phone' | string;
   shipping_address?: string;
+  landmark?: string;
+  address_type?: 'Home' | 'Work' | 'Other' | string;
   city?: string;
   state?: string;
   pincode?: string;
+  alt_phone?: string;
+  dietary_pref?: string;
+  whatsapp_opt_in?: boolean;
+  gstin?: string;
+  membership_tier?: 'annual_99' | string | null;
+  membership_expires_at?: string | null;
+  membership_payment_id?: string | null;
   total_orders?: number;
   total_spent?: number;
   created_at?: string;
