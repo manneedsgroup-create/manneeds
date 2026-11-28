@@ -1419,6 +1419,40 @@ export async function getCustomerOrders(): Promise<Order[]> {
   }
 }
 
+/**
+ * Returns true if the customer has placed at least one prior order (Regular User -> 10% OFF),
+ * or false if they have no prior orders (New User -> 15% OFF).
+ */
+export async function isReturningCustomer(phone?: string, email?: string): Promise<boolean> {
+  try {
+    if (typeof window !== 'undefined' && localStorage.getItem('manneeds_has_ordered') === '1') {
+      return true;
+    }
+    if (!isSupabaseConfigured) return false;
+
+    const existing = await getCustomerOrders();
+    if (existing.length > 0) return true;
+
+    const digits10 = (phone || '').replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
+    const cleanEmail = (email || '').trim().toLowerCase();
+    if (!digits10 && !cleanEmail) return false;
+
+    let query = supabase.from('orders').select('id', { count: 'exact', head: true });
+    if (digits10 && cleanEmail) {
+      query = query.or(`customer_phone.eq.${digits10},customer_email.eq.${cleanEmail}`);
+    } else if (digits10) {
+      query = query.eq('customer_phone', digits10);
+    } else {
+      query = query.eq('customer_email', cleanEmail);
+    }
+
+    const { count } = await query;
+    return (count ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
 // ==========================================
 // PRODUCT REELS (INSTAGRAM / FACEBOOK / MP4)
 // ==========================================

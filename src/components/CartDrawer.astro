@@ -54,8 +54,8 @@
       <div class="cart-footer" id="cart-footer">
         <!-- Coupon Strip -->
         <div class="cart-coupon-strip">
-          <span class="coupon-badge">MANNEEDS15</span>
-          <span class="coupon-text">15% OFF Applied at checkout</span>
+          <span class="coupon-badge" id="cart-coupon-badge">MANNEEDS15</span>
+          <span class="coupon-text" id="cart-coupon-text">15% OFF · New User Welcome</span>
         </div>
 
         <!-- Price Breakdown -->
@@ -65,7 +65,7 @@
             <span id="cart-subtotal">₹0</span>
           </div>
           <div class="total-row discount-row">
-            <span>Tribe Discount (15% OFF)</span>
+            <span id="cart-discount-label">New User Discount (15% OFF)</span>
             <span class="discount-val" id="cart-discount">-₹0</span>
           </div>
           <div class="total-row shipping-row">
@@ -123,7 +123,7 @@
           <div class="strip-details">
             <span class="strip-qty" id="checkout-items-summary">0 items</span>
             <span class="strip-divider">•</span>
-            <span class="strip-discount">MANNEEDS15 (15% OFF)</span>
+            <span class="strip-discount" id="checkout-discount-pill">MANNEEDS15 (15% OFF)</span>
           </div>
           <div class="strip-total" id="checkout-payable-total">₹0</div>
         </div>
@@ -1547,7 +1547,7 @@
 </style>
 
 <script>
-  import { createOrder, cleanProductName, type Order } from '../lib/db';
+  import { createOrder, cleanProductName, isReturningCustomer, type Order } from '../lib/db';
 
   // Global Cart Manager with LocalStorage persistence
   interface CartItem {
@@ -1651,15 +1651,56 @@
     return '🌿';
   }
 
+  let isRegularCustomer = (() => {
+    try {
+      return localStorage.getItem('manneeds_has_ordered') === '1';
+    } catch {
+      return false;
+    }
+  })();
+
+  function getDiscountTier() {
+    return isRegularCustomer
+      ? { rate: 0.10, pct: 10, code: 'MANNEEDS10', strip: '10% OFF · Regular Customer', rowLabel: 'Regular Discount (10% OFF)' }
+      : { rate: 0.15, pct: 15, code: 'MANNEEDS15', strip: '15% OFF · New User Welcome', rowLabel: 'New User Discount (15% OFF)' };
+  }
+
+  function syncDiscountUI() {
+    const tier = getDiscountTier();
+    const badgeEl = document.getElementById('cart-coupon-badge');
+    const textEl = document.getElementById('cart-coupon-text');
+    const rowLabelEl = document.getElementById('cart-discount-label');
+    const pillEl = document.getElementById('checkout-discount-pill');
+    if (badgeEl) badgeEl.textContent = tier.code;
+    if (textEl) textEl.textContent = tier.strip;
+    if (rowLabelEl) rowLabelEl.textContent = tier.rowLabel;
+    if (pillEl) pillEl.textContent = `${tier.code} (${tier.pct}% OFF)`;
+  }
+
+  async function refreshCustomerDiscountTier(phone?: string, email?: string) {
+    const returning = await isReturningCustomer(phone, email);
+    if (returning !== isRegularCustomer) {
+      isRegularCustomer = returning;
+      renderCart();
+    } else {
+      syncDiscountUI();
+    }
+    const { finalTotal } = calculateCartTotals();
+    if (checkoutPayableTotal) checkoutPayableTotal.textContent = `₹${finalTotal}`;
+    if (btnPayAmount) btnPayAmount.textContent = `₹${finalTotal}`;
+  }
+
   function calculateCartTotals() {
+    const { rate } = getDiscountTier();
     const subtotal = cart.reduce((sum, item) => sum + (parsePrice(item.price) * item.quantity), 0);
-    const discount = Math.round(subtotal * 0.15); // 15% flat coupon
+    const discount = Math.round(subtotal * rate);
     const shipping = subtotal >= 499 ? 0 : (subtotal > 0 ? 49 : 0);
     const finalTotal = Math.max(0, subtotal - discount + shipping);
     return { subtotal, discount, shipping, finalTotal };
   }
 
   function renderCart() {
+    syncDiscountUI();
     if (!itemsWrap || !emptyState || !cartFooter) return;
 
     if (cart.length === 0) {
@@ -1941,7 +1982,7 @@
         payment_status: paymentMethod === 'cod' ? 'cod_pending' : 'paid',
         subtotal: subtotal,
         discount_amount: discount,
-        discount_code: 'MANNEEDS15',
+        discount_code: getDiscountTier().code,
         shipping_fee: shipping,
         total_amount: finalTotal,
         items: cart.map((i) => ({
@@ -2020,6 +2061,12 @@
             : 'Paid via Cashfree (UPI / Card)';
         }
         if (successTotalAmount) successTotalAmount.textContent = `₹${finalTotal}`;
+
+        // Mark device as returning customer for subsequent orders (10% regular discount)
+        try {
+          localStorage.setItem('manneeds_has_ordered', '1');
+        } catch {}
+        isRegularCustomer = true;
 
         // Clear Cart
         cart = [];
@@ -2114,11 +2161,26 @@
     if (pinEl && !pinEl.value && profile?.pincode) pinEl.value = profile.pincode;
     if (cityEl && !cityEl.value && profile?.city) cityEl.value = profile.city;
     if (stateEl && !stateEl.value && profile?.state) stateEl.value = profile.state;
+
+    await refreshCustomerDiscountTier(phoneRaw, email);
   }
 
   autofillCheckoutFromAccount();
   cartSupabase.auth.onAuthStateChange(() => autofillCheckoutFromAccount());
   onCartFbAuth(cartFbAuth, () => autofillCheckoutFromAccount());
+
+  // Also check returning customer tier when guest enters phone or email in checkout
+  const checkoutPhoneInput = document.getElementById('checkout-phone') as HTMLInputElement | null;
+  const checkoutEmailInput = document.getElementById('checkout-email') as HTMLInputElement | null;
+  checkoutPhoneInput?.addEventListener('input', () => {
+    const digits = checkoutPhoneInput.value.replace(/\D/g, '');
+    if (digits.length === 10) refreshCustomerDiscountTier(digits, checkoutEmailInput?.value);
+  });
+  checkoutEmailInput?.addEventListener('blur', () => {
+    if (checkoutEmailInput.value.includes('@')) {
+      refreshCustomerDiscountTier(checkoutPhoneInput?.value, checkoutEmailInput.value);
+    }
+  });
 
   // Re-run autofill when entering checkout view
   checkoutBtn?.addEventListener('click', () => {
